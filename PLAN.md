@@ -59,6 +59,7 @@
 - [x] Role assignment and invitation workflows.
 - [ ] Audit log persistence and read views.
 - [ ] League dashboard with empty states and onboarding guidance.
+- [ ] Milestone checkpoint: refresh README and contributor-facing docs for shipped admin workflows.
 
 ## Milestone 3 — roster workflows
 
@@ -72,6 +73,7 @@
 - [ ] Bulk import and CSV validation pipeline.
 - [ ] Eligibility, jersey, and profile metadata extensions.
 - [ ] Roster permission regression tests.
+- [ ] Milestone checkpoint: refresh README and contributor-facing docs for roster workflows.
 
 ## Milestone 4 — scheduling and attendance
 
@@ -85,6 +87,7 @@
 - [ ] Calendar exports (ICS) and reminders.
 - [ ] Team and league event views.
 - [ ] Playwright coverage for critical event journeys.
+- [ ] Milestone checkpoint: refresh README and contributor-facing docs for scheduling workflows.
 
 ## Milestone 5 — communications and notifications
 
@@ -98,6 +101,7 @@
 - [ ] Email digests and reminder templates.
 - [ ] Delivery logging and audit hooks.
 - [ ] Accessibility review for message composition flows.
+- [ ] Milestone checkpoint: refresh README and contributor-facing docs for communication workflows.
 
 ## Milestone 6 — extensibility and ecosystem
 
@@ -111,6 +115,7 @@
 - [ ] Developer docs for new feature modules.
 - [ ] Example advanced modules (payments, stats, brackets) as optional add-ons.
 - [ ] API contracts for external consumers and mobile clients.
+- [ ] Milestone checkpoint: refresh README and contributor-facing docs for extension points.
 
 ## Continuous best practices
 
@@ -118,5 +123,7 @@
 - Every permission check routed through centralized helpers.
 - No direct database access from UI components.
 - Prefer small composable server-side modules over route-specific duplication.
-- Keep CI green with lint, typecheck, tests, build, and E2E coverage.
+- Every milestone should add or update test coverage for newly introduced behavior.
+- Keep CI green with lint, typecheck, unit tests, integration tests, build, and E2E coverage where appropriate.
+- Review and update the README and contributor-facing docs at milestone checkpoints when user-facing capabilities, setup, architecture, or workflow expectations change.
 - Review security, observability, and accessibility as first-class concerns at every milestone.
