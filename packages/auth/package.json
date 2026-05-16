@@ -12,9 +12,11 @@
   "dependencies": {
     "@teamsster/db": "workspace:*",
     "better-auth": "1.6.11",
+    "nodemailer": "8.0.7",
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@types/nodemailer": "8.0.0",
     "typescript": "5.9.3"
   }
 }

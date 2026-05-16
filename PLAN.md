@@ -41,11 +41,11 @@
 - Capture timezone and display-name preferences early.
 
 ### Work items
-- [ ] Replace auth email logging scaffolds with a production-ready mail transport.
-- [ ] Add Better Auth tables and migrations.
-- [ ] Implement onboarding flow for personal league creation.
-- [ ] Add account settings pages for profile, timezone, and notification preferences.
-- [ ] Add tests around onboarding edge cases and invitation flows.
+- [x] Replace auth email logging scaffolds with a production-ready mail transport.
+- [x] Add Better Auth tables and migrations.
+- [x] Implement onboarding flow for personal league creation.
+- [x] Add account settings pages for profile, timezone, and notification preferences.
+- [x] Add tests around onboarding edge cases and invitation flows.
 
 ## Milestone 2 — league administration
 

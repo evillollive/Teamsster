@@ -1,4 +1,6 @@
+import { sql } from "drizzle-orm";
 import {
+  boolean,
   index,
   jsonb,
   pgEnum,
@@ -22,6 +24,12 @@ export const roleValues = [
 
 export const membershipRoleEnum = pgEnum("membership_role", roleValues);
 
+export type NotificationPreferences = {
+  emailAnnouncements: boolean;
+  eventReminders: boolean;
+  weeklyDigest: boolean;
+};
+
 const timestampColumns = {
   createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
     .defaultNow()
@@ -36,17 +44,134 @@ const softDeleteColumns = {
   deletedById: uuid("deleted_by_id"),
 };
 
+export const authUsers = pgTable(
+  "user",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    emailVerified: boolean("email_verified").notNull().default(false),
+    image: text("image"),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [uniqueIndex("auth_user_email_unique").on(table.email)],
+);
+
+export const authSessions = pgTable(
+  "session",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUsers.id, {
+        onDelete: "cascade",
+      }),
+    token: text("token").notNull(),
+    expiresAt: timestamp("expires_at", {
+      mode: "date",
+      withTimezone: true,
+    }).notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("auth_session_token_unique").on(table.token),
+    index("auth_session_user_idx").on(table.userId),
+  ],
+);
+
+export const authAccounts = pgTable(
+  "account",
+  {
+    id: text("id").primaryKey(),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => authUsers.id, {
+        onDelete: "cascade",
+      }),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    scope: text("scope"),
+    password: text("password"),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("auth_account_provider_unique").on(
+      table.providerId,
+      table.accountId,
+    ),
+    index("auth_account_user_idx").on(table.userId),
+  ],
+);
+
+export const authVerifications = pgTable(
+  "verification",
+  {
+    id: text("id").primaryKey(),
+    identifier: text("identifier").notNull(),
+    value: text("value").notNull(),
+    expiresAt: timestamp("expires_at", {
+      mode: "date",
+      withTimezone: true,
+    }).notNull(),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("auth_verification_identifier_idx").on(table.identifier)],
+);
+
 export const users = pgTable(
   "users",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    authUserId: text("auth_user_id").references(() => authUsers.id),
     email: text("email").notNull(),
     displayName: text("display_name"),
     timezone: text("timezone").notNull().default("UTC"),
+    notificationPreferences: jsonb("notification_preferences")
+      .$type<NotificationPreferences>()
+      .notNull()
+      .default(
+        sql`'{"emailAnnouncements":true,"eventReminders":true,"weeklyDigest":false}'::jsonb`,
+      ),
     ...timestampColumns,
     ...softDeleteColumns,
   },
-  (table) => [uniqueIndex("users_email_unique").on(table.email)],
+  (table) => [
+    uniqueIndex("users_email_unique").on(table.email),
+    uniqueIndex("users_auth_user_id_unique").on(table.authUserId),
+  ],
 );
 
 export const leagues = pgTable(
