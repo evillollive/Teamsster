@@ -1,0 +1,30 @@
+{
+  "name": "teamsster",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.12.4",
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "commitlint": "commitlint --edit",
+    "dev": "pnpm --filter @teamsster/web dev",
+    "e2e": "pnpm --filter @teamsster/web e2e",
+    "format": "biome format --write .",
+    "lint": "biome check .",
+    "prepare": "husky",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.15",
+    "@commitlint/cli": "21.0.1",
+    "@commitlint/config-conventional": "21.0.1",
+    "@types/node": "20.19.41",
+    "husky": "9.1.7",
+    "lint-staged": "17.0.5"
+  },
+  "lint-staged": {
+    "*.{js,cjs,mjs,ts,tsx,json,md,yml,yaml}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
+  }
+}
