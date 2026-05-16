@@ -57,9 +57,9 @@
 - [x] League create/update/archive flows.
 - [x] Team create/update/archive flows.
 - [x] Role assignment and invitation workflows.
-- [ ] Audit log persistence and read views.
-- [ ] League dashboard with empty states and onboarding guidance.
-- [ ] Milestone checkpoint: refresh README and contributor-facing docs for shipped admin workflows.
+- [x] Audit log persistence and read views.
+- [x] League dashboard with empty states and onboarding guidance.
+- [x] Milestone checkpoint: refresh README and contributor-facing docs for shipped admin workflows.
 
 ## Milestone 3 — roster workflows
 

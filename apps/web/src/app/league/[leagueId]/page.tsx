@@ -1,5 +1,5 @@
 import { auth } from "@teamsster/auth";
-import { Plus, Settings } from "lucide-react";
+import { ClipboardList, Plus, Settings, Users } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getLeagueDetail } from "@/lib/league";
+import { getLeagueMemberWorkspaceForUser } from "@/lib/membership";
 import { getTeamsForLeague } from "@/lib/team";
 
 export default async function LeagueDashboardPage({
@@ -24,6 +25,23 @@ export default async function LeagueDashboardPage({
   if (!league) {
     notFound();
   }
+
+  const memberWorkspace = session?.user
+    ? await getLeagueMemberWorkspaceForUser(session.user.id, leagueId).catch(
+        (err: unknown) => {
+          // Expected for non-admin members who lack permission to view the workspace.
+          if (!(err instanceof Error) || !err.message.includes("permission")) {
+            console.error(
+              `[league-dashboard] failed to load member workspace for league ${leagueId}:`,
+              err,
+            );
+          }
+          return null;
+        },
+      )
+    : null;
+
+  const memberCount = memberWorkspace?.members.length ?? 0;
 
   return (
     <div className="grid gap-6">
@@ -73,7 +91,7 @@ export default async function LeagueDashboardPage({
               <p className="font-semibold">No teams yet</p>
               <p className="mt-1 text-sm text-slate-500">
                 {session?.user
-                  ? "Add a team to get started."
+                  ? "Add your first team to start organizing players and schedules."
                   : "Sign in to manage teams."}
               </p>
             </div>
@@ -107,14 +125,62 @@ export default async function LeagueDashboardPage({
         )}
       </Card>
 
-      <Card>
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
-          Members
-        </p>
-        <p className="mt-2 text-sm text-slate-600">
-          Manage member roles and invitations from league settings.
-        </p>
-      </Card>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Card className="grid gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-slate-400" />
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+                Members
+              </p>
+            </div>
+            {session?.user ? (
+              <Link
+                className="text-xs font-medium text-sky-600 hover:underline"
+                href={`/league/${leagueId}/settings`}
+              >
+                Manage →
+              </Link>
+            ) : null}
+          </div>
+          {memberWorkspace ? (
+            <p className="text-sm text-slate-600">
+              {memberCount === 0
+                ? "No members yet. Invite staff and volunteers from league settings."
+                : `${memberCount} member${memberCount === 1 ? "" : "s"}.`}
+              {memberWorkspace.invitations.length > 0
+                ? ` ${memberWorkspace.invitations.length} pending invitation${memberWorkspace.invitations.length === 1 ? "" : "s"}.`
+                : ""}
+            </p>
+          ) : (
+            <p className="text-sm text-slate-600">
+              Manage member roles and invitations from league settings.
+            </p>
+          )}
+        </Card>
+
+        {session?.user ? (
+          <Card className="grid gap-2">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <ClipboardList className="h-4 w-4 text-slate-400" />
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+                  Audit log
+                </p>
+              </div>
+              <Link
+                className="text-xs font-medium text-sky-600 hover:underline"
+                href={`/league/${leagueId}/audit`}
+              >
+                View →
+              </Link>
+            </div>
+            <p className="text-sm text-slate-600">
+              Review recent administrative actions for this league.
+            </p>
+          </Card>
+        ) : null}
+      </div>
     </div>
   );
 }

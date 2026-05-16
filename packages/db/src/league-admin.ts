@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { and, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 
 import { db } from "./client";
 import { auditLogs, leagueMembers, leagues, teams, users } from "./schema";
@@ -242,4 +242,38 @@ export async function getUserIdByAuthUserId(
     .limit(1);
 
   return rows[0]?.id ?? null;
+}
+
+export type AuditLogEntry = {
+  id: string;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  actorUserId: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: Date;
+};
+
+const AUDIT_LOG_DEFAULT_LIMIT = 50;
+
+export async function getAuditLogsForLeague(
+  leagueId: string,
+  limit = AUDIT_LOG_DEFAULT_LIMIT,
+): Promise<AuditLogEntry[]> {
+  const rows = await db
+    .select({
+      id: auditLogs.id,
+      action: auditLogs.action,
+      entityType: auditLogs.entityType,
+      entityId: auditLogs.entityId,
+      actorUserId: auditLogs.actorUserId,
+      metadata: auditLogs.metadata,
+      createdAt: auditLogs.createdAt,
+    })
+    .from(auditLogs)
+    .where(eq(auditLogs.leagueId, leagueId))
+    .orderBy(desc(auditLogs.createdAt))
+    .limit(limit);
+
+  return rows;
 }
