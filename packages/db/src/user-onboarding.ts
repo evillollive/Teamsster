@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { and, eq, isNull, or } from "drizzle-orm";
 
 import { db } from "./client";
@@ -29,6 +31,7 @@ const defaultNotificationPreferences: NotificationPreferences = {
   eventReminders: true,
   weeklyDigest: false,
 };
+const MAX_SLUG_GENERATION_ATTEMPTS = 5;
 
 export function shouldCreatePersonalLeague(invitationToken?: string | null) {
   return !invitationToken?.trim();
@@ -41,7 +44,7 @@ export function buildPersonalLeagueSlug(name: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "")
     .slice(0, 48);
-  const suffix = crypto.randomUUID().slice(0, 8);
+  const suffix = randomUUID().replace(/-/g, "").slice(0, 12);
   return `${base || "personal-league"}-${suffix}`;
 }
 
@@ -121,17 +124,43 @@ export async function provisionUserOnboarding(input: ProvisionInput) {
     }
 
     const leagueName = buildPersonalLeagueName(displayName);
-    const leagueId = (
-      await tx
-        .insert(leagues)
-        .values({
-          createdById: userId,
-          name: leagueName,
-          slug: buildPersonalLeagueSlug(leagueName),
-          timezone,
+    let leagueId: string | null = null;
+
+    for (
+      let attempt = 0;
+      attempt < MAX_SLUG_GENERATION_ATTEMPTS;
+      attempt += 1
+    ) {
+      const candidateSlug = buildPersonalLeagueSlug(leagueName);
+      const existingSlug = await tx
+        .select({
+          id: leagues.id,
         })
-        .returning({ id: leagues.id })
-    )[0].id;
+        .from(leagues)
+        .where(eq(leagues.slug, candidateSlug))
+        .limit(1);
+
+      if (existingSlug[0]) {
+        continue;
+      }
+
+      leagueId = (
+        await tx
+          .insert(leagues)
+          .values({
+            createdById: userId,
+            name: leagueName,
+            slug: candidateSlug,
+            timezone,
+          })
+          .returning({ id: leagues.id })
+      )[0].id;
+      break;
+    }
+
+    if (!leagueId) {
+      throw new Error("Unable to create a unique personal league slug.");
+    }
 
     await tx.insert(leagueMembers).values({
       leagueId,

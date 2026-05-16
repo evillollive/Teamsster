@@ -1,3 +1,4 @@
+import { buildPersonalLeagueSlug } from "@teamsster/db";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -41,5 +42,12 @@ describe("account settings validation", () => {
     });
 
     expect(parsed.notificationPreferences.weeklyDigest).toBe(true);
+  });
+
+  it("builds unique-ish personal league slugs with bounded length", () => {
+    const slug = buildPersonalLeagueSlug("Casey Family Personal League");
+
+    expect(slug).toMatch(/^casey-family-personal-league-[a-f0-9]{12}$/);
+    expect(slug.length).toBeLessThanOrEqual(64);
   });
 });

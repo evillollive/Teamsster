@@ -22,8 +22,6 @@ const env = envSchema.parse({
   BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
 });
 
-let mailer: nodemailer.Transporter | null = null;
-
 function getMailTransport() {
   if (!env.AUTH_SMTP_URL) {
     if (process.env.NODE_ENV === "production") {
@@ -37,11 +35,7 @@ function getMailTransport() {
     });
   }
 
-  if (!mailer) {
-    mailer = nodemailer.createTransport(env.AUTH_SMTP_URL);
-  }
-
-  return mailer;
+  return nodemailer.createTransport(env.AUTH_SMTP_URL);
 }
 
 async function sendAuthEmail(
