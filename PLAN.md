@@ -54,7 +54,7 @@
 - Keep every mutation behind shared validation and permission helpers.
 
 ### Work items
-- [ ] League create/update/archive flows.
+- [x] League create/update/archive flows.
 - [ ] Team create/update/archive flows.
 - [ ] Role assignment and invitation workflows.
 - [ ] Audit log persistence and read views.
