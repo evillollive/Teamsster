@@ -2,6 +2,7 @@ import { buildLeagueSlug } from "@teamsster/db";
 import { describe, expect, it } from "vitest";
 
 import { createLeagueSchema, updateLeagueSchema } from "@/lib/league";
+import { canViewAuditLog } from "@/lib/permissions";
 
 describe("buildLeagueSlug", () => {
   it("generates a lowercase slug with a short suffix", () => {
@@ -87,3 +88,19 @@ describe("updateLeagueSchema", () => {
 // This DB-level behaviour requires an integration test with a real (or in-memory)
 // database. Add coverage in a dedicated integration test suite once a test DB
 // fixture is wired up.
+
+describe("canViewAuditLog permission gate", () => {
+  it("allows BOARD_MEMBER and above to view audit logs", () => {
+    expect(canViewAuditLog("BOARD_MEMBER")).toBe(true);
+    expect(canViewAuditLog("COACH")).toBe(true);
+    expect(canViewAuditLog("HEAD_COACH")).toBe(true);
+    expect(canViewAuditLog("ADMIN")).toBe(true);
+    expect(canViewAuditLog("OWNER")).toBe(true);
+  });
+
+  it("denies PLAYER, PARENT, and GUEST from viewing audit logs", () => {
+    expect(canViewAuditLog("PLAYER")).toBe(false);
+    expect(canViewAuditLog("PARENT")).toBe(false);
+    expect(canViewAuditLog("GUEST")).toBe(false);
+  });
+});

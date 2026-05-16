@@ -2,6 +2,7 @@ import {
   archiveLeague,
   buildLeagueSlug,
   createLeague,
+  getAuditLogsForLeague,
   getLeagueById,
   getLeaguesByUserId,
   getUserIdByAuthUserId,
@@ -10,7 +11,7 @@ import {
 } from "@teamsster/db";
 import { z } from "zod";
 import { timezoneSchema } from "@/lib/account";
-import { canManageLeague } from "@/lib/permissions";
+import { canManageLeague, canViewAuditLog } from "@/lib/permissions";
 
 export { buildLeagueSlug };
 
@@ -97,4 +98,21 @@ export async function getLeaguesForUser(authUserId: string) {
 
 export async function getLeagueDetail(leagueId: string) {
   return getLeagueById(leagueId);
+}
+
+export async function getAuditLogForLeague(
+  authUserId: string,
+  leagueId: string,
+) {
+  const userId = await resolveUserId(authUserId);
+  const membership = await getUserLeagueMembership(leagueId, userId);
+  if (
+    !membership ||
+    !canViewAuditLog(membership.role as Parameters<typeof canViewAuditLog>[0])
+  ) {
+    throw new Error(
+      "You do not have permission to view the audit log for this league.",
+    );
+  }
+  return getAuditLogsForLeague(leagueId);
 }

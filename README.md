@@ -11,12 +11,13 @@ Teamsster aims to give leagues, clubs, volunteer boards, coaches, and families a
 - **Next.js 15** App Router scaffold with strict TypeScript
 - **pnpm monorepo** with `apps/web`, `packages/db`, and `packages/auth`
 - **Tailwind CSS v4** with **shadcn/ui-compatible** component setup and **Radix Slot** integration
-- **Drizzle ORM + Neon Postgres** database package with league-first schema stubs
-- **Better Auth** scaffold for email/password and magic-link sign-in
-- **Centralized Zod validation** helpers for future forms and mutations
+- **Drizzle ORM + Neon Postgres** database package with league-first schema and migrations
+- **Better Auth** with email/password and magic-link sign-in, onboarding, and account settings
+- **League administration** — create, update, and archive leagues and teams; role assignment and invitation workflows; audit log persistence and read views; league dashboard with empty states and onboarding guidance
+- **Centralized Zod validation** and permission helpers for all mutations
 - **Biome** formatting and linting, plus Husky, lint-staged, and commitlint
 - **Vitest + Testing Library + Playwright** testing stack
-- **GitHub workflows** for CI, E2E, CodeQL, and Renovate automation scaffolding
+- **GitHub workflows** for CI, E2E, CodeQL, and Renovate automation
 
 ## Project principles
 
@@ -112,10 +113,10 @@ For the full terms, see [`LICENSE`](./LICENSE).
 
 ## Feature roadmap snapshot
 
-The initial scaffold intentionally stops short of business features. Near-term milestones focus on:
+Milestones 0 (repository foundation), 1 (auth and onboarding), and 2 (league administration) are complete. Near-term milestones focus on:
 
-1. Auth and onboarding flows
-2. League and team CRUD foundations
+1. ~~Auth and onboarding flows~~ ✓
+2. ~~League and team CRUD foundations~~ ✓
 3. Roster workflows and invitations
 4. Event scheduling, RSVPs, and calendar exports
 5. Messaging, reporting, and extension points

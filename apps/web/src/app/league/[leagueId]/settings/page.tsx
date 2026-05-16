@@ -20,7 +20,6 @@ import {
   inviteLeagueMemberForUser,
   revokeLeagueInvitationForUser,
 } from "@/lib/membership";
-
 export default async function LeagueSettingsPage({
   params,
 }: {
@@ -331,6 +330,20 @@ export default async function LeagueSettingsPage({
               </ul>
             )}
           </div>
+        </div>
+      </Card>
+
+      <Card className="grid gap-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+          Audit log
+        </p>
+        <p className="text-sm text-slate-600">
+          Review recent administrative actions for this league.
+        </p>
+        <div>
+          <Button asChild size="sm" variant="secondary">
+            <Link href={`/league/${leagueId}/audit`}>View audit log</Link>
+          </Button>
         </div>
       </Card>
 
