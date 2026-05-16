@@ -4,11 +4,12 @@ import { toNextJsHandler } from "better-auth/next-js";
 import { magicLink } from "better-auth/plugins";
 import { z } from "zod";
 
+// DEV ONLY - Must be overridden in production.
+const DEFAULT_AUTH_SECRET = "insecure-dev-secret-change-in-production-1234";
+
 const envSchema = z.object({
   AUTH_EMAIL_FROM: z.string().default("Teamsster <noreply@example.com>"),
-  BETTER_AUTH_SECRET: z
-    .string()
-    .default("teamsster_dev_zx91Lm4qP8n2Rv7wK5t0Hs3Qm8"),
+  BETTER_AUTH_SECRET: z.string().default(DEFAULT_AUTH_SECRET),
   BETTER_AUTH_URL: z.string().url().default("http://localhost:3000"),
 });
 
@@ -63,3 +64,12 @@ export const auth = betterAuth({
 
 export type AuthInstance = typeof auth;
 export { toNextJsHandler };
+
+export function assertProductionAuthSecret() {
+  if (
+    process.env.NODE_ENV === "production" &&
+    env.BETTER_AUTH_SECRET === DEFAULT_AUTH_SECRET
+  ) {
+    throw new Error("BETTER_AUTH_SECRET must be overridden in production.");
+  }
+}

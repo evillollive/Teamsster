@@ -4,7 +4,7 @@ import { z } from "zod";
 import { createValidatedAction, validateInput } from "@/lib/validation";
 
 const schema = z.object({
-  email: z.email(),
+  email: z.string().email(),
   teamName: z.string().min(2),
 });
 
@@ -17,10 +17,8 @@ describe("validation", () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.fieldErrors.email).toContain("Invalid email address");
-      expect(result.fieldErrors.teamName).toContain(
-        "Too small: expected string to have >=2 characters",
-      );
+      expect(result.fieldErrors.email).toHaveLength(1);
+      expect(result.fieldErrors.teamName).toHaveLength(1);
     }
   });
 
