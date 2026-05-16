@@ -82,3 +82,8 @@ describe("updateLeagueSchema", () => {
     ).toThrow();
   });
 });
+
+// NOTE: archiveLeague cascades a soft-delete to all active teams in the league.
+// This DB-level behaviour requires an integration test with a real (or in-memory)
+// database. Add coverage in a dedicated integration test suite once a test DB
+// fixture is wired up.

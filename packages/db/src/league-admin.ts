@@ -140,11 +140,18 @@ export async function archiveLeague(input: ArchiveLeagueInput) {
   const now = new Date();
 
   await db.transaction(async (tx) => {
-    await tx
+    // Verify the league exists and is not already archived before cascading.
+    const archived = await tx
       .update(leagues)
       .set({ deletedAt: now, deletedById: actorUserId, updatedAt: now })
-      .where(and(eq(leagues.id, leagueId), isNull(leagues.deletedAt)));
+      .where(and(eq(leagues.id, leagueId), isNull(leagues.deletedAt)))
+      .returning({ id: leagues.id });
 
+    if (!archived[0]) {
+      throw new Error("League not found or already archived.");
+    }
+
+    // Cascade soft-delete to all active teams in the league.
     await tx
       .update(teams)
       .set({ deletedAt: now, deletedById: actorUserId, updatedAt: now })
