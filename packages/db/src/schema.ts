@@ -271,6 +271,64 @@ export const teamMembers = pgTable(
   ],
 );
 
+export const leagueInvitations = pgTable(
+  "league_invitations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    email: text("email").notNull(),
+    role: membershipRoleEnum("role").notNull().default("GUEST"),
+    token: text("token").notNull(),
+    invitedById: uuid("invited_by_id").references(() => users.id),
+    expiresAt: timestamp("expires_at", {
+      mode: "date",
+      withTimezone: true,
+    }).notNull(),
+    acceptedAt: timestamp("accepted_at", { mode: "date", withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { mode: "date", withTimezone: true }),
+    ...timestampColumns,
+  },
+  (table) => [
+    uniqueIndex("league_invitations_token_unique").on(table.token),
+    index("league_invitations_pending_idx").on(
+      table.leagueId,
+      table.email,
+      table.expiresAt,
+    ),
+  ],
+);
+
+export const teamInvitations = pgTable(
+  "team_invitations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id),
+    email: text("email").notNull(),
+    role: membershipRoleEnum("role").notNull().default("GUEST"),
+    token: text("token").notNull(),
+    invitedById: uuid("invited_by_id").references(() => users.id),
+    expiresAt: timestamp("expires_at", {
+      mode: "date",
+      withTimezone: true,
+    }).notNull(),
+    acceptedAt: timestamp("accepted_at", { mode: "date", withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { mode: "date", withTimezone: true }),
+    ...timestampColumns,
+  },
+  (table) => [
+    uniqueIndex("team_invitations_token_unique").on(table.token),
+    index("team_invitations_pending_idx").on(
+      table.teamId,
+      table.email,
+      table.expiresAt,
+    ),
+  ],
+);
+
 export const auditLogs = pgTable(
   "audit_logs",
   {

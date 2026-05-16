@@ -66,7 +66,7 @@ export default async function TeamDetailPage({
             Members
           </p>
           <p className="mt-2 text-sm text-slate-600">
-            Role assignment and invitations are coming in a future milestone.
+            Manage team member roles and invitations from team settings.
           </p>
         </Card>
       </div>

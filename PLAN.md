@@ -56,7 +56,7 @@
 ### Work items
 - [x] League create/update/archive flows.
 - [x] Team create/update/archive flows.
-- [ ] Role assignment and invitation workflows.
+- [x] Role assignment and invitation workflows.
 - [ ] Audit log persistence and read views.
 - [ ] League dashboard with empty states and onboarding guidance.
 

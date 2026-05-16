@@ -112,7 +112,7 @@ export default async function LeagueDashboardPage({
           Members
         </p>
         <p className="mt-2 text-sm text-slate-600">
-          Role assignment and invitations are coming in a future milestone.
+          Manage member roles and invitations from league settings.
         </p>
       </Card>
     </div>
