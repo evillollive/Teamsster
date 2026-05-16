@@ -1,0 +1,41 @@
+{
+  "name": "@teamsster/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "next build --turbopack",
+    "dev": "next dev --turbopack",
+    "e2e": "playwright test",
+    "start": "next start",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "1.2.4",
+    "@teamsster/auth": "workspace:*",
+    "@teamsster/db": "workspace:*",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "lucide-react": "1.16.0",
+    "next": "15.5.18",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "tailwind-merge": "3.6.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0",
+    "@tailwindcss/postcss": "4.3.0",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.1",
+    "@types/node": "20.19.41",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "jsdom": "29.1.1",
+    "tailwindcss": "4.3.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.6"
+  }
+}

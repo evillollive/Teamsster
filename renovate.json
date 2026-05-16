@@ -1,0 +1,47 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "rangeStrategy": "pin",
+  "labels": ["type: chore", "area: scaffold"],
+  "packageRules": [
+    {
+      "description": "Group core framework updates",
+      "groupName": "framework",
+      "matchPackageNames": [
+        "next",
+        "react",
+        "react-dom",
+        "tailwindcss",
+        "@tailwindcss/postcss"
+      ]
+    },
+    {
+      "description": "Group quality tooling updates",
+      "groupName": "quality-tooling",
+      "matchPackageNames": [
+        "@biomejs/biome",
+        "husky",
+        "lint-staged",
+        "@commitlint/cli",
+        "@commitlint/config-conventional"
+      ]
+    },
+    {
+      "description": "Group test tooling updates",
+      "groupName": "testing",
+      "matchPackageNames": [
+        "vitest",
+        "@testing-library/react",
+        "@testing-library/jest-dom",
+        "@testing-library/user-event",
+        "@playwright/test",
+        "jsdom"
+      ]
+    },
+    {
+      "description": "Group GitHub Action updates",
+      "groupName": "github-actions",
+      "matchManagers": ["github-actions"]
+    }
+  ]
+}
