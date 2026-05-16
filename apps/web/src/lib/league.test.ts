@@ -89,6 +89,11 @@ describe("updateLeagueSchema", () => {
 // database. Add coverage in a dedicated integration test suite once a test DB
 // fixture is wired up.
 
+// NOTE: getAuditLogForLeague (service) and getAuditLogsForLeague (DB query) require
+// a real database to test end-to-end. Integration coverage—verifying descending order,
+// limit enforcement, and that non-admin roles are denied—should be added once a test
+// DB fixture is available. The permission gate itself is covered by the unit tests below.
+
 describe("canViewAuditLog permission gate", () => {
   it("allows BOARD_MEMBER and above to view audit logs", () => {
     expect(canViewAuditLog("BOARD_MEMBER")).toBe(true);

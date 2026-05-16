@@ -28,7 +28,16 @@ export default async function LeagueDashboardPage({
 
   const memberWorkspace = session?.user
     ? await getLeagueMemberWorkspaceForUser(session.user.id, leagueId).catch(
-        () => null,
+        (err: unknown) => {
+          // Expected for non-admin members who lack permission to view the workspace.
+          if (!(err instanceof Error) || !err.message.includes("permission")) {
+            console.error(
+              `[league-dashboard] failed to load member workspace for league ${leagueId}:`,
+              err,
+            );
+          }
+          return null;
+        },
       )
     : null;
 
