@@ -1,4 +1,5 @@
 import { auth } from "@teamsster/auth";
+import { roleValues } from "@teamsster/db/schema";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import Link from "next/link";
@@ -13,6 +14,12 @@ import {
   getLeagueDetail,
   updateLeagueForUser,
 } from "@/lib/league";
+import {
+  assignLeagueRoleForUser,
+  getLeagueMemberWorkspaceForUser,
+  inviteLeagueMemberForUser,
+  revokeLeagueInvitationForUser,
+} from "@/lib/membership";
 
 export default async function LeagueSettingsPage({
   params,
@@ -28,6 +35,10 @@ export default async function LeagueSettingsPage({
   if (!league) {
     notFound();
   }
+
+  const memberWorkspace = session?.user
+    ? await getLeagueMemberWorkspaceForUser(session.user.id, leagueId)
+    : { invitations: [], members: [] };
 
   async function updateLeagueAction(formData: FormData) {
     "use server";
@@ -77,6 +88,63 @@ export default async function LeagueSettingsPage({
     redirect("/league");
   }
 
+  async function assignMemberRoleAction(formData: FormData) {
+    "use server";
+
+    const currentSession = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!currentSession?.user) {
+      throw new Error("You must be signed in to assign member roles.");
+    }
+
+    await assignLeagueRoleForUser(currentSession.user.id, {
+      email: (formData.get("email") as string | null) ?? "",
+      leagueId,
+      role: (formData.get("role") as string | null) ?? "GUEST",
+    });
+
+    revalidatePath(`/league/${leagueId}`);
+    revalidatePath(`/league/${leagueId}/settings`);
+  }
+
+  async function inviteMemberAction(formData: FormData) {
+    "use server";
+
+    const currentSession = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!currentSession?.user) {
+      throw new Error("You must be signed in to send invitations.");
+    }
+
+    await inviteLeagueMemberForUser(currentSession.user.id, {
+      email: (formData.get("email") as string | null) ?? "",
+      leagueId,
+      role: (formData.get("role") as string | null) ?? "GUEST",
+    });
+
+    revalidatePath(`/league/${leagueId}/settings`);
+  }
+
+  async function revokeInvitationAction(formData: FormData) {
+    "use server";
+
+    const currentSession = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!currentSession?.user) {
+      throw new Error("You must be signed in to revoke invitations.");
+    }
+
+    await revokeLeagueInvitationForUser(currentSession.user.id, {
+      invitationId: (formData.get("invitationId") as string | null) ?? "",
+      leagueId,
+    });
+
+    revalidatePath(`/league/${leagueId}/settings`);
+  }
+
   return (
     <div className="grid gap-6">
       <Card className="grid gap-2">
@@ -121,6 +189,149 @@ export default async function LeagueSettingsPage({
             </Button>
           </div>
         </form>
+      </Card>
+
+      <Card className="grid gap-4">
+        <div>
+          <h2 className="text-lg font-semibold">Members and invitations</h2>
+          <p className="text-sm text-slate-600">
+            Assign roles for existing users or invite new members by email.
+          </p>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <form action={assignMemberRoleAction} className="grid gap-3">
+            <p className="text-sm font-semibold">Assign role to member</p>
+            <FormField htmlFor="assign-email" label="Member email">
+              <Input
+                id="assign-email"
+                name="email"
+                placeholder="coach@example.com"
+                required
+                type="email"
+              />
+            </FormField>
+            <FormField htmlFor="assign-role" label="Role">
+              <select
+                className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-200"
+                defaultValue="COACH"
+                id="assign-role"
+                name="role"
+              >
+                {roleValues.map((role) => (
+                  <option key={role} value={role}>
+                    {role}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <div>
+              <Button disabled={!session?.user} type="submit">
+                Save role
+              </Button>
+            </div>
+          </form>
+
+          <form action={inviteMemberAction} className="grid gap-3">
+            <p className="text-sm font-semibold">Invite new member</p>
+            <FormField htmlFor="invite-email" label="Invitee email">
+              <Input
+                id="invite-email"
+                name="email"
+                placeholder="manager@example.com"
+                required
+                type="email"
+              />
+            </FormField>
+            <FormField htmlFor="invite-role" label="Role to grant on accept">
+              <select
+                className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-200"
+                defaultValue="GUEST"
+                id="invite-role"
+                name="role"
+              >
+                {roleValues.map((role) => (
+                  <option key={role} value={role}>
+                    {role}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <div>
+              <Button
+                disabled={!session?.user}
+                type="submit"
+                variant="secondary"
+              >
+                Send invite
+              </Button>
+            </div>
+          </form>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-2">
+            <p className="text-sm font-semibold">Current members</p>
+            {memberWorkspace.members.length === 0 ? (
+              <p className="text-sm text-slate-500">No members found.</p>
+            ) : (
+              <ul className="grid gap-2">
+                {memberWorkspace.members.map((member) => (
+                  <li
+                    className="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                    key={member.userId}
+                  >
+                    <span className="text-slate-700">{member.email}</span>
+                    <span className="font-medium text-sky-700">
+                      {member.role}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="grid gap-2">
+            <p className="text-sm font-semibold">Pending invitations</p>
+            {memberWorkspace.invitations.length === 0 ? (
+              <p className="text-sm text-slate-500">No pending invitations.</p>
+            ) : (
+              <ul className="grid gap-2">
+                {memberWorkspace.invitations.map((invite) => (
+                  <li
+                    className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                    key={invite.id}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-slate-700">{invite.email}</p>
+                        <p className="text-xs text-slate-500">
+                          {invite.role} · Expires{" "}
+                          {invite.expiresAt.toLocaleDateString()}
+                        </p>
+                      </div>
+                      <form action={revokeInvitationAction}>
+                        <input
+                          name="invitationId"
+                          type="hidden"
+                          value={invite.id}
+                        />
+                        <Button
+                          disabled={!session?.user}
+                          size="sm"
+                          type="submit"
+                          variant="ghost"
+                        >
+                          Revoke
+                        </Button>
+                      </form>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
       </Card>
 
       <Card className="grid gap-4 border-rose-100 bg-rose-50">
