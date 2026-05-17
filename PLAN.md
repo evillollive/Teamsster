@@ -108,9 +108,9 @@
 - [x] Notification preferences per user.
 - [x] Email digests and reminder templates.
 - [x] Delivery logging and audit hooks.
-- [ ] Contact actions (click-to-call, click-to-email, SMS composition, and contact export) governed by action permissions distinct from view permissions.
-- [ ] Accessibility review for message composition flows.
-- [ ] Milestone checkpoint: refresh README and contributor-facing docs for communication workflows.
+- [x] Contact actions (click-to-call, click-to-email, SMS composition, and contact export) governed by action permissions distinct from view permissions.
+- [x] Accessibility review for message composition flows.
+- [x] Milestone checkpoint: refresh README and contributor-facing docs for communication workflows.
 
 ## Milestone 6 — extensibility and ecosystem
 

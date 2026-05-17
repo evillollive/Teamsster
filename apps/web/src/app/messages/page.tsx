@@ -231,9 +231,14 @@ export default async function MessagesPage({
 
       <Card className="grid gap-4">
         <h2 className="text-lg font-semibold">Select league</h2>
+        <p className="text-sm text-slate-600" id="messages-context-help">
+          Choose the league and default team context used for announcements and
+          templates.
+        </p>
         <form className="grid gap-4 sm:grid-cols-2">
           <FormField htmlFor="leagueId" label="League">
             <select
+              aria-describedby="messages-context-help"
               className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-200"
               defaultValue={selectedLeagueId}
               id="leagueId"
@@ -248,6 +253,7 @@ export default async function MessagesPage({
           </FormField>
           <FormField htmlFor="teamId" label="Default team context">
             <select
+              aria-describedby="messages-context-help messages-team-help"
               className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-200"
               defaultValue={selectedTeamId}
               id="teamId"
@@ -260,6 +266,13 @@ export default async function MessagesPage({
               ))}
             </select>
           </FormField>
+          <p
+            className="text-xs text-slate-500 sm:col-span-2"
+            id="messages-team-help"
+          >
+            Team-specific messages are available when a team context is
+            selected.
+          </p>
           <div className="sm:col-span-2">
             <Button type="submit">Load announcements</Button>
           </div>
@@ -273,6 +286,13 @@ export default async function MessagesPage({
               New announcement for {selectedLeague.name}
               {selectedTeam ? ` · ${selectedTeam.name}` : ""}
             </h2>
+            <p
+              className="text-sm text-slate-600"
+              id="announcement-compose-help"
+            >
+              All fields are required. Use concise titles and clear message
+              details for families and staff.
+            </p>
             <form action={createAnnouncementAction} className="grid gap-4">
               <input name="leagueId" type="hidden" value={selectedLeague.id} />
               <input
@@ -282,14 +302,22 @@ export default async function MessagesPage({
               />
               <FormField htmlFor="announcement-title" label="Title">
                 <Input
+                  aria-describedby="announcement-compose-help announcement-title-help"
                   id="announcement-title"
                   maxLength={140}
                   name="title"
                   required
                 />
               </FormField>
+              <p
+                className="text-xs text-slate-500"
+                id="announcement-title-help"
+              >
+                Maximum 140 characters.
+              </p>
               <FormField htmlFor="announcement-audience" label="Audience">
                 <select
+                  aria-describedby="announcement-compose-help announcement-audience-help"
                   className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-200"
                   defaultValue="league"
                   id="announcement-audience"
@@ -301,8 +329,15 @@ export default async function MessagesPage({
                   </option>
                 </select>
               </FormField>
+              <p
+                className="text-xs text-slate-500"
+                id="announcement-audience-help"
+              >
+                Team-only delivery requires a selected team context.
+              </p>
               <FormField htmlFor="announcement-body" label="Message">
                 <textarea
+                  aria-describedby="announcement-compose-help announcement-body-help"
                   className="min-h-28 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-200"
                   id="announcement-body"
                   maxLength={5000}
@@ -310,6 +345,9 @@ export default async function MessagesPage({
                   required
                 />
               </FormField>
+              <p className="text-xs text-slate-500" id="announcement-body-help">
+                Maximum 5000 characters. Line breaks are preserved.
+              </p>
               <div>
                 <Button type="submit">Publish announcement</Button>
               </div>

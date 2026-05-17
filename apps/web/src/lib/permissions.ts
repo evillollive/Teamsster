@@ -2,7 +2,7 @@ import type { roleValues } from "@teamsster/db/schema";
 
 export type Role = (typeof roleValues)[number];
 export type RoleInput = Role | readonly Role[];
-export type PermissionScope = "org" | "team" | "feature" | "field";
+export type PermissionScope = "org" | "team" | "feature" | "field" | "action";
 export type FeaturePermission =
   | "announcement.manage"
   | "announcement.read"
@@ -14,6 +14,11 @@ export type FeaturePermission =
   | "roster.edit"
   | "team.manage";
 export type FieldPermission = "contact.viewEmail" | "contact.viewPhone";
+export type ActionPermission =
+  | "contact.call"
+  | "contact.email"
+  | "contact.sms"
+  | "contact.export";
 export type PermissionContext = {
   orgRoles?: RoleInput;
   teamRoles?: RoleInput;
@@ -141,6 +146,28 @@ export function canAccessField(
       return (
         hasScopedPermission("org", "BOARD_MEMBER", context) ||
         hasScopedPermission("team", "COACH", context)
+      );
+    default:
+      return false;
+  }
+}
+
+export function canAccessAction(
+  action: ActionPermission,
+  context: PermissionContext,
+) {
+  switch (action) {
+    case "contact.call":
+    case "contact.email":
+    case "contact.sms":
+      return (
+        hasScopedPermission("org", "BOARD_MEMBER", context) ||
+        hasScopedPermission("team", "COACH", context)
+      );
+    case "contact.export":
+      return (
+        hasScopedPermission("org", "ADMIN", context) ||
+        hasScopedPermission("team", "HEAD_COACH", context)
       );
     default:
       return false;
