@@ -3,12 +3,15 @@ import { describe, expect, it } from "vitest";
 import {
   assignLeagueRoleSchema,
   assignTeamRoleSchema,
+  assignTeamRoleTemplateSchema,
+  deleteLeagueRoleTemplateSchema,
   inviteLeagueMemberSchema,
   inviteTeamMemberSchema,
   removeLeagueRoleSchema,
   removeTeamRoleSchema,
   revokeLeagueInvitationSchema,
   revokeTeamInvitationSchema,
+  upsertLeagueRoleTemplateSchema,
 } from "@/lib/membership";
 
 describe("membership schemas", () => {
@@ -123,5 +126,34 @@ describe("membership schemas", () => {
     expect(() =>
       removeLeagueRoleSchema.parse({ leagueId, role: "INVALID", userId }),
     ).toThrow();
+  });
+
+  it("validates league role template payloads", () => {
+    const template = upsertLeagueRoleTemplateSchema.parse({
+      label: " Assistant Coach ",
+      leagueId,
+      roles: ["COACH", "PARENT", "COACH"],
+    });
+
+    expect(template.label).toBe("Assistant Coach");
+    expect(template.roles).toEqual(["COACH", "PARENT", "COACH"]);
+  });
+
+  it("validates team role template assignment payloads", () => {
+    const templateId = "e4eebc99-9c0b-4ef8-bb6d-6bb9bd380a55";
+    const parsed = assignTeamRoleTemplateSchema.parse({
+      email: "template-user@example.com",
+      leagueId,
+      teamId,
+      templateId,
+    });
+
+    const deletePayload = deleteLeagueRoleTemplateSchema.parse({
+      leagueId,
+      templateId,
+    });
+
+    expect(parsed.templateId).toBe(templateId);
+    expect(deletePayload.templateId).toBe(templateId);
   });
 });

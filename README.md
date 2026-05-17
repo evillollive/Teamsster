@@ -13,7 +13,7 @@ Teamsster aims to give leagues, clubs, volunteer boards, coaches, and families a
 - **Tailwind CSS v4** with **shadcn/ui-compatible** component setup and **Radix Slot** integration
 - **Drizzle ORM + Neon Postgres** database package with league-first schema and migrations
 - **Better Auth** with email/password and magic-link sign-in, onboarding, and account settings
-- **League administration** — create, update, and archive leagues and teams; role assignment and invitation workflows; audit log persistence and read views; league dashboard with empty states and onboarding guidance
+- **League administration** — create, update, and archive leagues and teams; role assignment, reusable role templates, and invitation workflows; audit log persistence and read views; league dashboard with empty states and onboarding guidance
 - **Roster workflows** — player CRUD with soft deletes, guardian contacts, CSV import validation, and player eligibility/profile metadata fields
 - **Centralized Zod validation** and permission helpers for all mutations
 - **Biome** formatting and linting, plus Husky, lint-staged, and commitlint

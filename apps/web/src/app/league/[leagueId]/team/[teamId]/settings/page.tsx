@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { getLeagueDetail } from "@/lib/league";
 import {
   assignTeamRoleForUser,
+  assignTeamRoleTemplateForUser,
   getTeamMemberWorkspaceForUser,
   inviteTeamMemberForUser,
   removeTeamRoleForUser,
@@ -41,7 +42,7 @@ export default async function TeamSettingsPage({
 
   const memberWorkspace = session?.user
     ? await getTeamMemberWorkspaceForUser(session.user.id, leagueId, teamId)
-    : { invitations: [], members: [] };
+    : { invitations: [], members: [], roleTemplates: [] };
 
   async function updateTeamAction(formData: FormData) {
     "use server";
@@ -170,6 +171,27 @@ export default async function TeamSettingsPage({
       userId: (formData.get("userId") as string | null) ?? "",
     });
 
+    revalidatePath(`/league/${leagueId}/team/${teamId}/settings`);
+  }
+
+  async function assignRoleTemplateAction(formData: FormData) {
+    "use server";
+
+    const currentSession = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!currentSession?.user) {
+      throw new Error("You must be signed in to assign role templates.");
+    }
+
+    await assignTeamRoleTemplateForUser(currentSession.user.id, {
+      email: (formData.get("email") as string | null) ?? "",
+      leagueId,
+      teamId,
+      templateId: (formData.get("templateId") as string | null) ?? "",
+    });
+
+    revalidatePath(`/league/${leagueId}/team/${teamId}`);
     revalidatePath(`/league/${leagueId}/team/${teamId}/settings`);
   }
 
@@ -309,6 +331,55 @@ export default async function TeamSettingsPage({
             </div>
           </form>
         </div>
+
+        <form action={assignRoleTemplateAction} className="grid gap-3">
+          <p className="text-sm font-semibold">Apply role template</p>
+          <div className="grid gap-3 lg:grid-cols-2">
+            <FormField htmlFor="team-template-email" label="Member email">
+              <Input
+                id="team-template-email"
+                name="email"
+                placeholder="assistant@example.com"
+                required
+                type="email"
+              />
+            </FormField>
+            <FormField htmlFor="team-template-id" label="Template">
+              <select
+                className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-200"
+                defaultValue=""
+                id="team-template-id"
+                name="templateId"
+                required
+              >
+                <option disabled value="">
+                  Select template
+                </option>
+                {memberWorkspace.roleTemplates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.label} ({template.roles.join(", ")})
+                  </option>
+                ))}
+              </select>
+            </FormField>
+          </div>
+          <div>
+            <Button
+              disabled={
+                !session?.user || memberWorkspace.roleTemplates.length === 0
+              }
+              type="submit"
+              variant="secondary"
+            >
+              Apply template
+            </Button>
+          </div>
+          {memberWorkspace.roleTemplates.length === 0 ? (
+            <p className="text-xs text-slate-500">
+              No templates available yet. Create templates in league settings.
+            </p>
+          ) : null}
+        </form>
 
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="grid gap-2">

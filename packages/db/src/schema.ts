@@ -329,6 +329,29 @@ export const teamMembers = pgTable(
   ],
 );
 
+export const leagueRoleTemplates = pgTable(
+  "league_role_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    label: text("label").notNull(),
+    roles: membershipRoleEnum("roles")
+      .array()
+      .notNull()
+      .default(sql`ARRAY['GUEST']::membership_role[]`),
+    ...timestampColumns,
+  },
+  (table) => [
+    uniqueIndex("league_role_templates_label_unique").on(
+      table.leagueId,
+      table.label,
+    ),
+    index("league_role_templates_league_idx").on(table.leagueId),
+  ],
+);
+
 export const leagueInvitations = pgTable(
   "league_invitations",
   {

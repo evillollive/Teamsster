@@ -7,6 +7,7 @@ import {
   auditLogs,
   leagueInvitations,
   leagueMembers,
+  leagueRoleTemplates,
   type roleValues,
   teamInvitations,
   teamMembers,
@@ -58,6 +59,27 @@ type RevokeTeamInvitationInput = {
   actorUserId: string;
 };
 
+type UpsertLeagueRoleTemplateInput = {
+  leagueId: string;
+  label: string;
+  roles: readonly MembershipRole[];
+  actorUserId: string;
+};
+
+type DeleteLeagueRoleTemplateInput = {
+  templateId: string;
+  leagueId: string;
+  actorUserId: string;
+};
+
+type AssignTeamRoleTemplateInput = {
+  templateId: string;
+  teamId: string;
+  leagueId: string;
+  email: string;
+  actorUserId: string;
+};
+
 const INVITATION_EXPIRY_DAYS = 14;
 
 function normalizeEmail(email: string) {
@@ -70,6 +92,10 @@ function buildInvitationToken() {
 
 function buildExpiryDate() {
   return new Date(Date.now() + INVITATION_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+}
+
+function normalizeRoleSet(roles: readonly MembershipRole[]): MembershipRole[] {
+  return [...new Set(roles)];
 }
 
 export async function assignLeagueMemberRole(input: AssignLeagueRoleInput) {
@@ -164,6 +190,164 @@ export async function assignTeamMemberRole(input: AssignTeamRoleInput) {
       entityType: "team",
       leagueId: input.leagueId,
       metadata: { email, role: input.role },
+    });
+  });
+}
+
+export async function upsertLeagueRoleTemplate(
+  input: UpsertLeagueRoleTemplateInput,
+) {
+  const label = input.label.trim();
+  const roles = normalizeRoleSet(input.roles);
+
+  const template = (
+    await db
+      .insert(leagueRoleTemplates)
+      .values({
+        label,
+        leagueId: input.leagueId,
+        roles,
+      })
+      .onConflictDoUpdate({
+        set: {
+          roles,
+          updatedAt: new Date(),
+        },
+        target: [leagueRoleTemplates.leagueId, leagueRoleTemplates.label],
+      })
+      .returning({
+        id: leagueRoleTemplates.id,
+        label: leagueRoleTemplates.label,
+        roles: leagueRoleTemplates.roles,
+      })
+  )[0];
+
+  await db.insert(auditLogs).values({
+    action: "league.role_template.upsert",
+    actorUserId: input.actorUserId,
+    entityId: template.id,
+    entityType: "league_role_template",
+    leagueId: input.leagueId,
+    metadata: { label: template.label, roles: template.roles },
+  });
+
+  return template;
+}
+
+export async function deleteLeagueRoleTemplate(
+  input: DeleteLeagueRoleTemplateInput,
+) {
+  const deleted = await db
+    .delete(leagueRoleTemplates)
+    .where(
+      and(
+        eq(leagueRoleTemplates.id, input.templateId),
+        eq(leagueRoleTemplates.leagueId, input.leagueId),
+      ),
+    )
+    .returning({
+      id: leagueRoleTemplates.id,
+      label: leagueRoleTemplates.label,
+      roles: leagueRoleTemplates.roles,
+    });
+
+  if (!deleted[0]) {
+    throw new Error("Role template not found.");
+  }
+
+  await db.insert(auditLogs).values({
+    action: "league.role_template.delete",
+    actorUserId: input.actorUserId,
+    entityId: input.templateId,
+    entityType: "league_role_template",
+    leagueId: input.leagueId,
+    metadata: { label: deleted[0].label, roles: deleted[0].roles },
+  });
+}
+
+export async function getLeagueRoleTemplatesByLeagueId(leagueId: string) {
+  return db
+    .select({
+      id: leagueRoleTemplates.id,
+      label: leagueRoleTemplates.label,
+      roles: leagueRoleTemplates.roles,
+    })
+    .from(leagueRoleTemplates)
+    .where(eq(leagueRoleTemplates.leagueId, leagueId))
+    .orderBy(leagueRoleTemplates.label);
+}
+
+export async function assignTeamRoleTemplate(
+  input: AssignTeamRoleTemplateInput,
+) {
+  const email = normalizeEmail(input.email);
+
+  return db.transaction(async (tx) => {
+    const [template] = await tx
+      .select({
+        id: leagueRoleTemplates.id,
+        label: leagueRoleTemplates.label,
+        roles: leagueRoleTemplates.roles,
+      })
+      .from(leagueRoleTemplates)
+      .where(
+        and(
+          eq(leagueRoleTemplates.id, input.templateId),
+          eq(leagueRoleTemplates.leagueId, input.leagueId),
+        ),
+      )
+      .limit(1);
+
+    if (!template) {
+      throw new Error("Role template not found.");
+    }
+
+    const userRows = await tx
+      .select({ id: users.id })
+      .from(users)
+      .where(and(eq(users.email, email), isNull(users.deletedAt)))
+      .limit(1);
+    const userId = userRows[0]?.id ?? null;
+    if (!userId) {
+      throw new Error(
+        "No active account exists for that email. Send an invitation instead.",
+      );
+    }
+
+    await tx
+      .insert(teamMembers)
+      .values({
+        roles: template.roles,
+        teamId: input.teamId,
+        userId,
+      })
+      .onConflictDoUpdate({
+        set: {
+          deletedAt: null,
+          deletedById: null,
+          roles: sql`(
+            SELECT ARRAY(
+              SELECT DISTINCT role
+              FROM unnest(${teamMembers.roles} || ${template.roles}::membership_role[]) AS role
+            )
+          )`,
+          updatedAt: new Date(),
+        },
+        target: [teamMembers.teamId, teamMembers.userId],
+      });
+
+    await tx.insert(auditLogs).values({
+      action: "team.member.role_template.assign",
+      actorUserId: input.actorUserId,
+      entityId: input.teamId,
+      entityType: "team",
+      leagueId: input.leagueId,
+      metadata: {
+        email,
+        roles: template.roles,
+        templateId: template.id,
+        templateLabel: template.label,
+      },
     });
   });
 }
