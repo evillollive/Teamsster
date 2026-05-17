@@ -43,6 +43,13 @@
       "when": 1779033600000,
       "tag": "0005_role_templates",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779047338695,
+      "tag": "0006_empty_micromacro",
+      "breakpoints": true
     }
   ]
 }

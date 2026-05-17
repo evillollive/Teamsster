@@ -90,7 +90,7 @@
 - Make attendance and reminders friendly for busy families.
 
 ### Work items
-- [ ] Event CRUD and recurrence basics.
+- [x] Event CRUD and recurrence basics.
 - [ ] RSVP states and response summaries.
 - [ ] Calendar exports (ICS) and reminders.
 - [ ] Team and league event views.

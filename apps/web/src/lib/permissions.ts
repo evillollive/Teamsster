@@ -5,6 +5,7 @@ export type RoleInput = Role | readonly Role[];
 export type PermissionScope = "org" | "team" | "feature" | "field";
 export type FeaturePermission =
   | "audit.read"
+  | "event.manage"
   | "league.manage"
   | "membership.manage"
   | "roster.edit"
@@ -70,6 +71,7 @@ export function canAccessFeature(
         hasScopedPermission("org", "ADMIN", context) ||
         hasScopedPermission("team", "HEAD_COACH", context)
       );
+    case "event.manage":
     case "roster.edit":
       return (
         hasScopedPermission("org", "ADMIN", context) ||
@@ -95,6 +97,13 @@ export function canManageTeam(roleInput: RoleInput) {
 
 export function canEditRoster(roleInput: RoleInput) {
   return canAccessFeature("roster.edit", {
+    orgRoles: roleInput,
+    teamRoles: roleInput,
+  });
+}
+
+export function canManageEvents(roleInput: RoleInput) {
+  return canAccessFeature("event.manage", {
     orgRoles: roleInput,
     teamRoles: roleInput,
   });
