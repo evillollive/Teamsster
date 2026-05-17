@@ -83,7 +83,7 @@ function toRecurrenceRule(
     frequency: input.recurrenceFrequency,
     interval: input.recurrenceInterval,
     until: input.recurrenceUntil,
-  } as const;
+  };
 }
 
 async function resolveUserId(authUserId: string): Promise<string> {
