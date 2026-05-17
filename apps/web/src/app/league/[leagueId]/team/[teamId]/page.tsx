@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getLeagueDetail } from "@/lib/league";
+import { getPlayersForTeam } from "@/lib/player";
 import { getTeamDetail } from "@/lib/team";
 
 export default async function TeamDetailPage({
@@ -15,10 +16,11 @@ export default async function TeamDetailPage({
   params: Promise<{ leagueId: string; teamId: string }>;
 }) {
   const { leagueId, teamId } = await params;
-  const [session, league, team] = await Promise.all([
+  const [session, league, team, players] = await Promise.all([
     auth.api.getSession({ headers: await headers() }),
     getLeagueDetail(leagueId),
     getTeamDetail(teamId),
+    getPlayersForTeam(leagueId, teamId),
   ]);
 
   if (!league || !team || team.leagueId !== leagueId) {
@@ -54,11 +56,23 @@ export default async function TeamDetailPage({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Card>
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
-            Roster
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+              Roster
+            </p>
+            {session?.user ? (
+              <Link
+                className="text-xs font-medium text-sky-600 hover:underline"
+                href={`/league/${leagueId}/team/${teamId}/roster`}
+              >
+                Manage →
+              </Link>
+            ) : null}
+          </div>
           <p className="mt-2 text-sm text-slate-600">
-            Player management is coming in a future milestone.
+            {players.length === 0
+              ? "No active players yet. Add your first player to start building the roster."
+              : `${players.length} active player${players.length === 1 ? "" : "s"} on this team.`}
           </p>
         </Card>
         <Card>

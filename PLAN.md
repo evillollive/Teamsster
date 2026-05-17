@@ -68,7 +68,7 @@
 - Make guardian and volunteer collaboration feel natural.
 
 ### Work items
-- [ ] Player CRUD with soft deletes.
+- [x] Player CRUD with soft deletes.
 - [ ] Guardian/contact relationships.
 - [ ] Bulk import and CSV validation pipeline.
 - [ ] Eligibility, jersey, and profile metadata extensions.

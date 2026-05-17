@@ -1,0 +1,111 @@
+import { describe, expect, it } from "vitest";
+
+import { createPlayerSchema, updatePlayerSchema } from "@/lib/player";
+
+describe("createPlayerSchema", () => {
+  const leagueId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
+  const teamId = "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22";
+
+  it("accepts a valid player payload", () => {
+    const parsed = createPlayerSchema.parse({
+      firstName: "  Sam  ",
+      jerseyNumber: " 17 ",
+      lastName: "Rivera",
+      leagueId,
+      preferredName: " Sammy ",
+      teamId,
+      timezone: "America/Chicago",
+    });
+
+    expect(parsed.firstName).toBe("Sam");
+    expect(parsed.lastName).toBe("Rivera");
+    expect(parsed.preferredName).toBe("Sammy");
+    expect(parsed.jerseyNumber).toBe("17");
+  });
+
+  it("defaults timezone to UTC when omitted", () => {
+    const parsed = createPlayerSchema.parse({
+      firstName: "Alex",
+      lastName: "Kim",
+      leagueId,
+      teamId,
+    });
+
+    expect(parsed.timezone).toBe("UTC");
+  });
+
+  it("rejects empty first or last names", () => {
+    expect(() =>
+      createPlayerSchema.parse({
+        firstName: " ",
+        lastName: "Kim",
+        leagueId,
+        teamId,
+      }),
+    ).toThrow();
+
+    expect(() =>
+      createPlayerSchema.parse({
+        firstName: "Alex",
+        lastName: " ",
+        leagueId,
+        teamId,
+      }),
+    ).toThrow();
+  });
+});
+
+describe("updatePlayerSchema", () => {
+  const leagueId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
+  const teamId = "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22";
+  const playerId = "c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33";
+
+  it("accepts valid update fields", () => {
+    const parsed = updatePlayerSchema.parse({
+      firstName: "Jordan",
+      jerseyNumber: "9",
+      lastName: "Mills",
+      leagueId,
+      playerId,
+      preferredName: "",
+      teamId,
+      timezone: "Europe/London",
+    });
+
+    expect(parsed.playerId).toBe(playerId);
+    expect(parsed.preferredName).toBeUndefined();
+    expect(parsed.jerseyNumber).toBe("9");
+  });
+
+  it("rejects invalid ids", () => {
+    expect(() =>
+      updatePlayerSchema.parse({
+        firstName: "Jordan",
+        lastName: "Mills",
+        leagueId: "bad-id",
+        playerId,
+        teamId,
+      }),
+    ).toThrow();
+
+    expect(() =>
+      updatePlayerSchema.parse({
+        firstName: "Jordan",
+        lastName: "Mills",
+        leagueId,
+        playerId: "bad-id",
+        teamId,
+      }),
+    ).toThrow();
+
+    expect(() =>
+      updatePlayerSchema.parse({
+        firstName: "Jordan",
+        lastName: "Mills",
+        leagueId,
+        playerId,
+        teamId: "bad-id",
+      }),
+    ).toThrow();
+  });
+});
