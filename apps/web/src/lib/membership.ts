@@ -9,6 +9,8 @@ import {
   getTeamMembersByTeamId,
   getUserIdByAuthUserId,
   getUserLeagueMembership,
+  removeLeagueMemberRole,
+  removeTeamMemberRole,
   revokeLeagueInvitation,
   revokeTeamInvitation,
   roleValues,
@@ -52,6 +54,19 @@ export const revokeTeamInvitationSchema = z.object({
   invitationId: z.string().uuid(),
   leagueId: z.string().uuid(),
   teamId: z.string().uuid(),
+});
+
+export const removeLeagueRoleSchema = z.object({
+  leagueId: z.string().uuid(),
+  role: roleSchema,
+  userId: z.string().uuid(),
+});
+
+export const removeTeamRoleSchema = z.object({
+  leagueId: z.string().uuid(),
+  role: roleSchema,
+  teamId: z.string().uuid(),
+  userId: z.string().uuid(),
 });
 
 async function resolveUserId(authUserId: string): Promise<string> {
@@ -193,4 +208,35 @@ export async function getTeamMemberWorkspaceForUser(
   ]);
 
   return { invitations, members };
+}
+
+export async function removeLeagueRoleForUser(
+  authUserId: string,
+  input: unknown,
+) {
+  const parsed = removeLeagueRoleSchema.parse(input);
+  const userId = await resolveUserId(authUserId);
+  await assertLeagueAdmin(parsed.leagueId, userId);
+  await removeLeagueMemberRole({
+    actorUserId: userId,
+    leagueId: parsed.leagueId,
+    role: parsed.role,
+    userId: parsed.userId,
+  });
+}
+
+export async function removeTeamRoleForUser(
+  authUserId: string,
+  input: unknown,
+) {
+  const parsed = removeTeamRoleSchema.parse(input);
+  const userId = await resolveUserId(authUserId);
+  await assertLeagueAdmin(parsed.leagueId, userId);
+  await removeTeamMemberRole({
+    actorUserId: userId,
+    leagueId: parsed.leagueId,
+    role: parsed.role,
+    teamId: parsed.teamId,
+    userId: parsed.userId,
+  });
 }

@@ -5,6 +5,8 @@ import {
   assignTeamRoleSchema,
   inviteLeagueMemberSchema,
   inviteTeamMemberSchema,
+  removeLeagueRoleSchema,
+  removeTeamRoleSchema,
   revokeLeagueInvitationSchema,
   revokeTeamInvitationSchema,
 } from "@/lib/membership";
@@ -87,5 +89,39 @@ describe("membership schemas", () => {
 
     expect(leagueRevoke.invitationId).toBe(invitationId);
     expect(teamRevoke.teamId).toBe(teamId);
+  });
+
+  it("validates league role removal input", () => {
+    const userId = "d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a44";
+    const parsed = removeLeagueRoleSchema.parse({
+      leagueId,
+      role: "COACH",
+      userId,
+    });
+
+    expect(parsed.userId).toBe(userId);
+    expect(parsed.role).toBe("COACH");
+    expect(parsed.leagueId).toBe(leagueId);
+  });
+
+  it("validates team role removal input", () => {
+    const userId = "d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a44";
+    const parsed = removeTeamRoleSchema.parse({
+      leagueId,
+      role: "HEAD_COACH",
+      teamId,
+      userId,
+    });
+
+    expect(parsed.userId).toBe(userId);
+    expect(parsed.role).toBe("HEAD_COACH");
+    expect(parsed.teamId).toBe(teamId);
+  });
+
+  it("rejects invalid role for removal", () => {
+    const userId = "d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a44";
+    expect(() =>
+      removeLeagueRoleSchema.parse({ leagueId, role: "INVALID", userId }),
+    ).toThrow();
   });
 });

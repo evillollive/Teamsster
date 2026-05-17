@@ -18,6 +18,7 @@ import {
   assignLeagueRoleForUser,
   getLeagueMemberWorkspaceForUser,
   inviteLeagueMemberForUser,
+  removeLeagueRoleForUser,
   revokeLeagueInvitationForUser,
 } from "@/lib/membership";
 export default async function LeagueSettingsPage({
@@ -139,6 +140,25 @@ export default async function LeagueSettingsPage({
     await revokeLeagueInvitationForUser(currentSession.user.id, {
       invitationId: (formData.get("invitationId") as string | null) ?? "",
       leagueId,
+    });
+
+    revalidatePath(`/league/${leagueId}/settings`);
+  }
+
+  async function removeMemberRoleAction(formData: FormData) {
+    "use server";
+
+    const currentSession = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!currentSession?.user) {
+      throw new Error("You must be signed in to remove member roles.");
+    }
+
+    await removeLeagueRoleForUser(currentSession.user.id, {
+      leagueId,
+      role: (formData.get("role") as string | null) ?? "",
+      userId: (formData.get("userId") as string | null) ?? "",
     });
 
     revalidatePath(`/league/${leagueId}/settings`);
@@ -277,13 +297,40 @@ export default async function LeagueSettingsPage({
               <ul className="grid gap-2">
                 {memberWorkspace.members.map((member) => (
                   <li
-                    className="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                    className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
                     key={member.userId}
                   >
-                    <span className="text-slate-700">{member.email}</span>
-                    <span className="font-medium text-sky-700">
-                      {member.roles.join(", ")}
-                    </span>
+                    <p className="mb-1 text-slate-700">{member.email}</p>
+                    <div className="flex flex-wrap gap-1">
+                      {member.roles.map((role) => (
+                        <form
+                          action={removeMemberRoleAction}
+                          className="inline-flex"
+                          key={role}
+                        >
+                          <input
+                            name="userId"
+                            type="hidden"
+                            value={member.userId}
+                          />
+                          <input name="role" type="hidden" value={role} />
+                          <button
+                            className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700 transition hover:bg-rose-100 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={!session?.user}
+                            title={`Remove ${role}`}
+                            type="submit"
+                          >
+                            {role}
+                            <span aria-hidden="true">×</span>
+                          </button>
+                        </form>
+                      ))}
+                      {member.roles.length === 0 && (
+                        <span className="text-xs text-slate-400">
+                          No roles assigned
+                        </span>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
