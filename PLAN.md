@@ -70,7 +70,7 @@
 ### Work items
 - [x] Player CRUD with soft deletes.
 - [x] Guardian/contact relationships.
-- [ ] Bulk import and CSV validation pipeline.
+- [x] Bulk import and CSV validation pipeline.
 - [ ] Eligibility, jersey, and profile metadata extensions.
 - [ ] Roster permission regression tests.
 - [ ] Milestone checkpoint: refresh README and contributor-facing docs for roster workflows.
