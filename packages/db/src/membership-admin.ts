@@ -310,6 +310,85 @@ export async function revokeTeamInvitation(input: RevokeTeamInvitationInput) {
   });
 }
 
+type RemoveLeagueRoleInput = {
+  leagueId: string;
+  userId: string;
+  role: MembershipRole;
+  actorUserId: string;
+};
+
+type RemoveTeamRoleInput = {
+  teamId: string;
+  leagueId: string;
+  userId: string;
+  role: MembershipRole;
+  actorUserId: string;
+};
+
+export async function removeLeagueMemberRole(input: RemoveLeagueRoleInput) {
+  return db.transaction(async (tx) => {
+    const updated = await tx
+      .update(leagueMembers)
+      .set({
+        roles: sql`array_remove(${leagueMembers.roles}, ${input.role}::membership_role)`,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(leagueMembers.leagueId, input.leagueId),
+          eq(leagueMembers.userId, input.userId),
+          isNull(leagueMembers.deletedAt),
+        ),
+      )
+      .returning({ roles: leagueMembers.roles });
+
+    if (!updated[0]) {
+      throw new Error("League membership not found or already removed.");
+    }
+
+    await tx.insert(auditLogs).values({
+      action: "league.member.role.remove",
+      actorUserId: input.actorUserId,
+      entityId: input.leagueId,
+      entityType: "league",
+      leagueId: input.leagueId,
+      metadata: { role: input.role, userId: input.userId },
+    });
+  });
+}
+
+export async function removeTeamMemberRole(input: RemoveTeamRoleInput) {
+  return db.transaction(async (tx) => {
+    const updated = await tx
+      .update(teamMembers)
+      .set({
+        roles: sql`array_remove(${teamMembers.roles}, ${input.role}::membership_role)`,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(teamMembers.teamId, input.teamId),
+          eq(teamMembers.userId, input.userId),
+          isNull(teamMembers.deletedAt),
+        ),
+      )
+      .returning({ roles: teamMembers.roles });
+
+    if (!updated[0]) {
+      throw new Error("Team membership not found.");
+    }
+
+    await tx.insert(auditLogs).values({
+      action: "team.member.role.remove",
+      actorUserId: input.actorUserId,
+      entityId: input.teamId,
+      entityType: "team",
+      leagueId: input.leagueId,
+      metadata: { role: input.role, userId: input.userId },
+    });
+  });
+}
+
 export async function getLeagueMembersByLeagueId(leagueId: string) {
   return db
     .select({
