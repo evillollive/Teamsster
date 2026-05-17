@@ -81,8 +81,7 @@ function toRecurrenceRule(
 ) {
   return {
     frequency: input.recurrenceFrequency,
-    interval:
-      input.recurrenceFrequency === "NONE" ? 1 : input.recurrenceInterval,
+    interval: input.recurrenceInterval,
     until: input.recurrenceUntil,
   } as const;
 }
