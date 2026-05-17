@@ -1,6 +1,7 @@
 import {
   archivePlayer,
   archivePlayerContact,
+  bulkCreatePlayers,
   createPlayer,
   createPlayerContact,
   getPlayerContactsByTeamId,
@@ -99,11 +100,179 @@ export const archivePlayerContactSchema = z.object({
   teamId: z.string().uuid(),
 });
 
+export const importPlayersCsvSchema = z.object({
+  csv: z.string().trim().min(1).max(200_000),
+  leagueId: z.string().uuid(),
+  teamId: z.string().uuid(),
+  timezone: timezoneSchema,
+});
+
 export type CreatePlayerInput = z.infer<typeof createPlayerSchema>;
 export type UpdatePlayerInput = z.infer<typeof updatePlayerSchema>;
 export type CreatePlayerContactInput = z.infer<
   typeof createPlayerContactSchema
 >;
+type ImportPlayersCsvInput = z.infer<typeof importPlayersCsvSchema>;
+
+const supportedImportColumns = [
+  "firstName",
+  "lastName",
+  "preferredName",
+  "jerseyNumber",
+  "timezone",
+] as const;
+const requiredImportColumns = ["firstName", "lastName"] as const;
+type SupportedImportColumn = (typeof supportedImportColumns)[number];
+
+type CsvRow = {
+  lineNumber: number;
+  values: string[];
+};
+
+function parseCsvLine(line: string, lineNumber: number): string[] {
+  const values: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  let index = 0;
+
+  while (index < line.length) {
+    const char = line[index];
+
+    if (char === '"') {
+      if (inQuotes && line[index + 1] === '"') {
+        current += '"';
+        index += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === "," && !inQuotes) {
+      values.push(current.trim());
+      current = "";
+    } else {
+      current += char;
+    }
+
+    index += 1;
+  }
+
+  if (inQuotes) {
+    throw new Error(`CSV row ${lineNumber} has an unmatched quote.`);
+  }
+
+  values.push(current.trim());
+  return values;
+}
+
+export function parsePlayerImportCsv(csv: string): {
+  header: string[];
+  rows: CsvRow[];
+} {
+  const lines = csv
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (lines.length < 2) {
+    throw new Error(
+      "CSV must include a header row and at least one player row.",
+    );
+  }
+
+  const header = parseCsvLine(lines[0], 1);
+  const rows = lines.slice(1).map((line, index) => ({
+    lineNumber: index + 2,
+    values: parseCsvLine(line, index + 2),
+  }));
+
+  return { header, rows };
+}
+
+type ValidatedImportPlayer = {
+  firstName: string;
+  lastName: string;
+  preferredName: string | undefined;
+  jerseyNumber: string | undefined;
+  timezone: string;
+};
+
+export function validatePlayerImportCsv(input: ImportPlayersCsvInput): {
+  players: ValidatedImportPlayer[];
+} {
+  const { csv, leagueId, teamId, timezone } = input;
+  const { header, rows } = parsePlayerImportCsv(csv);
+  const errors: string[] = [];
+  const normalizedHeader = header.map((column) => column.trim());
+
+  for (const requiredColumn of requiredImportColumns) {
+    if (!normalizedHeader.includes(requiredColumn)) {
+      errors.push(`Missing required "${requiredColumn}" column in CSV header.`);
+    }
+  }
+
+  for (const column of normalizedHeader) {
+    if (!(supportedImportColumns as readonly string[]).includes(column)) {
+      errors.push(`Unsupported "${column}" column in CSV header.`);
+    }
+  }
+
+  const columnIndexByName = new Map<string, number>(
+    normalizedHeader.map((column, index) => [column, index]),
+  );
+  const getColumnValue = (values: string[], column: SupportedImportColumn) => {
+    const columnIndex = columnIndexByName.get(column);
+    return columnIndex === undefined ? undefined : values[columnIndex];
+  };
+  const mappedRows: ValidatedImportPlayer[] = [];
+
+  for (const row of rows) {
+    if (row.values.length !== normalizedHeader.length) {
+      errors.push(
+        `Row ${row.lineNumber} has ${row.values.length} value(s); expected ${normalizedHeader.length}.`,
+      );
+      continue;
+    }
+
+    const parsed = createPlayerSchema.safeParse({
+      firstName: getColumnValue(row.values, "firstName") ?? "",
+      jerseyNumber: getColumnValue(row.values, "jerseyNumber"),
+      lastName: getColumnValue(row.values, "lastName") ?? "",
+      leagueId,
+      preferredName: getColumnValue(row.values, "preferredName"),
+      teamId,
+      timezone: getColumnValue(row.values, "timezone") || timezone,
+    });
+
+    if (!parsed.success) {
+      const flat = parsed.error.flatten();
+      const rowErrors = [
+        ...flat.formErrors,
+        ...Object.entries(flat.fieldErrors).flatMap(([field, messages]) =>
+          (messages ?? []).map((message) => `${field}: ${message}`),
+        ),
+      ];
+      errors.push(
+        ...rowErrors.map(
+          (message) => `Row ${row.lineNumber} validation error: ${message}`,
+        ),
+      );
+      continue;
+    }
+
+    mappedRows.push({
+      firstName: parsed.data.firstName,
+      jerseyNumber: parsed.data.jerseyNumber,
+      lastName: parsed.data.lastName,
+      preferredName: parsed.data.preferredName,
+      timezone: parsed.data.timezone,
+    });
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`CSV validation failed:\n${errors.join("\n")}`);
+  }
+
+  return { players: mappedRows };
+}
 
 async function resolveUserId(authUserId: string): Promise<string> {
   const userId = await getUserIdByAuthUserId(authUserId);
@@ -157,6 +326,23 @@ export async function createPlayerForUser(
     preferredName: parsed.preferredName,
     teamId: parsed.teamId,
     timezone: parsed.timezone,
+    userId,
+  });
+}
+
+export async function importPlayersFromCsvForUser(
+  authUserId: string,
+  input: ImportPlayersCsvInput,
+) {
+  const parsed = importPlayersCsvSchema.parse(input);
+  const userId = await resolveUserId(authUserId);
+  await assertRosterEditor(parsed.leagueId, parsed.teamId, userId);
+  const { players } = validatePlayerImportCsv(parsed);
+
+  return bulkCreatePlayers({
+    leagueId: parsed.leagueId,
+    players,
+    teamId: parsed.teamId,
     userId,
   });
 }
