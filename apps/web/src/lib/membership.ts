@@ -279,7 +279,7 @@ export async function upsertLeagueRoleTemplateForUser(
     actorUserId: userId,
     label: parsed.label,
     leagueId: parsed.leagueId,
-    roles: [...new Set(parsed.roles)],
+    roles: parsed.roles,
   });
 }
 

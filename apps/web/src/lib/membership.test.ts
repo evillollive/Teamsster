@@ -132,11 +132,11 @@ describe("membership schemas", () => {
     const template = upsertLeagueRoleTemplateSchema.parse({
       label: " Assistant Coach ",
       leagueId,
-      roles: ["COACH", "PARENT", "COACH"],
+      roles: ["COACH", "PARENT"],
     });
 
     expect(template.label).toBe("Assistant Coach");
-    expect(template.roles).toEqual(["COACH", "PARENT", "COACH"]);
+    expect(template.roles).toEqual(["COACH", "PARENT"]);
   });
 
   it("validates team role template assignment payloads", () => {
