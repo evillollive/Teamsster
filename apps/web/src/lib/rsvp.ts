@@ -65,7 +65,7 @@ async function assertRsvpAccess(
       teamRoles: teamMembership.roles,
     })
   ) {
-    throw new Error("You are not a member of this team.");
+    throw new Error("You do not have permission to RSVP to this event.");
   }
 }
 
