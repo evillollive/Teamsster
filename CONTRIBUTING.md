@@ -28,6 +28,8 @@ pnpm test
 - Route permission decisions through `apps/web/src/lib/permissions.ts`.
 - Avoid direct database access from React components.
 - Add or update tests when core helpers or shared utilities change.
+- Keep communication and notification changes aligned with `/messages` workflow expectations (announcement audience scoping, templates, and delivery logs).
+- Preserve accessible form semantics for composition workflows (labels, helper text, and keyboard-first operation).
 
 ## Pull requests
 
