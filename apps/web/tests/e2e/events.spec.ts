@@ -14,6 +14,9 @@ test("events page requires auth for management actions", async ({ page }) => {
 
 test("home navigation links to events workspace", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: /Events/i }).click();
+  await page
+    .getByRole("navigation", { name: "Primary" })
+    .getByRole("link", { name: /Events/i })
+    .click();
   await expect(page).toHaveURL(/\/events$/);
 });
