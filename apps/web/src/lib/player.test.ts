@@ -260,7 +260,7 @@ describe("getPlayerContactsForTeamAsUser", () => {
   const contacts = [
     {
       id: "c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33",
-      playerId: "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
+      playerId: "d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a44",
       firstName: "Riley",
       lastName: "Jordan",
       relationship: "Parent",
