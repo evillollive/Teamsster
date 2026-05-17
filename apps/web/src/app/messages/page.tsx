@@ -14,6 +14,10 @@ import {
 } from "@/lib/announcement";
 import { getLeaguesForUser } from "@/lib/league";
 import {
+  getNotificationDeliveriesForLeagueAsUser,
+  logNotificationDeliveryForUser,
+} from "@/lib/notification-delivery";
+import {
   buildEventReminderTemplate,
   buildWeeklyDigestTemplate,
 } from "@/lib/notification-template";
@@ -101,6 +105,14 @@ export default async function MessagesPage({
           reminder: reminderForLeague,
         })
       : null;
+  const [deliveryLogs, deliveryLogsError] = selectedLeagueId
+    ? await getNotificationDeliveriesForLeagueAsUser(
+        session.user.id,
+        selectedLeagueId,
+      )
+        .then((result) => [result, null] as const)
+        .catch((error) => [[], error] as const)
+    : [[], null];
 
   async function createAnnouncementAction(formData: FormData) {
     "use server";
@@ -147,6 +159,58 @@ export default async function MessagesPage({
       announcementId,
       leagueId,
     );
+    revalidatePath(`/messages?leagueId=${leagueId}&teamId=${teamId}`);
+    revalidatePath("/messages");
+  }
+
+  async function logDigestDeliveryAction(formData: FormData) {
+    "use server";
+
+    const currentSession = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!currentSession?.user) {
+      throw new Error("You must be signed in to log deliveries.");
+    }
+
+    const leagueId = (formData.get("leagueId") as string | null) ?? "";
+    const teamId = (formData.get("teamId") as string | null) ?? "";
+
+    await logNotificationDeliveryForUser(currentSession.user.id, {
+      kind: "WEEKLY_DIGEST",
+      leagueId,
+      recipient: currentSession.user.email,
+      teamId: teamId || undefined,
+      templateBody: (formData.get("templateBody") as string | null) ?? "",
+      templateSubject: (formData.get("templateSubject") as string | null) ?? "",
+    });
+
+    revalidatePath(`/messages?leagueId=${leagueId}&teamId=${teamId}`);
+    revalidatePath("/messages");
+  }
+
+  async function logReminderDeliveryAction(formData: FormData) {
+    "use server";
+
+    const currentSession = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!currentSession?.user) {
+      throw new Error("You must be signed in to log deliveries.");
+    }
+
+    const leagueId = (formData.get("leagueId") as string | null) ?? "";
+    const teamId = (formData.get("teamId") as string | null) ?? "";
+
+    await logNotificationDeliveryForUser(currentSession.user.id, {
+      kind: "EVENT_REMINDER",
+      leagueId,
+      recipient: currentSession.user.email,
+      teamId: teamId || undefined,
+      templateBody: (formData.get("templateBody") as string | null) ?? "",
+      templateSubject: (formData.get("templateSubject") as string | null) ?? "",
+    });
+
     revalidatePath(`/messages?leagueId=${leagueId}&teamId=${teamId}`);
     revalidatePath("/messages");
   }
@@ -324,6 +388,31 @@ export default async function MessagesPage({
                 <pre className="whitespace-pre-wrap rounded-xl bg-slate-50 p-3 text-xs text-slate-700">
                   {digestTemplate.body}
                 </pre>
+                <form action={logDigestDeliveryAction}>
+                  <input
+                    name="leagueId"
+                    type="hidden"
+                    value={selectedLeague.id}
+                  />
+                  <input
+                    name="teamId"
+                    type="hidden"
+                    value={selectedTeam?.id ?? ""}
+                  />
+                  <input
+                    name="templateSubject"
+                    type="hidden"
+                    value={digestTemplate.subject}
+                  />
+                  <input
+                    name="templateBody"
+                    type="hidden"
+                    value={digestTemplate.body}
+                  />
+                  <Button size="sm" type="submit" variant="secondary">
+                    Log digest delivery
+                  </Button>
+                </form>
               </article>
             ) : null}
             {reminderTemplate ? (
@@ -335,12 +424,72 @@ export default async function MessagesPage({
                 <pre className="whitespace-pre-wrap rounded-xl bg-slate-50 p-3 text-xs text-slate-700">
                   {reminderTemplate.body}
                 </pre>
+                <form action={logReminderDeliveryAction}>
+                  <input
+                    name="leagueId"
+                    type="hidden"
+                    value={selectedLeague.id}
+                  />
+                  <input
+                    name="teamId"
+                    type="hidden"
+                    value={selectedTeam?.id ?? ""}
+                  />
+                  <input
+                    name="templateSubject"
+                    type="hidden"
+                    value={reminderTemplate.subject}
+                  />
+                  <input
+                    name="templateBody"
+                    type="hidden"
+                    value={reminderTemplate.body}
+                  />
+                  <Button size="sm" type="submit" variant="secondary">
+                    Log reminder delivery
+                  </Button>
+                </form>
               </article>
             ) : (
               <p className="text-sm text-slate-600">
                 No upcoming reminder examples available for this league yet.
               </p>
             )}
+
+            <div className="grid gap-2">
+              <h3 className="text-base font-semibold">Recent delivery logs</h3>
+              {deliveryLogsError ? (
+                <p className="text-sm text-slate-600">
+                  Delivery logs are available to announcement managers.
+                </p>
+              ) : deliveryLogs.length === 0 ? (
+                <p className="text-sm text-slate-600">
+                  No delivery logs recorded for this league yet.
+                </p>
+              ) : (
+                <div className="grid gap-2">
+                  {deliveryLogs.map((delivery) => (
+                    <article
+                      className="rounded-2xl border border-slate-200 bg-white p-3"
+                      key={delivery.id}
+                    >
+                      <p className="text-sm font-medium text-slate-800">
+                        {delivery.kind} · {delivery.status}
+                      </p>
+                      <p className="text-xs text-slate-600">
+                        Recipient: {delivery.recipient}
+                      </p>
+                      <p className="text-xs text-slate-600">
+                        Subject: {delivery.templateSubject}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Logged {delivery.createdAt.toLocaleString()}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
           </Card>
         </>
       ) : (

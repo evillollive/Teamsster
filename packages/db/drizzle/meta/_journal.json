@@ -57,6 +57,13 @@
       "when": 1779048650086,
       "tag": "0007_late_red_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1779053611493,
+      "tag": "0008_sparkling_exodus",
+      "breakpoints": true
     }
   ]
 }

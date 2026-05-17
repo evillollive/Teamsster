@@ -1,7 +1,15 @@
 import { and, desc, eq, isNull } from "drizzle-orm";
 
 import { db } from "./client";
-import { announcements, auditLogs, teams } from "./schema";
+import {
+  announcements,
+  auditLogs,
+  notificationDeliveries,
+  type notificationDeliveryChannelValues,
+  type notificationDeliveryKindValues,
+  type notificationDeliveryStatusValues,
+  teams,
+} from "./schema";
 
 export type AnnouncementSummary = {
   id: string;
@@ -11,6 +19,28 @@ export type AnnouncementSummary = {
   title: string;
   body: string;
   publishedAt: Date;
+  createdAt: Date;
+};
+
+type NotificationDeliveryChannel =
+  (typeof notificationDeliveryChannelValues)[number];
+type NotificationDeliveryKind = (typeof notificationDeliveryKindValues)[number];
+type NotificationDeliveryStatus =
+  (typeof notificationDeliveryStatusValues)[number];
+
+export type NotificationDeliverySummary = {
+  id: string;
+  leagueId: string;
+  teamId: string | null;
+  actorUserId: string | null;
+  recipient: string;
+  channel: NotificationDeliveryChannel;
+  kind: NotificationDeliveryKind;
+  status: NotificationDeliveryStatus;
+  templateSubject: string;
+  templateBody: string;
+  sentAt: Date | null;
+  metadata: Record<string, unknown> | null;
   createdAt: Date;
 };
 
@@ -26,6 +56,19 @@ type ArchiveAnnouncementInput = {
   announcementId: string;
   leagueId: string;
   actorUserId: string;
+};
+
+type LogNotificationDeliveryInput = {
+  leagueId: string;
+  teamId?: string;
+  actorUserId: string;
+  recipient: string;
+  channel?: NotificationDeliveryChannel;
+  kind: NotificationDeliveryKind;
+  status?: NotificationDeliveryStatus;
+  templateSubject: string;
+  templateBody: string;
+  metadata?: Record<string, unknown>;
 };
 
 export async function createAnnouncement(input: CreateAnnouncementInput) {
@@ -158,4 +201,84 @@ export async function getAnnouncementById(announcementId: string) {
     .limit(1);
 
   return rows[0] ?? null;
+}
+
+export async function logNotificationDelivery(
+  input: LogNotificationDeliveryInput,
+) {
+  const {
+    actorUserId,
+    channel = "EMAIL",
+    kind,
+    leagueId,
+    metadata,
+    recipient,
+    status = "SENT",
+    teamId,
+    templateBody,
+    templateSubject,
+  } = input;
+  const now = new Date();
+
+  return db.transaction(async (tx) => {
+    const inserted = await tx
+      .insert(notificationDeliveries)
+      .values({
+        actorUserId,
+        channel,
+        kind,
+        leagueId,
+        metadata,
+        recipient: recipient.trim(),
+        sentAt: status === "SENT" ? now : null,
+        status,
+        teamId: teamId ?? null,
+        templateBody,
+        templateSubject,
+      })
+      .returning({ id: notificationDeliveries.id });
+
+    await tx.insert(auditLogs).values({
+      action: "notification.delivery.log",
+      actorUserId,
+      entityId: inserted[0].id,
+      entityType: "notification_delivery",
+      leagueId,
+      metadata: {
+        channel,
+        kind,
+        recipient: recipient.trim(),
+        status,
+        teamId: teamId ?? null,
+      },
+    });
+
+    return inserted[0];
+  });
+}
+
+export async function getNotificationDeliveriesByLeagueId(
+  leagueId: string,
+  limit = 20,
+): Promise<NotificationDeliverySummary[]> {
+  return db
+    .select({
+      actorUserId: notificationDeliveries.actorUserId,
+      channel: notificationDeliveries.channel,
+      createdAt: notificationDeliveries.createdAt,
+      id: notificationDeliveries.id,
+      kind: notificationDeliveries.kind,
+      leagueId: notificationDeliveries.leagueId,
+      metadata: notificationDeliveries.metadata,
+      recipient: notificationDeliveries.recipient,
+      sentAt: notificationDeliveries.sentAt,
+      status: notificationDeliveries.status,
+      teamId: notificationDeliveries.teamId,
+      templateBody: notificationDeliveries.templateBody,
+      templateSubject: notificationDeliveries.templateSubject,
+    })
+    .from(notificationDeliveries)
+    .where(eq(notificationDeliveries.leagueId, leagueId))
+    .orderBy(desc(notificationDeliveries.createdAt))
+    .limit(limit);
 }
