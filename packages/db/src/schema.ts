@@ -231,6 +231,36 @@ export const players = pgTable(
   ],
 );
 
+export const playerContacts = pgTable(
+  "player_contacts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id),
+    playerId: uuid("player_id")
+      .notNull()
+      .references(() => players.id),
+    firstName: text("first_name").notNull(),
+    lastName: text("last_name").notNull(),
+    relationship: text("relationship"),
+    email: text("email"),
+    phone: text("phone"),
+    isPrimary: boolean("is_primary").notNull().default(false),
+    createdById: uuid("created_by_id"),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("player_contacts_league_idx").on(table.leagueId),
+    index("player_contacts_team_idx").on(table.teamId),
+    index("player_contacts_player_idx").on(table.playerId),
+  ],
+);
+
 export const leagueMembers = pgTable(
   "league_members",
   {

@@ -69,7 +69,7 @@
 
 ### Work items
 - [x] Player CRUD with soft deletes.
-- [ ] Guardian/contact relationships.
+- [x] Guardian/contact relationships.
 - [ ] Bulk import and CSV validation pipeline.
 - [ ] Eligibility, jersey, and profile metadata extensions.
 - [ ] Roster permission regression tests.
