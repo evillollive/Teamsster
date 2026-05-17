@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   assertPermission,
+  canAccessAction,
   canAccessFeature,
   canAccessField,
   canEditRoster,
@@ -148,6 +149,43 @@ describe("permissions", () => {
     it("denies access when no roles are provided", () => {
       expect(canAccessField("contact.viewEmail", {})).toBe(false);
       expect(canAccessField("contact.viewPhone", {})).toBe(false);
+    });
+  });
+
+  describe("canAccessAction (action-level permissions)", () => {
+    it("grants call/email/sms to COACH at team scope", () => {
+      expect(canAccessAction("contact.call", { teamRoles: "COACH" })).toBe(
+        true,
+      );
+      expect(canAccessAction("contact.email", { teamRoles: "COACH" })).toBe(
+        true,
+      );
+      expect(canAccessAction("contact.sms", { teamRoles: "COACH" })).toBe(true);
+    });
+
+    it("requires elevated role for contact export", () => {
+      expect(canAccessAction("contact.export", { teamRoles: "COACH" })).toBe(
+        false,
+      );
+      expect(
+        canAccessAction("contact.export", { teamRoles: "HEAD_COACH" }),
+      ).toBe(true);
+      expect(canAccessAction("contact.export", { orgRoles: "ADMIN" })).toBe(
+        true,
+      );
+    });
+
+    it("denies action access without required roles", () => {
+      expect(canAccessAction("contact.call", { teamRoles: "PLAYER" })).toBe(
+        false,
+      );
+      expect(canAccessAction("contact.email", { orgRoles: "PLAYER" })).toBe(
+        false,
+      );
+      expect(canAccessAction("contact.sms", {})).toBe(false);
+      expect(
+        canAccessAction("contact.export", { orgRoles: "BOARD_MEMBER" }),
+      ).toBe(false);
     });
   });
 });

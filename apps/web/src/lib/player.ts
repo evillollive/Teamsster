@@ -15,7 +15,11 @@ import { z } from "zod";
 
 import { timezoneSchema } from "@/lib/account";
 import type { PermissionContext } from "@/lib/permissions";
-import { canAccessFeature, canAccessField } from "@/lib/permissions";
+import {
+  canAccessAction,
+  canAccessFeature,
+  canAccessField,
+} from "@/lib/permissions";
 
 const playerNameSchema = z.string().trim().min(1).max(120);
 const optionalTextSchema = (max: number) =>
@@ -122,6 +126,12 @@ export type UpdatePlayerInput = z.infer<typeof updatePlayerSchema>;
 export type CreatePlayerContactInput = z.infer<
   typeof createPlayerContactSchema
 >;
+export type ContactActionPermissions = {
+  canCall: boolean;
+  canEmail: boolean;
+  canExport: boolean;
+  canSms: boolean;
+};
 
 async function resolveUserId(authUserId: string): Promise<string> {
   const userId = await getUserIdByAuthUserId(authUserId);
@@ -300,6 +310,17 @@ export function applyContactFieldMask(
   };
 }
 
+export function getContactActionPermissions(
+  context: PermissionContext,
+): ContactActionPermissions {
+  return {
+    canCall: canAccessAction("contact.call", context),
+    canEmail: canAccessAction("contact.email", context),
+    canExport: canAccessAction("contact.export", context),
+    canSms: canAccessAction("contact.sms", context),
+  };
+}
+
 export async function getPlayerContactsForTeamAsUser(
   authUserId: string | null | undefined,
   leagueId: string,
@@ -331,4 +352,29 @@ export async function getPlayerContactsForTeamAsUser(
   };
 
   return contacts.map((c) => applyContactFieldMask(c, context));
+}
+
+export async function getContactActionPermissionsForTeamAsUser(
+  authUserId: string | null | undefined,
+  leagueId: string,
+  teamId: string,
+): Promise<ContactActionPermissions> {
+  if (!authUserId) {
+    return getContactActionPermissions({ orgRoles: [], teamRoles: [] });
+  }
+
+  const userId = await getUserIdByAuthUserId(authUserId);
+  if (!userId) {
+    return getContactActionPermissions({ orgRoles: [], teamRoles: [] });
+  }
+
+  const [leagueMembership, teamMembership] = await Promise.all([
+    getUserLeagueMembership(leagueId, userId),
+    getUserTeamMembership(teamId, userId),
+  ]);
+
+  return getContactActionPermissions({
+    orgRoles: leagueMembership?.roles ?? [],
+    teamRoles: teamMembership?.roles ?? [],
+  });
 }

@@ -14,11 +14,39 @@ import {
   archivePlayerForUser,
   createPlayerContactForUser,
   createPlayerForUser,
+  getContactActionPermissionsForTeamAsUser,
   getPlayerContactsForTeamAsUser,
   getPlayersForTeam,
   updatePlayerForUser,
 } from "@/lib/player";
 import { getTeamDetail } from "@/lib/team";
+
+function buildContactExportHref(
+  contacts: Array<{
+    firstName: string;
+    lastName: string;
+    relationship: string | null;
+    email: string | null;
+    phone: string | null;
+    isPrimary: boolean;
+  }>,
+) {
+  const header = "First name,Last name,Relationship,Email,Phone,Primary";
+  const rows = contacts.map((contact) =>
+    [
+      contact.firstName,
+      contact.lastName,
+      contact.relationship ?? "",
+      contact.email ?? "",
+      contact.phone ?? "",
+      contact.isPrimary ? "Yes" : "No",
+    ]
+      .map((value) => `"${value.replaceAll('"', '""')}"`)
+      .join(","),
+  );
+  const csv = [header, ...rows].join("\n");
+  return `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
+}
 
 export default async function TeamRosterPage({
   params,
@@ -39,11 +67,14 @@ export default async function TeamRosterPage({
   }
   const activeTeam = team;
 
-  const contacts = await getPlayerContactsForTeamAsUser(
-    session?.user?.id,
-    leagueId,
-    teamId,
-  );
+  const [contacts, contactActionPermissions] = await Promise.all([
+    getPlayerContactsForTeamAsUser(session?.user?.id, leagueId, teamId),
+    getContactActionPermissionsForTeamAsUser(
+      session?.user?.id,
+      leagueId,
+      teamId,
+    ),
+  ]);
   const contactsByPlayerId = contacts.reduce<
     Record<
       string,
@@ -548,6 +579,35 @@ export default async function TeamRosterPage({
                                   {contact.email ? ` · ${contact.email}` : ""}
                                   {contact.phone ? ` · ${contact.phone}` : ""}
                                 </p>
+                                <p className="mt-1 flex flex-wrap gap-2 text-xs">
+                                  {contact.phone &&
+                                  contactActionPermissions.canCall ? (
+                                    <a
+                                      className="text-sky-700 underline underline-offset-2 hover:text-sky-800"
+                                      href={`tel:${contact.phone}`}
+                                    >
+                                      Call
+                                    </a>
+                                  ) : null}
+                                  {contact.email &&
+                                  contactActionPermissions.canEmail ? (
+                                    <a
+                                      className="text-sky-700 underline underline-offset-2 hover:text-sky-800"
+                                      href={`mailto:${encodeURIComponent(contact.email)}`}
+                                    >
+                                      Email
+                                    </a>
+                                  ) : null}
+                                  {contact.phone &&
+                                  contactActionPermissions.canSms ? (
+                                    <a
+                                      className="text-sky-700 underline underline-offset-2 hover:text-sky-800"
+                                      href={`sms:${contact.phone}`}
+                                    >
+                                      SMS
+                                    </a>
+                                  ) : null}
+                                </p>
                               </div>
                               <form action={archivePlayerContactAction}>
                                 <input
@@ -645,6 +705,20 @@ export default async function TeamRosterPage({
                         />
                         Primary contact
                       </label>
+                      <div className="sm:col-span-2">
+                        {contactActionPermissions.canExport &&
+                        (contactsByPlayerId[player.id] ?? []).length > 0 ? (
+                          <a
+                            className="mb-2 inline-flex text-xs text-sky-700 underline underline-offset-2 hover:text-sky-800"
+                            download={`contacts-${player.firstName.toLowerCase()}-${player.lastName.toLowerCase()}.csv`}
+                            href={buildContactExportHref(
+                              contactsByPlayerId[player.id] ?? [],
+                            )}
+                          >
+                            Export contacts (CSV)
+                          </a>
+                        ) : null}
+                      </div>
                       <div className="sm:col-span-2">
                         <Button
                           disabled={!session?.user}

@@ -24,6 +24,8 @@ import {
   applyContactFieldMask,
   createPlayerContactSchema,
   createPlayerSchema,
+  getContactActionPermissions,
+  getContactActionPermissionsForTeamAsUser,
   getPlayerContactsForTeamAsUser,
   updatePlayerSchema,
 } from "@/lib/player";
@@ -316,5 +318,69 @@ describe("getPlayerContactsForTeamAsUser", () => {
 
     expect(result[0]?.email).toBeNull();
     expect(result[0]?.phone).toBeNull();
+  });
+});
+
+describe("getContactActionPermissions", () => {
+  it("grants call/email/sms to coach-level team members", () => {
+    const permissions = getContactActionPermissions({ teamRoles: ["COACH"] });
+
+    expect(permissions.canCall).toBe(true);
+    expect(permissions.canEmail).toBe(true);
+    expect(permissions.canSms).toBe(true);
+    expect(permissions.canExport).toBe(false);
+  });
+
+  it("grants export for head coach and above", () => {
+    const permissions = getContactActionPermissions({
+      teamRoles: ["HEAD_COACH"],
+    });
+
+    expect(permissions.canExport).toBe(true);
+  });
+});
+
+describe("getContactActionPermissionsForTeamAsUser", () => {
+  const leagueId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
+  const teamId = "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22";
+
+  const mockedGetUserIdByAuthUserId = vi.mocked(getUserIdByAuthUserId);
+  const mockedGetUserLeagueMembership = vi.mocked(getUserLeagueMembership);
+  const mockedGetUserTeamMembership = vi.mocked(getUserTeamMembership);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns no permissions for unauthenticated user", async () => {
+    const result = await getContactActionPermissionsForTeamAsUser(
+      null,
+      leagueId,
+      teamId,
+    );
+
+    expect(result).toEqual({
+      canCall: false,
+      canEmail: false,
+      canExport: false,
+      canSms: false,
+    });
+  });
+
+  it("returns action permissions based on memberships", async () => {
+    mockedGetUserIdByAuthUserId.mockResolvedValue("user-1");
+    mockedGetUserLeagueMembership.mockResolvedValue({ roles: ["PLAYER"] });
+    mockedGetUserTeamMembership.mockResolvedValue({ roles: ["HEAD_COACH"] });
+
+    const result = await getContactActionPermissionsForTeamAsUser(
+      "auth-user-1",
+      leagueId,
+      teamId,
+    );
+
+    expect(result.canCall).toBe(true);
+    expect(result.canEmail).toBe(true);
+    expect(result.canSms).toBe(true);
+    expect(result.canExport).toBe(true);
   });
 });
