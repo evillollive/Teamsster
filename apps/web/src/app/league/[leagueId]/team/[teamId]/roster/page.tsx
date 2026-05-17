@@ -31,6 +31,8 @@ function buildContactExportHref(
     isPrimary: boolean;
   }>,
 ) {
+  const normalizeCsvValue = (value: string) =>
+    value.replaceAll(/\r?\n/g, " ").replaceAll('"', '""');
   const header = "First name,Last name,Relationship,Email,Phone,Primary";
   const rows = contacts.map((contact) =>
     [
@@ -41,11 +43,29 @@ function buildContactExportHref(
       contact.phone ?? "",
       contact.isPrimary ? "Yes" : "No",
     ]
-      .map((value) => `"${value.replaceAll('"', '""')}"`)
+      .map((value) => `"${normalizeCsvValue(value)}"`)
       .join(","),
   );
   const csv = [header, ...rows].join("\n");
   return `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
+}
+
+function toSafeFilename(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9-]+/g, "-")
+    .replaceAll(/^-+|-+$/g, "");
+}
+
+const defaultContactExportFilenamePart = "player";
+
+function buildContactExportFilename(firstName: string, lastName: string) {
+  const safeFirstName =
+    toSafeFilename(firstName) || defaultContactExportFilenamePart;
+  const safeLastName =
+    toSafeFilename(lastName) || defaultContactExportFilenamePart;
+  return `contacts-${safeFirstName}-${safeLastName}.csv`;
 }
 
 export default async function TeamRosterPage({
@@ -593,7 +613,7 @@ export default async function TeamRosterPage({
                                   contactActionPermissions.canEmail ? (
                                     <a
                                       className="text-sky-700 underline underline-offset-2 hover:text-sky-800"
-                                      href={`mailto:${encodeURIComponent(contact.email)}`}
+                                      href={`mailto:${contact.email}`}
                                     >
                                       Email
                                     </a>
@@ -710,7 +730,10 @@ export default async function TeamRosterPage({
                         (contactsByPlayerId[player.id] ?? []).length > 0 ? (
                           <a
                             className="mb-2 inline-flex text-xs text-sky-700 underline underline-offset-2 hover:text-sky-800"
-                            download={`contacts-${player.firstName.toLowerCase()}-${player.lastName.toLowerCase()}.csv`}
+                            download={buildContactExportFilename(
+                              player.firstName,
+                              player.lastName,
+                            )}
                             href={buildContactExportHref(
                               contactsByPlayerId[player.id] ?? [],
                             )}
