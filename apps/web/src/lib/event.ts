@@ -3,6 +3,7 @@ import {
   createTeamEvent,
   eventRecurrenceFrequencyValues,
   eventTypeValues,
+  getTeamEventsByLeagueId,
   getTeamEventsByTeamId,
   getUserIdByAuthUserId,
   getUserLeagueMembership,
@@ -122,6 +123,32 @@ async function assertEventEditor(
   }
 }
 
+async function assertEventViewer(
+  leagueId: string,
+  teamId: string,
+  userId: string,
+): Promise<void> {
+  const leagueMembership = await getUserLeagueMembership(leagueId, userId);
+  if (!leagueMembership) {
+    throw new Error("You are not a member of this league.");
+  }
+
+  if (canAccessFeature("event.rsvp", { orgRoles: leagueMembership.roles })) {
+    return;
+  }
+
+  const teamMembership = await getUserTeamMembership(teamId, userId);
+  if (
+    !teamMembership ||
+    !canAccessFeature("event.rsvp", {
+      orgRoles: leagueMembership.roles,
+      teamRoles: teamMembership.roles,
+    })
+  ) {
+    throw new Error("You do not have permission to view events for this team.");
+  }
+}
+
 export async function createTeamEventForUser(
   authUserId: string,
   input: CreateTeamEventInput,
@@ -192,4 +219,71 @@ export async function getTeamEventsForTeamAsUser(
   const userId = await resolveUserId(authUserId);
   await assertEventEditor(leagueId, teamId, userId);
   return getTeamEventsByTeamId(leagueId, teamId);
+}
+
+export async function getTeamEventsForTeamAsViewer(
+  authUserId: string,
+  leagueId: string,
+  teamId: string,
+) {
+  const userId = await resolveUserId(authUserId);
+  await assertEventViewer(leagueId, teamId, userId);
+  return getTeamEventsByTeamId(leagueId, teamId);
+}
+
+export async function getLeagueEventsForLeagueAsViewer(
+  authUserId: string,
+  leagueId: string,
+) {
+  const userId = await resolveUserId(authUserId);
+  const leagueMembership = await getUserLeagueMembership(leagueId, userId);
+  if (!leagueMembership) {
+    throw new Error("You are not a member of this league.");
+  }
+
+  const leagueEvents = await getTeamEventsByLeagueId(leagueId);
+  if (leagueEvents.length === 0) {
+    return [];
+  }
+
+  if (canAccessFeature("event.rsvp", { orgRoles: leagueMembership.roles })) {
+    return leagueEvents;
+  }
+
+  const teamRoleCache = new Map<
+    string,
+    Promise<Parameters<typeof canAccessFeature>[1]["teamRoles"] | null>
+  >();
+  const filtered = await Promise.all(
+    leagueEvents.map(async (event) => {
+      if (!teamRoleCache.has(event.teamId)) {
+        teamRoleCache.set(
+          event.teamId,
+          getUserTeamMembership(event.teamId, userId).then(
+            (membership) => membership?.roles ?? null,
+          ),
+        );
+      }
+
+      const teamRolesPromise = teamRoleCache.get(event.teamId);
+      if (!teamRolesPromise) {
+        return null;
+      }
+      const teamRoles = await teamRolesPromise;
+      if (
+        teamRoles &&
+        canAccessFeature("event.rsvp", {
+          orgRoles: leagueMembership.roles,
+          teamRoles,
+        })
+      ) {
+        return event;
+      }
+      return null;
+    }),
+  );
+
+  return filtered.filter((event): event is (typeof leagueEvents)[number] =>
+    Boolean(event),
+  );
 }

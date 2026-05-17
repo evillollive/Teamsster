@@ -14,6 +14,7 @@ import {
   updateTeamEventForUser,
 } from "@/lib/event";
 import { getLeaguesForUser } from "@/lib/league";
+import { getEventRemindersForUser } from "@/lib/reminder";
 import {
   deleteEventRsvpForUser,
   getEventRsvpSummaryForUser,
@@ -91,6 +92,14 @@ export default async function EventsPage({
           selectedTeamId,
         )
       : [];
+
+  const reminders =
+    selectedLeagueId && selectedTeamId
+      ? await getEventRemindersForUser(session.user.id).catch(() => ({
+          due: [],
+          upcoming: [],
+        }))
+      : { due: [], upcoming: [] };
 
   const rsvpData = await Promise.all(
     events.map((event) =>
@@ -265,6 +274,23 @@ export default async function EventsPage({
           Create, update, and archive games, practices, and general events with
           basic recurrence settings.
         </p>
+        {selectedLeague && selectedTeam ? (
+          <div className="flex flex-wrap gap-3 text-sm">
+            <Link
+              className="font-medium text-sky-600 hover:underline"
+              href={`/events/export?leagueId=${selectedLeague.id}&teamId=${selectedTeam.id}`}
+            >
+              Download calendar (.ics)
+            </Link>
+            <span className="text-slate-500">
+              Share URL for subscriptions:
+              <code className="ml-1 rounded bg-slate-100 px-1 py-0.5 text-xs">
+                /events/export?leagueId={selectedLeague.id}&teamId=
+                {selectedTeam.id}
+              </code>
+            </span>
+          </div>
+        ) : null}
       </Card>
 
       <Card className="grid gap-4">
@@ -667,6 +693,55 @@ export default async function EventsPage({
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </Card>
+
+          <Card className="grid gap-3">
+            <h2 className="text-lg font-semibold">Reminders</h2>
+            <p className="text-sm text-slate-600">
+              Defaults are based on RSVP: <strong>Yes</strong> = 24 hours
+              before,
+              <strong> Maybe</strong> = 2 hours before, <strong>No</strong> = no
+              reminder.
+            </p>
+            {reminders.due.length === 0 && reminders.upcoming.length === 0 ? (
+              <p className="text-sm text-slate-600">
+                No reminders right now. RSVP to upcoming events to receive
+                reminders.
+              </p>
+            ) : (
+              <div className="grid gap-3 text-sm">
+                {reminders.due.length > 0 ? (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
+                    <p className="font-semibold text-amber-800">
+                      Due reminders ({reminders.due.length})
+                    </p>
+                    <ul className="mt-2 grid gap-1 text-amber-900">
+                      {reminders.due.map((item) => (
+                        <li key={`due-${item.eventId}`}>
+                          {item.title} ({item.teamName}) ·{" "}
+                          {item.startsAt.toLocaleString()}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                {reminders.upcoming.length > 0 ? (
+                  <div className="rounded-2xl border border-slate-200 bg-white p-3">
+                    <p className="font-semibold text-slate-800">
+                      Upcoming reminders
+                    </p>
+                    <ul className="mt-2 grid gap-1 text-slate-700">
+                      {reminders.upcoming.map((item) => (
+                        <li key={`upcoming-${item.eventId}`}>
+                          {item.title} ({item.teamName}) reminder at{" "}
+                          {item.reminderAt.toLocaleString()}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
               </div>
             )}
           </Card>

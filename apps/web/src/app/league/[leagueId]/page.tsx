@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { getLeagueEventsForLeagueAsViewer } from "@/lib/event";
 import { getLeagueDetail } from "@/lib/league";
 import { getLeagueMemberWorkspaceForUser } from "@/lib/membership";
 import { getTeamsForLeague } from "@/lib/team";
@@ -42,6 +43,11 @@ export default async function LeagueDashboardPage({
     : null;
 
   const memberCount = memberWorkspace?.members.length ?? 0;
+  const leagueEvents = session?.user
+    ? await getLeagueEventsForLeagueAsViewer(session.user.id, leagueId).catch(
+        () => [],
+      )
+    : [];
 
   return (
     <div className="grid gap-6">
@@ -181,6 +187,44 @@ export default async function LeagueDashboardPage({
           </Card>
         ) : null}
       </div>
+
+      <Card className="grid gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">League event agenda</h2>
+          {session?.user ? (
+            <Link
+              className="text-xs font-medium text-sky-600 hover:underline"
+              href="/events"
+            >
+              Open events workspace →
+            </Link>
+          ) : null}
+        </div>
+        {!session?.user ? (
+          <p className="text-sm text-slate-600">
+            Sign in to view league-wide upcoming events.
+          </p>
+        ) : leagueEvents.length === 0 ? (
+          <p className="text-sm text-slate-600">
+            No upcoming events yet across league teams.
+          </p>
+        ) : (
+          <ul className="grid gap-2">
+            {leagueEvents.slice(0, 8).map((event) => (
+              <li
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2"
+                key={event.id}
+              >
+                <p className="font-medium">{event.title}</p>
+                <p className="text-sm text-slate-600">
+                  {event.teamName} · {event.startsAt.toLocaleString()} ·{" "}
+                  {event.eventType}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
     </div>
   );
 }

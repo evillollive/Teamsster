@@ -15,7 +15,7 @@ Teamsster aims to give leagues, clubs, volunteer boards, coaches, and families a
 - **Better Auth** with email/password and magic-link sign-in, onboarding, and account settings
 - **League administration** — create, update, and archive leagues and teams; role assignment, reusable role templates, and invitation workflows; audit log persistence and read views; league dashboard with empty states and onboarding guidance
 - **Roster workflows** — player CRUD with soft deletes, guardian contacts, and player eligibility/profile metadata fields
-- **Scheduling workflows (basics)** — team event create/update/archive flows with recurrence metadata for game, practice, and general event types
+- **Scheduling workflows** — team event create/update/archive flows with recurrence metadata, RSVP states, ICS calendar exports, reminder windows, and embedded team/league agenda views
 - **Centralized Zod validation** and permission helpers for all mutations
 - **Biome** formatting and linting, plus Husky, lint-staged, and commitlint
 - **Vitest + Testing Library + Playwright** testing stack
@@ -115,13 +115,13 @@ For the full terms, see [`LICENSE`](./LICENSE).
 
 ## Feature roadmap snapshot
 
-Milestones 0 (repository foundation), 1 (auth and onboarding), and 2 (league administration) are complete. Near-term milestones focus on:
+Milestones 0 (repository foundation), 1 (auth and onboarding), 2 (league administration), 3 (roster), and 4 (scheduling and attendance) are complete. Near-term milestones focus on:
 
 1. ~~Auth and onboarding flows~~ ✓
 2. ~~League and team CRUD foundations~~ ✓
 3. ~~Roster workflows and invitations~~ ✓
-4. Event scheduling foundations (event CRUD and recurrence basics complete; RSVPs and calendar exports remain)
-5. Messaging, reporting, and extension points
+4. ~~Scheduling and attendance~~ ✓ (event CRUD, recurrence, RSVPs, reminders, ICS export, and embedded agendas)
+5. Messaging, reporting, and extension points (Milestones 5-6)
 
 See [`PLAN.md`](./PLAN.md) for the full milestone breakdown.
 
