@@ -105,7 +105,7 @@
 
 ### Work items
 - [x] Messaging primitives for league and team announcements.
-- [ ] Notification preferences per user.
+- [x] Notification preferences per user.
 - [ ] Email digests and reminder templates.
 - [ ] Delivery logging and audit hooks.
 - [ ] Contact actions (click-to-call, click-to-email, SMS composition, and contact export) governed by action permissions distinct from view permissions.
