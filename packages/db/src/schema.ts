@@ -48,6 +48,12 @@ export const eventRecurrenceFrequencyEnum = pgEnum(
   eventRecurrenceFrequencyValues,
 );
 
+export const eventRsvpStatusValues = ["YES", "NO", "MAYBE"] as const;
+export const eventRsvpStatusEnum = pgEnum(
+  "event_rsvp_status",
+  eventRsvpStatusValues,
+);
+
 export type NotificationPreferences = {
   emailAnnouncements: boolean;
   eventReminders: boolean;
@@ -466,6 +472,36 @@ export const teamInvitations = pgTable(
       table.email,
       table.expiresAt,
     ),
+  ],
+);
+
+export const teamEventRsvps = pgTable(
+  "team_event_rsvps",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => teamEvents.id),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    status: eventRsvpStatusEnum("status").notNull(),
+    note: text("note"),
+    ...timestampColumns,
+  },
+  (table) => [
+    uniqueIndex("team_event_rsvps_event_user_unique").on(
+      table.eventId,
+      table.userId,
+    ),
+    index("team_event_rsvps_event_idx").on(table.eventId),
+    index("team_event_rsvps_user_idx").on(table.userId),
   ],
 );
 

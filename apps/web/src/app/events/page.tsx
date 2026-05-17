@@ -14,6 +14,11 @@ import {
   updateTeamEventForUser,
 } from "@/lib/event";
 import { getLeaguesForUser } from "@/lib/league";
+import {
+  deleteEventRsvpForUser,
+  getEventRsvpSummaryForUser,
+  upsertEventRsvpForUser,
+} from "@/lib/rsvp";
 import { getTeamsForLeague } from "@/lib/team";
 
 function toDateTimeLocalValue(value: Date | string | undefined) {
@@ -86,6 +91,17 @@ export default async function EventsPage({
           selectedTeamId,
         )
       : [];
+
+  const rsvpData = await Promise.all(
+    events.map((event) =>
+      getEventRsvpSummaryForUser(
+        session.user.id,
+        event.id,
+        selectedLeagueId ?? "",
+        selectedTeamId ?? "",
+      ).catch(() => null),
+    ),
+  );
 
   async function createEventAction(formData: FormData) {
     "use server";
@@ -194,6 +210,43 @@ export default async function EventsPage({
       leagueId,
       teamId,
     );
+
+    revalidatePath(`/events?leagueId=${leagueId}&teamId=${teamId}`);
+    revalidatePath("/events");
+  }
+
+  async function rsvpAction(formData: FormData) {
+    "use server";
+
+    const currentSession = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!currentSession?.user) {
+      throw new Error("You must be signed in to RSVP.");
+    }
+
+    const leagueId = (formData.get("leagueId") as string | null) ?? "";
+    const teamId = (formData.get("teamId") as string | null) ?? "";
+    const eventId = (formData.get("eventId") as string | null) ?? "";
+    const status = formData.get("status") as string | null;
+    const note = (formData.get("note") as string | null) ?? undefined;
+
+    if (status === "CLEAR") {
+      await deleteEventRsvpForUser(
+        currentSession.user.id,
+        eventId,
+        leagueId,
+        teamId,
+      );
+    } else if (status === "YES" || status === "NO" || status === "MAYBE") {
+      await upsertEventRsvpForUser(currentSession.user.id, {
+        eventId,
+        leagueId,
+        note,
+        status,
+        teamId,
+      });
+    }
 
     revalidatePath(`/events?leagueId=${leagueId}&teamId=${teamId}`);
     revalidatePath("/events");
@@ -367,161 +420,252 @@ export default async function EventsPage({
               </p>
             ) : (
               <div className="grid gap-4">
-                {events.map((event) => (
-                  <form
-                    action={updateEventAction}
-                    className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-2"
+                {events.map((event, idx) => (
+                  <div
+                    className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4"
                     key={event.id}
                   >
-                    <input name="eventId" type="hidden" value={event.id} />
-                    <input
-                      name="leagueId"
-                      type="hidden"
-                      value={selectedLeague.id}
-                    />
-                    <input
-                      name="teamId"
-                      type="hidden"
-                      value={selectedTeam.id}
-                    />
-                    <FormField
-                      htmlFor={`event-title-${event.id}`}
-                      label="Title"
+                    <form
+                      action={updateEventAction}
+                      className="grid gap-4 sm:grid-cols-2"
                     >
-                      <Input
-                        defaultValue={event.title}
-                        id={`event-title-${event.id}`}
-                        maxLength={140}
-                        name="title"
-                        required
+                      <input name="eventId" type="hidden" value={event.id} />
+                      <input
+                        name="leagueId"
+                        type="hidden"
+                        value={selectedLeague.id}
                       />
-                    </FormField>
-                    <FormField htmlFor={`event-type-${event.id}`} label="Type">
-                      <select
-                        className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-200"
-                        defaultValue={event.eventType}
-                        id={`event-type-${event.id}`}
-                        name="eventType"
+                      <input
+                        name="teamId"
+                        type="hidden"
+                        value={selectedTeam.id}
+                      />
+                      <FormField
+                        htmlFor={`event-title-${event.id}`}
+                        label="Title"
                       >
-                        <option value="GENERAL">General</option>
-                        <option value="PRACTICE">Practice</option>
-                        <option value="GAME">Game</option>
-                      </select>
-                    </FormField>
-                    <FormField
-                      htmlFor={`event-starts-at-${event.id}`}
-                      label="Starts at"
-                    >
-                      <Input
-                        defaultValue={toDateTimeLocalValue(event.startsAt)}
-                        id={`event-starts-at-${event.id}`}
-                        name="startsAt"
-                        required
-                        type="datetime-local"
-                      />
-                    </FormField>
-                    <FormField
-                      htmlFor={`event-ends-at-${event.id}`}
-                      label="Ends at"
-                    >
-                      <Input
-                        defaultValue={toDateTimeLocalValue(event.endsAt)}
-                        id={`event-ends-at-${event.id}`}
-                        name="endsAt"
-                        required
-                        type="datetime-local"
-                      />
-                    </FormField>
-                    <FormField
-                      htmlFor={`event-location-${event.id}`}
-                      label="Location"
-                    >
-                      <Input
-                        defaultValue={event.location ?? ""}
-                        id={`event-location-${event.id}`}
-                        maxLength={200}
-                        name="location"
-                      />
-                    </FormField>
-                    <FormField
-                      htmlFor={`event-timezone-${event.id}`}
-                      label="Timezone"
-                    >
-                      <Input
-                        defaultValue={event.timezone}
-                        id={`event-timezone-${event.id}`}
-                        name="timezone"
-                        required
-                      />
-                    </FormField>
-                    <FormField
-                      htmlFor={`event-frequency-${event.id}`}
-                      label="Recurrence"
-                    >
-                      <select
-                        className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-200"
-                        defaultValue={event.recurrenceRule.frequency}
-                        id={`event-frequency-${event.id}`}
-                        name="recurrenceFrequency"
+                        <Input
+                          defaultValue={event.title}
+                          id={`event-title-${event.id}`}
+                          maxLength={140}
+                          name="title"
+                          required
+                        />
+                      </FormField>
+                      <FormField
+                        htmlFor={`event-type-${event.id}`}
+                        label="Type"
                       >
-                        <option value="NONE">Does not repeat</option>
-                        <option value="DAILY">Daily</option>
-                        <option value="WEEKLY">Weekly</option>
-                        <option value="MONTHLY">Monthly</option>
-                      </select>
-                    </FormField>
-                    <FormField
-                      htmlFor={`event-interval-${event.id}`}
-                      label="Every"
-                    >
-                      <Input
-                        defaultValue={event.recurrenceRule.interval}
-                        id={`event-interval-${event.id}`}
-                        min={1}
-                        name="recurrenceInterval"
-                        type="number"
-                      />
-                    </FormField>
-                    <FormField
-                      className="sm:col-span-2"
-                      htmlFor={`event-until-${event.id}`}
-                      label="Repeat until"
-                    >
-                      <Input
-                        defaultValue={toDateTimeLocalValue(
-                          event.recurrenceRule.until,
-                        )}
-                        id={`event-until-${event.id}`}
-                        name="recurrenceUntil"
-                        type="datetime-local"
-                      />
-                    </FormField>
-                    <FormField
-                      className="sm:col-span-2"
-                      htmlFor={`event-description-${event.id}`}
-                      label="Description"
-                    >
-                      <Input
-                        defaultValue={event.description ?? ""}
-                        id={`event-description-${event.id}`}
-                        maxLength={1200}
-                        name="description"
-                      />
-                    </FormField>
-                    <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
-                      <Button size="sm" type="submit">
-                        Save event
-                      </Button>
-                      <Button
-                        formAction={archiveEventAction}
-                        size="sm"
-                        type="submit"
-                        variant="ghost"
+                        <select
+                          className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-200"
+                          defaultValue={event.eventType}
+                          id={`event-type-${event.id}`}
+                          name="eventType"
+                        >
+                          <option value="GENERAL">General</option>
+                          <option value="PRACTICE">Practice</option>
+                          <option value="GAME">Game</option>
+                        </select>
+                      </FormField>
+                      <FormField
+                        htmlFor={`event-starts-at-${event.id}`}
+                        label="Starts at"
                       >
-                        Archive event
-                      </Button>
+                        <Input
+                          defaultValue={toDateTimeLocalValue(event.startsAt)}
+                          id={`event-starts-at-${event.id}`}
+                          name="startsAt"
+                          required
+                          type="datetime-local"
+                        />
+                      </FormField>
+                      <FormField
+                        htmlFor={`event-ends-at-${event.id}`}
+                        label="Ends at"
+                      >
+                        <Input
+                          defaultValue={toDateTimeLocalValue(event.endsAt)}
+                          id={`event-ends-at-${event.id}`}
+                          name="endsAt"
+                          required
+                          type="datetime-local"
+                        />
+                      </FormField>
+                      <FormField
+                        htmlFor={`event-location-${event.id}`}
+                        label="Location"
+                      >
+                        <Input
+                          defaultValue={event.location ?? ""}
+                          id={`event-location-${event.id}`}
+                          maxLength={200}
+                          name="location"
+                        />
+                      </FormField>
+                      <FormField
+                        htmlFor={`event-timezone-${event.id}`}
+                        label="Timezone"
+                      >
+                        <Input
+                          defaultValue={event.timezone}
+                          id={`event-timezone-${event.id}`}
+                          name="timezone"
+                          required
+                        />
+                      </FormField>
+                      <FormField
+                        htmlFor={`event-frequency-${event.id}`}
+                        label="Recurrence"
+                      >
+                        <select
+                          className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-200"
+                          defaultValue={event.recurrenceRule.frequency}
+                          id={`event-frequency-${event.id}`}
+                          name="recurrenceFrequency"
+                        >
+                          <option value="NONE">Does not repeat</option>
+                          <option value="DAILY">Daily</option>
+                          <option value="WEEKLY">Weekly</option>
+                          <option value="MONTHLY">Monthly</option>
+                        </select>
+                      </FormField>
+                      <FormField
+                        htmlFor={`event-interval-${event.id}`}
+                        label="Every"
+                      >
+                        <Input
+                          defaultValue={event.recurrenceRule.interval}
+                          id={`event-interval-${event.id}`}
+                          min={1}
+                          name="recurrenceInterval"
+                          type="number"
+                        />
+                      </FormField>
+                      <FormField
+                        className="sm:col-span-2"
+                        htmlFor={`event-until-${event.id}`}
+                        label="Repeat until"
+                      >
+                        <Input
+                          defaultValue={toDateTimeLocalValue(
+                            event.recurrenceRule.until,
+                          )}
+                          id={`event-until-${event.id}`}
+                          name="recurrenceUntil"
+                          type="datetime-local"
+                        />
+                      </FormField>
+                      <FormField
+                        className="sm:col-span-2"
+                        htmlFor={`event-description-${event.id}`}
+                        label="Description"
+                      >
+                        <Input
+                          defaultValue={event.description ?? ""}
+                          id={`event-description-${event.id}`}
+                          maxLength={1200}
+                          name="description"
+                        />
+                      </FormField>
+                      <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
+                        <Button size="sm" type="submit">
+                          Save event
+                        </Button>
+                        <Button
+                          formAction={archiveEventAction}
+                          size="sm"
+                          type="submit"
+                          variant="ghost"
+                        >
+                          Archive event
+                        </Button>
+                      </div>
+                    </form>
+
+                    {/* RSVP section */}
+                    <div className="border-t border-slate-100 pt-4">
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                        Your RSVP
+                      </p>
+                      <form action={rsvpAction} className="grid gap-3">
+                        <input name="eventId" type="hidden" value={event.id} />
+                        <input
+                          name="leagueId"
+                          type="hidden"
+                          value={selectedLeague.id}
+                        />
+                        <input
+                          name="teamId"
+                          type="hidden"
+                          value={selectedTeam.id}
+                        />
+                        <div className="flex flex-wrap gap-2">
+                          {(["YES", "NO", "MAYBE"] as const).map((s) => {
+                            const current = rsvpData[idx]?.userRsvp?.status;
+                            const labels: Record<string, string> = {
+                              MAYBE: "Maybe",
+                              NO: "No",
+                              YES: "Yes",
+                            };
+                            const isActive = current === s;
+                            return (
+                              <button
+                                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+                                  isActive
+                                    ? "border-sky-500 bg-sky-500 text-white"
+                                    : "border-slate-200 bg-white text-slate-700 hover:border-sky-300 hover:text-sky-700"
+                                }`}
+                                key={s}
+                                name="status"
+                                type="submit"
+                                value={s}
+                              >
+                                {labels[s]}
+                              </button>
+                            );
+                          })}
+                          {rsvpData[idx]?.userRsvp && (
+                            <button
+                              className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-500 transition hover:border-slate-300 hover:text-slate-700"
+                              name="status"
+                              type="submit"
+                              value="CLEAR"
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                        <FormField
+                          htmlFor={`rsvp-note-${event.id}`}
+                          label="Note (optional)"
+                        >
+                          <Input
+                            defaultValue={rsvpData[idx]?.userRsvp?.note ?? ""}
+                            id={`rsvp-note-${event.id}`}
+                            maxLength={280}
+                            name="note"
+                            placeholder="e.g. Running 10 minutes late"
+                          />
+                        </FormField>
+                      </form>
+                      {rsvpData[idx]?.summary && (
+                        <p className="mt-3 text-xs text-slate-500">
+                          Responses:{" "}
+                          <span className="font-medium text-emerald-600">
+                            {rsvpData[idx].summary.yes} yes
+                          </span>{" "}
+                          ·{" "}
+                          <span className="font-medium text-amber-600">
+                            {rsvpData[idx].summary.maybe} maybe
+                          </span>{" "}
+                          ·{" "}
+                          <span className="font-medium text-rose-600">
+                            {rsvpData[idx].summary.no} no
+                          </span>
+                        </p>
+                      )}
                     </div>
-                  </form>
+                  </div>
                 ))}
               </div>
             )}
