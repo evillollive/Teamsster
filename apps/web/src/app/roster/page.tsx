@@ -5,13 +5,13 @@ export default function RosterPage() {
     <StubPage
       bullets={[
         "Players are modeled separately from users so parents, guardians, and volunteers can collaborate cleanly.",
-        "The roster scaffold anticipates soft deletes instead of destructive removals.",
-        "Future intake forms should use shared Zod helpers before any mutation reaches the database.",
-        "Core permission tests already cover who can edit roster-related data.",
+        "Team roster pages now support player create, update, and archive actions with soft deletes.",
+        "Every roster mutation flows through shared Zod validation and centralized permission checks.",
+        "Audit log events are written for player create, update, and archive actions.",
       ]}
-      description="Roster management is often the heart of a youth sports app, so Teamsster starts by protecting the data model before layering on registrations, waivers, or availability tracking."
+      description="Roster management is often the heart of a youth sports app. Start from a league team dashboard and open a team's roster manager to maintain active players without destructive deletes."
       eyebrow="Roster"
-      title="People-first data modeling starts here"
+      title="Player CRUD foundations are now in place"
     />
   );
 }
