@@ -60,7 +60,7 @@
 - [x] Role assignment and invitation workflows.
 - [x] Multi-role assignments where a user may hold multiple roles simultaneously within an org or team and effective permissions are resolved as the union of all assigned roles.
 - [x] Job/role templates where roles are reusable definitions (label + permission set) assignable across teams.
-- [ ] Layered permission scoping across org-wide, team-level, feature-level, and field-level permissions, with org and feature scopes delivered in this milestone and field-level enforcement delivered in Milestone 3.
+- [x] Layered permission scoping across org-wide, team-level, feature-level, and field-level permissions, with org and feature scopes delivered in this milestone and field-level enforcement delivered in Milestone 3.
 - [ ] Explicit no-import policy: no external data import (Excel/CSV/third-party apps), with manual guided onboarding as the supported path.
 - [x] Audit log persistence and read views.
 - [x] League dashboard with empty states and onboarding guidance.
