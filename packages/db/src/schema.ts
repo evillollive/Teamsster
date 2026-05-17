@@ -54,6 +54,31 @@ export const eventRsvpStatusEnum = pgEnum(
   eventRsvpStatusValues,
 );
 
+export const notificationDeliveryChannelValues = ["EMAIL"] as const;
+export const notificationDeliveryChannelEnum = pgEnum(
+  "notification_delivery_channel",
+  notificationDeliveryChannelValues,
+);
+
+export const notificationDeliveryKindValues = [
+  "WEEKLY_DIGEST",
+  "EVENT_REMINDER",
+] as const;
+export const notificationDeliveryKindEnum = pgEnum(
+  "notification_delivery_kind",
+  notificationDeliveryKindValues,
+);
+
+export const notificationDeliveryStatusValues = [
+  "QUEUED",
+  "SENT",
+  "FAILED",
+] as const;
+export const notificationDeliveryStatusEnum = pgEnum(
+  "notification_delivery_status",
+  notificationDeliveryStatusValues,
+);
+
 export type NotificationPreferences = {
   emailAnnouncements: boolean;
   eventReminders: boolean;
@@ -529,6 +554,40 @@ export const announcements = pgTable(
     index("announcements_league_idx").on(table.leagueId),
     index("announcements_team_idx").on(table.teamId),
     index("announcements_published_at_idx").on(table.publishedAt),
+  ],
+);
+
+export const notificationDeliveries = pgTable(
+  "notification_deliveries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    teamId: uuid("team_id").references(() => teams.id),
+    actorUserId: uuid("actor_user_id").references(() => users.id),
+    recipient: text("recipient").notNull(),
+    channel: notificationDeliveryChannelEnum("channel")
+      .notNull()
+      .default("EMAIL"),
+    kind: notificationDeliveryKindEnum("kind").notNull(),
+    status: notificationDeliveryStatusEnum("status").notNull().default("SENT"),
+    templateSubject: text("template_subject").notNull(),
+    templateBody: text("template_body").notNull(),
+    sentAt: timestamp("sent_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    ...timestampColumns,
+  },
+  (table) => [
+    index("notification_deliveries_league_idx").on(
+      table.leagueId,
+      table.createdAt,
+    ),
+    index("notification_deliveries_recipient_idx").on(table.recipient),
+    index("notification_deliveries_status_idx").on(table.status),
   ],
 );
 
