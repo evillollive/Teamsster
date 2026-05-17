@@ -6,6 +6,7 @@
 - Prioritize inclusive collaboration for families, volunteers, staff, and players.
 - Optimize the project for onboarding, extensibility, and dependable maintenance.
 - Establish quality, security, and contributor guardrails before shipping business logic.
+- Design natively for all-volunteer organizations with no assumption of paid staff, flexible multi-role membership, and deep permission control at every layer of the product.
 
 ## Milestone 0 — repository foundation (this scaffold)
 
@@ -57,6 +58,10 @@
 - [x] League create/update/archive flows.
 - [x] Team create/update/archive flows.
 - [x] Role assignment and invitation workflows.
+- [ ] Multi-role assignments where a user may hold multiple roles simultaneously within an org or team and effective permissions are resolved as the union of all assigned roles.
+- [ ] Job/role templates where roles are reusable definitions (label + permission set) assignable across teams.
+- [ ] Layered permission scoping across org-wide, team-level, feature-level, and field-level permissions, with org and feature scopes delivered in this milestone and field-level enforcement delivered in Milestone 3.
+- [ ] Explicit no-import policy: no external data import (Excel/CSV/third-party apps), with manual guided onboarding as the supported path.
 - [x] Audit log persistence and read views.
 - [x] League dashboard with empty states and onboarding guidance.
 - [x] Milestone checkpoint: refresh README and contributor-facing docs for shipped admin workflows.
@@ -70,8 +75,11 @@
 ### Work items
 - [x] Player CRUD with soft deletes.
 - [x] Guardian/contact relationships.
-- [x] Bulk import and CSV validation pipeline.
+- [x] ~~Bulk import and CSV validation pipeline.~~ (Deprecated: retired in favor of manual onboarding and validation-first workflows.)
+- [ ] No external file import (CSV/Excel): out of scope by design; roster entry is manual only.
 - [x] Eligibility, jersey, and profile metadata extensions.
+- [ ] Role-gated contact visibility for member phone/email using field-level read permissions through centralized permission helpers; no user opt-out.
+- [ ] Field-level permission enforcement to complete the four-level permission model introduced in Milestone 2.
 - [ ] Roster permission regression tests.
 - [x] Milestone checkpoint: refresh README and contributor-facing docs for roster workflows.
 
@@ -100,6 +108,7 @@
 - [ ] Notification preferences per user.
 - [ ] Email digests and reminder templates.
 - [ ] Delivery logging and audit hooks.
+- [ ] Contact actions (click-to-call, click-to-email, SMS composition, and contact export) governed by action permissions distinct from view permissions.
 - [ ] Accessibility review for message composition flows.
 - [ ] Milestone checkpoint: refresh README and contributor-facing docs for communication workflows.
 
@@ -127,3 +136,4 @@
 - Keep CI green with lint, typecheck, unit tests, integration tests, build, and E2E coverage where appropriate.
 - Review and update the README and contributor-facing docs at milestone checkpoints when user-facing capabilities, setup, architecture, or workflow expectations change.
 - Review security, observability, and accessibility as first-class concerns at every milestone.
+- Validation (data integrity and permission integrity) is a non-negotiable acceptance criterion for volunteer-organization, role, and contact features.
