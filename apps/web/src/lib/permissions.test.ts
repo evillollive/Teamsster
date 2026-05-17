@@ -21,6 +21,8 @@ describe("permissions", () => {
     expect(canManageLeague("ADMIN")).toBe(true);
     expect(canManageTeam("HEAD_COACH")).toBe(true);
     expect(canEditRoster("COACH")).toBe(true);
+    expect(canManageTeam("ADMIN")).toBe(true);
+    expect(canEditRoster("ADMIN")).toBe(true);
     expect(canViewAuditLog("BOARD_MEMBER")).toBe(true);
     expect(canManageLeague("COACH")).toBe(false);
   });

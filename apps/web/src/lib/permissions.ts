@@ -86,11 +86,17 @@ export function canManageLeague(roleInput: RoleInput) {
 }
 
 export function canManageTeam(roleInput: RoleInput) {
-  return hasScopedPermission("team", "HEAD_COACH", { teamRoles: roleInput });
+  return canAccessFeature("team.manage", {
+    orgRoles: roleInput,
+    teamRoles: roleInput,
+  });
 }
 
 export function canEditRoster(roleInput: RoleInput) {
-  return hasScopedPermission("team", "COACH", { teamRoles: roleInput });
+  return canAccessFeature("roster.edit", {
+    orgRoles: roleInput,
+    teamRoles: roleInput,
+  });
 }
 
 export function canViewAuditLog(roleInput: RoleInput) {
