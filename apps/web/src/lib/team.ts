@@ -52,9 +52,7 @@ async function assertLeagueAdmin(
   if (!membership) {
     throw new Error("You are not a member of this league.");
   }
-  if (
-    !canManageLeague(membership.role as Parameters<typeof canManageLeague>[0])
-  ) {
+  if (!canManageLeague(membership.roles)) {
     throw new Error(
       "You do not have permission to manage teams in this league.",
     );

@@ -333,19 +333,12 @@ async function assertRosterEditor(
     throw new Error("You are not a member of this league.");
   }
 
-  if (
-    canManageLeague(
-      leagueMembership.role as Parameters<typeof canManageLeague>[0],
-    )
-  ) {
+  if (canManageLeague(leagueMembership.roles)) {
     return;
   }
 
   const teamMembership = await getUserTeamMembership(teamId, userId);
-  if (
-    !teamMembership ||
-    !canEditRoster(teamMembership.role as Parameters<typeof canEditRoster>[0])
-  ) {
+  if (!teamMembership || !canEditRoster(teamMembership.roles)) {
     throw new Error("You do not have permission to manage this roster.");
   }
 }

@@ -295,13 +295,15 @@ export const leagueMembers = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id),
-    role: membershipRoleEnum("role").notNull().default("GUEST"),
+    roles: membershipRoleEnum("roles")
+      .array()
+      .notNull()
+      .default(sql`ARRAY['GUEST']::membership_role[]`),
     ...timestampColumns,
     ...softDeleteColumns,
   },
   (table) => [
     uniqueIndex("league_members_unique").on(table.leagueId, table.userId),
-    index("league_members_role_idx").on(table.leagueId, table.role),
   ],
 );
 
@@ -315,13 +317,15 @@ export const teamMembers = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id),
-    role: membershipRoleEnum("role").notNull().default("GUEST"),
+    roles: membershipRoleEnum("roles")
+      .array()
+      .notNull()
+      .default(sql`ARRAY['GUEST']::membership_role[]`),
     ...timestampColumns,
     ...softDeleteColumns,
   },
   (table) => [
     uniqueIndex("team_members_unique").on(table.teamId, table.userId),
-    index("team_members_role_idx").on(table.teamId, table.role),
   ],
 );
 

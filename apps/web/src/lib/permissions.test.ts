@@ -6,6 +6,7 @@ import {
   canManageLeague,
   canManageTeam,
   canViewAuditLog,
+  getHighestRole,
   hasMinimumRole,
 } from "@/lib/permissions";
 
@@ -21,6 +22,13 @@ describe("permissions", () => {
     expect(canEditRoster("COACH")).toBe(true);
     expect(canViewAuditLog("BOARD_MEMBER")).toBe(true);
     expect(canManageLeague("COACH")).toBe(false);
+  });
+
+  it("resolves capabilities as a union for multi-role memberships", () => {
+    expect(canManageLeague(["PARENT", "ADMIN"])).toBe(true);
+    expect(canEditRoster(["PLAYER", "COACH"])).toBe(true);
+    expect(canViewAuditLog(["PARENT", "PLAYER"])).toBe(false);
+    expect(getHighestRole(["COACH", "ADMIN", "PLAYER"])).toBe("ADMIN");
   });
 
   it("throws when an action is not permitted", () => {

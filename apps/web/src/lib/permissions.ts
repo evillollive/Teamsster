@@ -1,6 +1,7 @@
 import type { roleValues } from "@teamsster/db/schema";
 
 export type Role = (typeof roleValues)[number];
+export type RoleInput = Role | readonly Role[];
 
 const roleRank: Record<Role, number> = {
   OWNER: 80,
@@ -17,20 +18,33 @@ export function hasMinimumRole(currentRole: Role, minimumRole: Role) {
   return roleRank[currentRole] >= roleRank[minimumRole];
 }
 
-export function canManageLeague(currentRole: Role) {
-  return hasMinimumRole(currentRole, "ADMIN");
+function toRoles(roleInput: RoleInput): readonly Role[] {
+  return typeof roleInput === "string" ? [roleInput] : roleInput;
 }
 
-export function canManageTeam(currentRole: Role) {
-  return hasMinimumRole(currentRole, "HEAD_COACH");
+export function getHighestRole(roleInput: RoleInput): Role {
+  return (
+    [...toRoles(roleInput)].sort((a, b) => roleRank[b] - roleRank[a])[0] ??
+    "GUEST"
+  );
 }
 
-export function canEditRoster(currentRole: Role) {
-  return hasMinimumRole(currentRole, "COACH");
+export function canManageLeague(roleInput: RoleInput) {
+  return toRoles(roleInput).some((role) => hasMinimumRole(role, "ADMIN"));
 }
 
-export function canViewAuditLog(currentRole: Role) {
-  return hasMinimumRole(currentRole, "BOARD_MEMBER");
+export function canManageTeam(roleInput: RoleInput) {
+  return toRoles(roleInput).some((role) => hasMinimumRole(role, "HEAD_COACH"));
+}
+
+export function canEditRoster(roleInput: RoleInput) {
+  return toRoles(roleInput).some((role) => hasMinimumRole(role, "COACH"));
+}
+
+export function canViewAuditLog(roleInput: RoleInput) {
+  return toRoles(roleInput).some((role) =>
+    hasMinimumRole(role, "BOARD_MEMBER"),
+  );
 }
 
 export function assertPermission(currentRole: Role, allowedRoles: Role[]) {

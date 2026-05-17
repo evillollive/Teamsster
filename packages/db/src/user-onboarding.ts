@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { and, eq, isNull, or } from "drizzle-orm";
+import { and, eq, isNull, or, sql } from "drizzle-orm";
 
 import { db } from "./client";
 import {
@@ -109,7 +109,7 @@ export async function provisionUserOnboarding(input: ProvisionInput) {
       .where(
         and(
           eq(leagueMembers.userId, userId),
-          eq(leagueMembers.role, "OWNER"),
+          sql`${leagueMembers.roles} @> ARRAY['OWNER']::membership_role[]`,
           isNull(leagueMembers.deletedAt),
         ),
       )
@@ -164,7 +164,7 @@ export async function provisionUserOnboarding(input: ProvisionInput) {
 
     await tx.insert(leagueMembers).values({
       leagueId,
-      role: "OWNER",
+      roles: ["OWNER"],
       userId,
     });
 

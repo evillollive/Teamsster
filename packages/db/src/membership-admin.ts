@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull, sql } from "drizzle-orm";
 
 import { db } from "./client";
 import {
@@ -92,14 +92,18 @@ export async function assignLeagueMemberRole(input: AssignLeagueRoleInput) {
       .insert(leagueMembers)
       .values({
         leagueId: input.leagueId,
-        role: input.role,
+        roles: [input.role],
         userId,
       })
       .onConflictDoUpdate({
         set: {
           deletedAt: null,
           deletedById: null,
-          role: input.role,
+          roles: sql`CASE
+            WHEN array_position(${leagueMembers.roles}, ${input.role}::membership_role) IS NULL
+              THEN ${leagueMembers.roles} || ${input.role}::membership_role
+            ELSE ${leagueMembers.roles}
+          END`,
           updatedAt: new Date(),
         },
         target: [leagueMembers.leagueId, leagueMembers.userId],
@@ -135,7 +139,7 @@ export async function assignTeamMemberRole(input: AssignTeamRoleInput) {
     await tx
       .insert(teamMembers)
       .values({
-        role: input.role,
+        roles: [input.role],
         teamId: input.teamId,
         userId,
       })
@@ -143,7 +147,11 @@ export async function assignTeamMemberRole(input: AssignTeamRoleInput) {
         set: {
           deletedAt: null,
           deletedById: null,
-          role: input.role,
+          roles: sql`CASE
+            WHEN array_position(${teamMembers.roles}, ${input.role}::membership_role) IS NULL
+              THEN ${teamMembers.roles} || ${input.role}::membership_role
+            ELSE ${teamMembers.roles}
+          END`,
           updatedAt: new Date(),
         },
         target: [teamMembers.teamId, teamMembers.userId],
@@ -306,7 +314,7 @@ export async function getLeagueMembersByLeagueId(leagueId: string) {
   return db
     .select({
       email: users.email,
-      role: leagueMembers.role,
+      roles: leagueMembers.roles,
       userId: users.id,
     })
     .from(leagueMembers)
@@ -324,7 +332,7 @@ export async function getTeamMembersByTeamId(teamId: string) {
   return db
     .select({
       email: users.email,
-      role: teamMembers.role,
+      roles: teamMembers.roles,
       userId: users.id,
     })
     .from(teamMembers)

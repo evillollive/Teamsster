@@ -282,7 +282,7 @@ export default async function LeagueSettingsPage({
                   >
                     <span className="text-slate-700">{member.email}</span>
                     <span className="font-medium text-sky-700">
-                      {member.role}
+                      {member.roles.join(", ")}
                     </span>
                   </li>
                 ))}

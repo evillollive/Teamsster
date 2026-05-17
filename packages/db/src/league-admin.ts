@@ -3,14 +3,23 @@ import { randomUUID } from "node:crypto";
 import { and, desc, eq, isNull } from "drizzle-orm";
 
 import { db } from "./client";
-import { auditLogs, leagueMembers, leagues, teams, users } from "./schema";
+import {
+  auditLogs,
+  leagueMembers,
+  leagues,
+  type roleValues,
+  teams,
+  users,
+} from "./schema";
+
+type MembershipRole = (typeof roleValues)[number];
 
 export type LeagueSummary = {
   id: string;
   name: string;
   slug: string;
   timezone: string;
-  role: string;
+  roles: MembershipRole[];
   createdAt: Date;
 };
 
@@ -93,7 +102,7 @@ export async function createLeague(input: CreateLeagueInput) {
 
     await tx.insert(leagueMembers).values({
       leagueId,
-      role: "OWNER",
+      roles: ["OWNER"],
       userId,
     });
 
@@ -175,7 +184,7 @@ export async function getLeaguesByUserId(
     .select({
       id: leagues.id,
       name: leagues.name,
-      role: leagueMembers.role,
+      roles: leagueMembers.roles,
       slug: leagues.slug,
       timezone: leagues.timezone,
       createdAt: leagues.createdAt,
@@ -218,7 +227,7 @@ export async function getUserLeagueMembership(
   userId: string,
 ) {
   const rows = await db
-    .select({ role: leagueMembers.role })
+    .select({ roles: leagueMembers.roles })
     .from(leagueMembers)
     .where(
       and(

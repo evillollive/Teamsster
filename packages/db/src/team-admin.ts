@@ -209,7 +209,7 @@ export async function getTeamById(teamId: string): Promise<TeamDetail | null> {
 
 export async function getUserTeamMembership(teamId: string, userId: string) {
   const rows = await db
-    .select({ role: teamMembers.role })
+    .select({ roles: teamMembers.roles })
     .from(teamMembers)
     .where(
       and(
