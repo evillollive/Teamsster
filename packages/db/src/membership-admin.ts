@@ -343,7 +343,7 @@ export async function removeLeagueMemberRole(input: RemoveLeagueRoleInput) {
       .returning({ roles: leagueMembers.roles });
 
     if (!updated[0]) {
-      throw new Error("Membership not found.");
+      throw new Error("League membership not found or already removed.");
     }
 
     await tx.insert(auditLogs).values({

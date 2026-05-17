@@ -337,6 +337,7 @@ export default async function TeamSettingsPage({
                           />
                           <input name="role" type="hidden" value={role} />
                           <button
+                            aria-label={`Remove ${role} role`}
                             className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700 transition hover:bg-rose-100 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={!session?.user}
                             title={`Remove ${role}`}
