@@ -120,10 +120,10 @@ export default async function EventsPage({
       recurrenceUntil:
         (formData.get("recurrenceUntil") as string | null) ?? undefined,
       startsAt: new Date((formData.get("startsAt") as string | null) ?? ""),
+      endsAt: new Date((formData.get("endsAt") as string | null) ?? ""),
       teamId,
       timezone: (formData.get("timezone") as string | null) ?? "UTC",
       title: (formData.get("title") as string | null) ?? "",
-      endsAt: new Date((formData.get("endsAt") as string | null) ?? ""),
     });
 
     revalidatePath(`/events?leagueId=${leagueId}&teamId=${teamId}`);
@@ -508,7 +508,7 @@ export default async function EventsPage({
                         name="description"
                       />
                     </FormField>
-                    <div className="sm:col-span-2 flex flex-wrap gap-2 items-center">
+                    <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
                       <Button size="sm" type="submit">
                         Save event
                       </Button>
