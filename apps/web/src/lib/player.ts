@@ -1,6 +1,9 @@
 import {
   archivePlayer,
+  archivePlayerContact,
   createPlayer,
+  createPlayerContact,
+  getPlayerContactsByTeamId,
   getPlayersByTeamId,
   getUserIdByAuthUserId,
   getUserLeagueMembership,
@@ -57,8 +60,50 @@ export const archivePlayerSchema = z.object({
   teamId: z.string().uuid(),
 });
 
+export const createPlayerContactSchema = z
+  .object({
+    playerId: z.string().uuid(),
+    leagueId: z.string().uuid(),
+    teamId: z.string().uuid(),
+    firstName: playerNameSchema,
+    lastName: playerNameSchema,
+    relationship: optionalTextSchema,
+    email: z
+      .string()
+      .trim()
+      .email()
+      .max(320)
+      .optional()
+      .or(z.literal(""))
+      .transform((value) => value || undefined),
+    phone: z
+      .string()
+      .trim()
+      .max(32)
+      .optional()
+      .transform((value) => value || undefined),
+    isPrimary: z.boolean().default(false),
+  })
+  .refine(
+    (value) => Boolean(value.email?.trim()) || Boolean(value.phone?.trim()),
+    {
+      message: "Provide at least one contact method.",
+      path: ["email"],
+    },
+  );
+
+export const archivePlayerContactSchema = z.object({
+  contactId: z.string().uuid(),
+  playerId: z.string().uuid(),
+  leagueId: z.string().uuid(),
+  teamId: z.string().uuid(),
+});
+
 export type CreatePlayerInput = z.infer<typeof createPlayerSchema>;
 export type UpdatePlayerInput = z.infer<typeof updatePlayerSchema>;
+export type CreatePlayerContactInput = z.infer<
+  typeof createPlayerContactSchema
+>;
 
 async function resolveUserId(authUserId: string): Promise<string> {
   const userId = await getUserIdByAuthUserId(authUserId);
@@ -157,4 +202,58 @@ export async function archivePlayerForUser(
 
 export async function getPlayersForTeam(leagueId: string, teamId: string) {
   return getPlayersByTeamId(leagueId, teamId);
+}
+
+export async function createPlayerContactForUser(
+  authUserId: string,
+  input: CreatePlayerContactInput,
+) {
+  const parsed = createPlayerContactSchema.parse(input);
+  const userId = await resolveUserId(authUserId);
+  await assertRosterEditor(parsed.leagueId, parsed.teamId, userId);
+
+  await createPlayerContact({
+    email: parsed.email,
+    firstName: parsed.firstName,
+    isPrimary: parsed.isPrimary,
+    lastName: parsed.lastName,
+    leagueId: parsed.leagueId,
+    phone: parsed.phone,
+    playerId: parsed.playerId,
+    relationship: parsed.relationship,
+    teamId: parsed.teamId,
+    userId,
+  });
+}
+
+export async function archivePlayerContactForUser(
+  authUserId: string,
+  contactId: string,
+  playerId: string,
+  leagueId: string,
+  teamId: string,
+) {
+  const parsed = archivePlayerContactSchema.parse({
+    contactId,
+    leagueId,
+    playerId,
+    teamId,
+  });
+  const userId = await resolveUserId(authUserId);
+  await assertRosterEditor(parsed.leagueId, parsed.teamId, userId);
+
+  await archivePlayerContact({
+    actorUserId: userId,
+    contactId: parsed.contactId,
+    leagueId: parsed.leagueId,
+    playerId: parsed.playerId,
+    teamId: parsed.teamId,
+  });
+}
+
+export async function getPlayerContactsForTeam(
+  leagueId: string,
+  teamId: string,
+) {
+  return getPlayerContactsByTeamId(leagueId, teamId);
 }

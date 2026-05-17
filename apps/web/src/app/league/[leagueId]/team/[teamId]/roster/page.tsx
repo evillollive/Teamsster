@@ -10,8 +10,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getLeagueDetail } from "@/lib/league";
 import {
+  archivePlayerContactForUser,
   archivePlayerForUser,
+  createPlayerContactForUser,
   createPlayerForUser,
+  getPlayerContactsForTeam,
   getPlayersForTeam,
   updatePlayerForUser,
 } from "@/lib/player";
@@ -23,17 +26,36 @@ export default async function TeamRosterPage({
   params: Promise<{ leagueId: string; teamId: string }>;
 }) {
   const { leagueId, teamId } = await params;
-  const [session, league, team, players] = await Promise.all([
+  const [session, league, team, players, contacts] = await Promise.all([
     auth.api.getSession({ headers: await headers() }),
     getLeagueDetail(leagueId),
     getTeamDetail(teamId),
     getPlayersForTeam(leagueId, teamId),
+    getPlayerContactsForTeam(leagueId, teamId),
   ]);
 
   if (!league || !team || team.leagueId !== leagueId) {
     notFound();
   }
   const activeTeam = team;
+  const contactsByPlayerId = contacts.reduce<
+    Record<
+      string,
+      Array<{
+        id: string;
+        firstName: string;
+        lastName: string;
+        relationship: string | null;
+        email: string | null;
+        phone: string | null;
+        isPrimary: boolean;
+      }>
+    >
+  >((map, contact) => {
+    map[contact.playerId] ??= [];
+    map[contact.playerId].push(contact);
+    return map;
+  }, {});
 
   async function createPlayerAction(formData: FormData) {
     "use server";
@@ -105,6 +127,58 @@ export default async function TeamRosterPage({
     const playerId = (formData.get("playerId") as string | null) ?? "";
     await archivePlayerForUser(
       currentSession.user.id,
+      playerId,
+      leagueId,
+      teamId,
+    );
+
+    revalidatePath(`/league/${leagueId}/team/${teamId}`);
+    revalidatePath(`/league/${leagueId}/team/${teamId}/roster`);
+  }
+
+  async function createPlayerContactAction(formData: FormData) {
+    "use server";
+
+    const currentSession = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!currentSession?.user) {
+      throw new Error("You must be signed in to create contacts.");
+    }
+
+    await createPlayerContactForUser(currentSession.user.id, {
+      email: (formData.get("email") as string | null) ?? undefined,
+      firstName: (formData.get("firstName") as string | null) ?? "",
+      isPrimary: Boolean(formData.get("isPrimary")),
+      lastName: (formData.get("lastName") as string | null) ?? "",
+      leagueId,
+      phone: (formData.get("phone") as string | null) ?? undefined,
+      playerId: (formData.get("playerId") as string | null) ?? "",
+      relationship:
+        (formData.get("relationship") as string | null) ?? undefined,
+      teamId,
+    });
+
+    revalidatePath(`/league/${leagueId}/team/${teamId}`);
+    revalidatePath(`/league/${leagueId}/team/${teamId}/roster`);
+  }
+
+  async function archivePlayerContactAction(formData: FormData) {
+    "use server";
+
+    const currentSession = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!currentSession?.user) {
+      throw new Error("You must be signed in to archive contacts.");
+    }
+
+    const playerId = (formData.get("playerId") as string | null) ?? "";
+    const contactId = (formData.get("contactId") as string | null) ?? "";
+
+    await archivePlayerContactForUser(
+      currentSession.user.id,
+      contactId,
       playerId,
       leagueId,
       teamId,
@@ -293,6 +367,142 @@ export default async function TeamRosterPage({
                       Archive player
                     </Button>
                   </form>
+
+                  <div className="grid gap-3 rounded-xl border border-slate-200/70 bg-slate-50 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
+                      Guardian and contacts
+                    </p>
+
+                    {(contactsByPlayerId[player.id] ?? []).length === 0 ? (
+                      <p className="text-sm text-slate-500">
+                        No contacts added yet for this player.
+                      </p>
+                    ) : (
+                      <ul className="grid gap-2">
+                        {(contactsByPlayerId[player.id] ?? []).map(
+                          (contact) => (
+                            <li
+                              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2"
+                              key={contact.id}
+                            >
+                              <div className="text-sm text-slate-700">
+                                <p className="font-medium">
+                                  {contact.firstName} {contact.lastName}
+                                  {contact.isPrimary ? " · Primary" : ""}
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                  {contact.relationship ?? "Contact"}
+                                  {contact.email ? ` · ${contact.email}` : ""}
+                                  {contact.phone ? ` · ${contact.phone}` : ""}
+                                </p>
+                              </div>
+                              <form action={archivePlayerContactAction}>
+                                <input
+                                  name="contactId"
+                                  type="hidden"
+                                  value={contact.id}
+                                />
+                                <input
+                                  name="playerId"
+                                  type="hidden"
+                                  value={player.id}
+                                />
+                                <Button
+                                  disabled={!session?.user}
+                                  size="sm"
+                                  type="submit"
+                                  variant="ghost"
+                                >
+                                  Archive contact
+                                </Button>
+                              </form>
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    )}
+
+                    <form
+                      action={createPlayerContactAction}
+                      className="grid gap-3 sm:grid-cols-2"
+                    >
+                      <input name="playerId" type="hidden" value={player.id} />
+                      <FormField
+                        htmlFor={`contact-first-name-${player.id}`}
+                        label="First name"
+                      >
+                        <Input
+                          id={`contact-first-name-${player.id}`}
+                          maxLength={120}
+                          name="firstName"
+                          required
+                        />
+                      </FormField>
+                      <FormField
+                        htmlFor={`contact-last-name-${player.id}`}
+                        label="Last name"
+                      >
+                        <Input
+                          id={`contact-last-name-${player.id}`}
+                          maxLength={120}
+                          name="lastName"
+                          required
+                        />
+                      </FormField>
+                      <FormField
+                        htmlFor={`contact-relationship-${player.id}`}
+                        label="Relationship"
+                      >
+                        <Input
+                          id={`contact-relationship-${player.id}`}
+                          maxLength={120}
+                          name="relationship"
+                          placeholder="Parent, guardian, emergency contact"
+                        />
+                      </FormField>
+                      <FormField
+                        htmlFor={`contact-email-${player.id}`}
+                        label="Email"
+                      >
+                        <Input
+                          id={`contact-email-${player.id}`}
+                          maxLength={320}
+                          name="email"
+                          placeholder="name@example.com"
+                          type="email"
+                        />
+                      </FormField>
+                      <FormField
+                        htmlFor={`contact-phone-${player.id}`}
+                        label="Phone"
+                      >
+                        <Input
+                          id={`contact-phone-${player.id}`}
+                          maxLength={32}
+                          name="phone"
+                          placeholder="Optional"
+                        />
+                      </FormField>
+                      <label className="flex items-center gap-2 self-end pb-2 text-sm text-slate-600">
+                        <input
+                          className="h-4 w-4 rounded border-slate-300"
+                          name="isPrimary"
+                          type="checkbox"
+                          value="true"
+                        />
+                        Primary contact
+                      </label>
+                      <div className="sm:col-span-2">
+                        <Button
+                          disabled={!session?.user}
+                          size="sm"
+                          type="submit"
+                        >
+                          Add contact
+                        </Button>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               </li>
             ))}

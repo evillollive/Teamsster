@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { createPlayerSchema, updatePlayerSchema } from "@/lib/player";
+import {
+  createPlayerContactSchema,
+  createPlayerSchema,
+  updatePlayerSchema,
+} from "@/lib/player";
 
 describe("createPlayerSchema", () => {
   const leagueId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
@@ -107,5 +111,42 @@ describe("updatePlayerSchema", () => {
         teamId: "bad-id",
       }),
     ).toThrow();
+  });
+});
+
+describe("createPlayerContactSchema", () => {
+  const leagueId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
+  const teamId = "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22";
+  const playerId = "c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33";
+
+  it("accepts valid contact payload", () => {
+    const parsed = createPlayerContactSchema.parse({
+      email: " guardian@example.com ",
+      firstName: "  Riley ",
+      isPrimary: true,
+      lastName: "Jordan",
+      leagueId,
+      playerId,
+      relationship: " Parent ",
+      teamId,
+    });
+
+    expect(parsed.firstName).toBe("Riley");
+    expect(parsed.relationship).toBe("Parent");
+    expect(parsed.email).toBe("guardian@example.com");
+    expect(parsed.isPrimary).toBe(true);
+  });
+
+  it("requires at least one contact method", () => {
+    expect(() =>
+      createPlayerContactSchema.parse({
+        firstName: "Riley",
+        lastName: "Jordan",
+        leagueId,
+        playerId,
+        relationship: "Parent",
+        teamId,
+      }),
+    ).toThrow("Provide at least one contact method.");
   });
 });
