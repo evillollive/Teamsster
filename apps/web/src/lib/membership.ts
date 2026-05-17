@@ -1,9 +1,12 @@
 import {
   assignLeagueMemberRole,
   assignTeamMemberRole,
+  assignTeamRoleTemplate,
   createLeagueInvitation,
   createTeamInvitation,
+  deleteLeagueRoleTemplate,
   getLeagueMembersByLeagueId,
+  getLeagueRoleTemplatesByLeagueId,
   getPendingLeagueInvitationsByLeagueId,
   getPendingTeamInvitationsByTeamId,
   getTeamMembersByTeamId,
@@ -14,6 +17,7 @@ import {
   revokeLeagueInvitation,
   revokeTeamInvitation,
   roleValues,
+  upsertLeagueRoleTemplate,
 } from "@teamsster/db";
 import { z } from "zod";
 
@@ -67,6 +71,27 @@ export const removeTeamRoleSchema = z.object({
   role: roleSchema,
   teamId: z.string().uuid(),
   userId: z.string().uuid(),
+});
+
+const roleTemplateSchema = z.object({
+  label: z.string().trim().min(2).max(80),
+  roles: z.array(roleSchema).min(1).max(roleValues.length),
+});
+
+export const upsertLeagueRoleTemplateSchema = roleTemplateSchema.extend({
+  leagueId: z.string().uuid(),
+});
+
+export const deleteLeagueRoleTemplateSchema = z.object({
+  leagueId: z.string().uuid(),
+  templateId: z.string().uuid(),
+});
+
+export const assignTeamRoleTemplateSchema = z.object({
+  email: memberEmailSchema,
+  leagueId: z.string().uuid(),
+  teamId: z.string().uuid(),
+  templateId: z.string().uuid(),
 });
 
 async function resolveUserId(authUserId: string): Promise<string> {
@@ -139,12 +164,13 @@ export async function getLeagueMemberWorkspaceForUser(
   const userId = await resolveUserId(authUserId);
   await assertLeagueAdmin(leagueId, userId);
 
-  const [members, invitations] = await Promise.all([
+  const [members, invitations, roleTemplates] = await Promise.all([
     getLeagueMembersByLeagueId(leagueId),
     getPendingLeagueInvitationsByLeagueId(leagueId),
+    getLeagueRoleTemplatesByLeagueId(leagueId),
   ]);
 
-  return { invitations, members };
+  return { invitations, members, roleTemplates };
 }
 
 export async function assignTeamRoleForUser(
@@ -202,12 +228,13 @@ export async function getTeamMemberWorkspaceForUser(
   const userId = await resolveUserId(authUserId);
   await assertLeagueAdmin(leagueId, userId);
 
-  const [members, invitations] = await Promise.all([
+  const [members, invitations, roleTemplates] = await Promise.all([
     getTeamMembersByTeamId(teamId),
     getPendingTeamInvitationsByTeamId(teamId),
+    getLeagueRoleTemplatesByLeagueId(leagueId),
   ]);
 
-  return { invitations, members };
+  return { invitations, members, roleTemplates };
 }
 
 export async function removeLeagueRoleForUser(
@@ -238,5 +265,50 @@ export async function removeTeamRoleForUser(
     role: parsed.role,
     teamId: parsed.teamId,
     userId: parsed.userId,
+  });
+}
+
+export async function upsertLeagueRoleTemplateForUser(
+  authUserId: string,
+  input: unknown,
+) {
+  const parsed = upsertLeagueRoleTemplateSchema.parse(input);
+  const userId = await resolveUserId(authUserId);
+  await assertLeagueAdmin(parsed.leagueId, userId);
+  await upsertLeagueRoleTemplate({
+    actorUserId: userId,
+    label: parsed.label,
+    leagueId: parsed.leagueId,
+    roles: parsed.roles,
+  });
+}
+
+export async function deleteLeagueRoleTemplateForUser(
+  authUserId: string,
+  input: unknown,
+) {
+  const parsed = deleteLeagueRoleTemplateSchema.parse(input);
+  const userId = await resolveUserId(authUserId);
+  await assertLeagueAdmin(parsed.leagueId, userId);
+  await deleteLeagueRoleTemplate({
+    actorUserId: userId,
+    leagueId: parsed.leagueId,
+    templateId: parsed.templateId,
+  });
+}
+
+export async function assignTeamRoleTemplateForUser(
+  authUserId: string,
+  input: unknown,
+) {
+  const parsed = assignTeamRoleTemplateSchema.parse(input);
+  const userId = await resolveUserId(authUserId);
+  await assertLeagueAdmin(parsed.leagueId, userId);
+  await assignTeamRoleTemplate({
+    actorUserId: userId,
+    email: parsed.email,
+    leagueId: parsed.leagueId,
+    teamId: parsed.teamId,
+    templateId: parsed.templateId,
   });
 }

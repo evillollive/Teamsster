@@ -16,10 +16,12 @@ import {
 } from "@/lib/league";
 import {
   assignLeagueRoleForUser,
+  deleteLeagueRoleTemplateForUser,
   getLeagueMemberWorkspaceForUser,
   inviteLeagueMemberForUser,
   removeLeagueRoleForUser,
   revokeLeagueInvitationForUser,
+  upsertLeagueRoleTemplateForUser,
 } from "@/lib/membership";
 export default async function LeagueSettingsPage({
   params,
@@ -38,7 +40,7 @@ export default async function LeagueSettingsPage({
 
   const memberWorkspace = session?.user
     ? await getLeagueMemberWorkspaceForUser(session.user.id, leagueId)
-    : { invitations: [], members: [] };
+    : { invitations: [], members: [], roleTemplates: [] };
 
   async function updateLeagueAction(formData: FormData) {
     "use server";
@@ -164,6 +166,43 @@ export default async function LeagueSettingsPage({
     revalidatePath(`/league/${leagueId}/settings`);
   }
 
+  async function upsertRoleTemplateAction(formData: FormData) {
+    "use server";
+
+    const currentSession = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!currentSession?.user) {
+      throw new Error("You must be signed in to manage role templates.");
+    }
+
+    await upsertLeagueRoleTemplateForUser(currentSession.user.id, {
+      label: (formData.get("label") as string | null) ?? "",
+      leagueId,
+      roles: formData.getAll("roles"),
+    });
+
+    revalidatePath(`/league/${leagueId}/settings`);
+  }
+
+  async function deleteRoleTemplateAction(formData: FormData) {
+    "use server";
+
+    const currentSession = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!currentSession?.user) {
+      throw new Error("You must be signed in to manage role templates.");
+    }
+
+    await deleteLeagueRoleTemplateForUser(currentSession.user.id, {
+      leagueId,
+      templateId: (formData.get("templateId") as string | null) ?? "",
+    });
+
+    revalidatePath(`/league/${leagueId}/settings`);
+  }
+
   return (
     <div className="grid gap-6">
       <Card className="grid gap-2">
@@ -208,6 +247,95 @@ export default async function LeagueSettingsPage({
             </Button>
           </div>
         </form>
+      </Card>
+
+      <Card className="grid gap-4">
+        <div>
+          <h2 className="text-lg font-semibold">Role templates</h2>
+          <p className="text-sm text-slate-600">
+            Create reusable role packs that can be assigned from team settings.
+          </p>
+        </div>
+        <form action={upsertRoleTemplateAction} className="grid gap-3">
+          <FormField htmlFor="template-label" label="Template label">
+            <Input
+              id="template-label"
+              maxLength={80}
+              name="label"
+              placeholder="Assistant Coach"
+              required
+            />
+          </FormField>
+          <FormField
+            htmlFor="template-roles-owner"
+            label="Permission set (roles)"
+          >
+            <div className="grid gap-2 sm:grid-cols-2">
+              {roleValues.map((role) => (
+                <label
+                  className="inline-flex items-center gap-2 text-sm"
+                  key={role}
+                >
+                  <input
+                    id={
+                      role === "OWNER"
+                        ? "template-roles-owner"
+                        : `template-roles-${role.toLowerCase()}`
+                    }
+                    name="roles"
+                    type="checkbox"
+                    value={role}
+                  />
+                  <span>{role}</span>
+                </label>
+              ))}
+            </div>
+          </FormField>
+          <div>
+            <Button disabled={!session?.user} type="submit" variant="secondary">
+              Save template
+            </Button>
+          </div>
+        </form>
+        <div className="grid gap-2">
+          <p className="text-sm font-semibold">Saved templates</p>
+          {memberWorkspace.roleTemplates.length === 0 ? (
+            <p className="text-sm text-slate-500">No role templates yet.</p>
+          ) : (
+            <ul className="grid gap-2">
+              {memberWorkspace.roleTemplates.map((template) => (
+                <li
+                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                  key={template.id}
+                >
+                  <div>
+                    <p className="font-medium text-slate-700">
+                      {template.label}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {template.roles.join(" · ")}
+                    </p>
+                  </div>
+                  <form action={deleteRoleTemplateAction}>
+                    <input
+                      name="templateId"
+                      type="hidden"
+                      value={template.id}
+                    />
+                    <Button
+                      disabled={!session?.user}
+                      size="sm"
+                      type="submit"
+                      variant="ghost"
+                    >
+                      Delete
+                    </Button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </Card>
 
       <Card className="grid gap-4">
