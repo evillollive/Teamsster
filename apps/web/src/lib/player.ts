@@ -1,3 +1,4 @@
+import type { PlayerContactSummary } from "@teamsster/db";
 import {
   archivePlayer,
   archivePlayerContact,
@@ -13,7 +14,8 @@ import {
 import { z } from "zod";
 
 import { timezoneSchema } from "@/lib/account";
-import { canAccessFeature } from "@/lib/permissions";
+import type { PermissionContext } from "@/lib/permissions";
+import { canAccessFeature, canAccessField } from "@/lib/permissions";
 
 const playerNameSchema = z.string().trim().min(1).max(120);
 const optionalTextSchema = (max: number) =>
@@ -285,4 +287,48 @@ export async function getPlayerContactsForTeam(
   teamId: string,
 ) {
   return getPlayerContactsByTeamId(leagueId, teamId);
+}
+
+export function applyContactFieldMask(
+  contact: PlayerContactSummary,
+  context: PermissionContext,
+): PlayerContactSummary {
+  return {
+    ...contact,
+    email: canAccessField("contact.viewEmail", context) ? contact.email : null,
+    phone: canAccessField("contact.viewPhone", context) ? contact.phone : null,
+  };
+}
+
+export async function getPlayerContactsForTeamAsUser(
+  authUserId: string | null | undefined,
+  leagueId: string,
+  teamId: string,
+): Promise<PlayerContactSummary[]> {
+  const contacts = await getPlayerContactsByTeamId(leagueId, teamId);
+
+  if (!authUserId) {
+    return contacts.map((c) =>
+      applyContactFieldMask(c, { orgRoles: [], teamRoles: [] }),
+    );
+  }
+
+  const userId = await getUserIdByAuthUserId(authUserId);
+  if (!userId) {
+    return contacts.map((c) =>
+      applyContactFieldMask(c, { orgRoles: [], teamRoles: [] }),
+    );
+  }
+
+  const [leagueMembership, teamMembership] = await Promise.all([
+    getUserLeagueMembership(leagueId, userId),
+    getUserTeamMembership(teamId, userId),
+  ]);
+
+  const context: PermissionContext = {
+    orgRoles: leagueMembership?.roles ?? [],
+    teamRoles: teamMembership?.roles ?? [],
+  };
+
+  return contacts.map((c) => applyContactFieldMask(c, context));
 }

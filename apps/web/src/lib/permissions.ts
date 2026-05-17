@@ -9,6 +9,7 @@ export type FeaturePermission =
   | "membership.manage"
   | "roster.edit"
   | "team.manage";
+export type FieldPermission = "contact.viewEmail" | "contact.viewPhone";
 export type PermissionContext = {
   orgRoles?: RoleInput;
   teamRoles?: RoleInput;
@@ -101,6 +102,22 @@ export function canEditRoster(roleInput: RoleInput) {
 
 export function canViewAuditLog(roleInput: RoleInput) {
   return canAccessFeature("audit.read", { orgRoles: roleInput });
+}
+
+export function canAccessField(
+  field: FieldPermission,
+  context: PermissionContext,
+) {
+  switch (field) {
+    case "contact.viewEmail":
+    case "contact.viewPhone":
+      return (
+        hasScopedPermission("org", "BOARD_MEMBER", context) ||
+        hasScopedPermission("team", "COACH", context)
+      );
+    default:
+      return false;
+  }
 }
 
 export function assertPermission(currentRole: Role, allowedRoles: Role[]) {

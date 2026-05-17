@@ -78,7 +78,7 @@
 - [x] ~~Bulk import and CSV validation pipeline.~~ (Deprecated: retired in favor of manual onboarding and validation-first workflows.)
 - [x] No external file import (CSV/Excel): out of scope by design; roster entry is manual only.
 - [x] Eligibility, jersey, and profile metadata extensions.
-- [ ] Role-gated contact visibility for member phone/email using field-level read permissions through centralized permission helpers; no user opt-out.
+- [x] Role-gated contact visibility for member phone/email using field-level read permissions through centralized permission helpers; no user opt-out.
 - [ ] Field-level permission enforcement to complete the four-level permission model introduced in Milestone 2.
 - [ ] Roster permission regression tests.
 - [x] Milestone checkpoint: refresh README and contributor-facing docs for roster workflows.

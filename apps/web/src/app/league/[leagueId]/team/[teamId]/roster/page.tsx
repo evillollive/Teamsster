@@ -14,7 +14,7 @@ import {
   archivePlayerForUser,
   createPlayerContactForUser,
   createPlayerForUser,
-  getPlayerContactsForTeam,
+  getPlayerContactsForTeamAsUser,
   getPlayersForTeam,
   updatePlayerForUser,
 } from "@/lib/player";
@@ -26,18 +26,24 @@ export default async function TeamRosterPage({
   params: Promise<{ leagueId: string; teamId: string }>;
 }) {
   const { leagueId, teamId } = await params;
-  const [session, league, team, players, contacts] = await Promise.all([
-    auth.api.getSession({ headers: await headers() }),
+  const requestHeaders = await headers();
+  const [session, league, team, players] = await Promise.all([
+    auth.api.getSession({ headers: requestHeaders }),
     getLeagueDetail(leagueId),
     getTeamDetail(teamId),
     getPlayersForTeam(leagueId, teamId),
-    getPlayerContactsForTeam(leagueId, teamId),
   ]);
 
   if (!league || !team || team.leagueId !== leagueId) {
     notFound();
   }
   const activeTeam = team;
+
+  const contacts = await getPlayerContactsForTeamAsUser(
+    session?.user?.id,
+    leagueId,
+    teamId,
+  );
   const contactsByPlayerId = contacts.reduce<
     Record<
       string,
