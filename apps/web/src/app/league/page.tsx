@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getLeaguesForUser } from "@/lib/league";
+import { getHighestRole } from "@/lib/permissions";
 
 export default async function LeaguePage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -67,7 +68,10 @@ export default async function LeaguePage() {
                   <div>
                     <p className="font-semibold">{league.name}</p>
                     <p className="text-sm text-slate-500">
-                      {league.timezone} &middot; {league.role}
+                      {league.timezone} &middot;{" "}
+                      {league.roles.length > 1
+                        ? `${getHighestRole(league.roles)} +${league.roles.length - 1}`
+                        : getHighestRole(league.roles)}
                     </p>
                   </div>
                   <span className="text-xs font-medium text-sky-600">

@@ -49,9 +49,7 @@ async function assertLeagueAdmin(
   if (!membership) {
     throw new Error("You are not a member of this league.");
   }
-  if (
-    !canManageLeague(membership.role as Parameters<typeof canManageLeague>[0])
-  ) {
+  if (!canManageLeague(membership.roles)) {
     throw new Error("You do not have permission to manage this league.");
   }
 }
@@ -106,10 +104,7 @@ export async function getAuditLogForLeague(
 ) {
   const userId = await resolveUserId(authUserId);
   const membership = await getUserLeagueMembership(leagueId, userId);
-  if (
-    !membership ||
-    !canViewAuditLog(membership.role as Parameters<typeof canViewAuditLog>[0])
-  ) {
+  if (!membership || !canViewAuditLog(membership.roles)) {
     throw new Error(
       "You do not have permission to view the audit log for this league.",
     );
