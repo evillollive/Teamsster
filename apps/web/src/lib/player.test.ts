@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  applyContactFieldMask,
   createPlayerContactSchema,
   createPlayerSchema,
   updatePlayerSchema,
@@ -162,5 +163,72 @@ describe("createPlayerContactSchema", () => {
         teamId,
       }),
     ).toThrow("Provide at least one contact method.");
+  });
+});
+
+describe("applyContactFieldMask", () => {
+  const baseContact = {
+    id: "c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33",
+    playerId: "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
+    firstName: "Riley",
+    lastName: "Jordan",
+    relationship: "Parent",
+    email: "riley@example.com",
+    phone: "555-0100",
+    isPrimary: true,
+    createdAt: new Date("2024-01-01"),
+  };
+
+  it("preserves email and phone for COACH-level team role", () => {
+    const result = applyContactFieldMask(baseContact, {
+      teamRoles: "COACH",
+    });
+
+    expect(result.email).toBe("riley@example.com");
+    expect(result.phone).toBe("555-0100");
+  });
+
+  it("preserves email and phone for BOARD_MEMBER-level org role", () => {
+    const result = applyContactFieldMask(baseContact, {
+      orgRoles: "BOARD_MEMBER",
+    });
+
+    expect(result.email).toBe("riley@example.com");
+    expect(result.phone).toBe("555-0100");
+  });
+
+  it("masks email and phone for PLAYER role", () => {
+    const result = applyContactFieldMask(baseContact, {
+      orgRoles: "PLAYER",
+      teamRoles: "PLAYER",
+    });
+
+    expect(result.email).toBeNull();
+    expect(result.phone).toBeNull();
+  });
+
+  it("masks email and phone when no roles are provided", () => {
+    const result = applyContactFieldMask(baseContact, {});
+
+    expect(result.email).toBeNull();
+    expect(result.phone).toBeNull();
+  });
+
+  it("preserves non-contact fields regardless of role", () => {
+    const result = applyContactFieldMask(baseContact, {});
+
+    expect(result.firstName).toBe("Riley");
+    expect(result.lastName).toBe("Jordan");
+    expect(result.relationship).toBe("Parent");
+    expect(result.isPrimary).toBe(true);
+  });
+
+  it("does not expose email or phone when team role is PARENT", () => {
+    const result = applyContactFieldMask(baseContact, {
+      teamRoles: "PARENT",
+    });
+
+    expect(result.email).toBeNull();
+    expect(result.phone).toBeNull();
   });
 });

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   assertPermission,
   canAccessFeature,
+  canAccessField,
   canEditRoster,
   canManageLeague,
   canManageTeam,
@@ -58,5 +59,63 @@ describe("permissions", () => {
       /not allowed/,
     );
     expect(() => assertPermission("OWNER", ["OWNER", "ADMIN"])).not.toThrow();
+  });
+
+  describe("canAccessField (field-level permissions)", () => {
+    it("grants contact field access to COACH or above at team scope", () => {
+      expect(canAccessField("contact.viewEmail", { teamRoles: "COACH" })).toBe(
+        true,
+      );
+      expect(
+        canAccessField("contact.viewPhone", { teamRoles: "HEAD_COACH" }),
+      ).toBe(true);
+      expect(canAccessField("contact.viewEmail", { teamRoles: "OWNER" })).toBe(
+        true,
+      );
+    });
+
+    it("grants contact field access to BOARD_MEMBER or above at org scope", () => {
+      expect(
+        canAccessField("contact.viewEmail", { orgRoles: "BOARD_MEMBER" }),
+      ).toBe(true);
+      expect(canAccessField("contact.viewPhone", { orgRoles: "ADMIN" })).toBe(
+        true,
+      );
+    });
+
+    it("denies contact field access to roles below COACH at team scope", () => {
+      expect(canAccessField("contact.viewEmail", { teamRoles: "PLAYER" })).toBe(
+        false,
+      );
+      expect(canAccessField("contact.viewPhone", { teamRoles: "PARENT" })).toBe(
+        false,
+      );
+      expect(canAccessField("contact.viewEmail", { teamRoles: "GUEST" })).toBe(
+        false,
+      );
+    });
+
+    it("denies contact field access to roles below BOARD_MEMBER at org scope", () => {
+      expect(canAccessField("contact.viewEmail", { orgRoles: "PLAYER" })).toBe(
+        false,
+      );
+      expect(canAccessField("contact.viewPhone", { orgRoles: "PARENT" })).toBe(
+        false,
+      );
+    });
+
+    it("grants access when team role qualifies even if org role does not", () => {
+      expect(
+        canAccessField("contact.viewEmail", {
+          orgRoles: "PLAYER",
+          teamRoles: "COACH",
+        }),
+      ).toBe(true);
+    });
+
+    it("denies access when no roles are provided", () => {
+      expect(canAccessField("contact.viewEmail", {})).toBe(false);
+      expect(canAccessField("contact.viewPhone", {})).toBe(false);
+    });
   });
 });
