@@ -6,6 +6,7 @@ export type PermissionScope = "org" | "team" | "feature" | "field";
 export type FeaturePermission =
   | "audit.read"
   | "event.manage"
+  | "event.rsvp"
   | "league.manage"
   | "membership.manage"
   | "roster.edit"
@@ -76,6 +77,11 @@ export function canAccessFeature(
       return (
         hasScopedPermission("org", "ADMIN", context) ||
         hasScopedPermission("team", "COACH", context)
+      );
+    case "event.rsvp":
+      return (
+        hasScopedPermission("org", "GUEST", context) ||
+        hasScopedPermission("team", "GUEST", context)
       );
     case "audit.read":
       return hasScopedPermission("org", "BOARD_MEMBER", context);

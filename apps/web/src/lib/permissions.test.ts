@@ -62,6 +62,14 @@ describe("permissions", () => {
     ).toBe(false);
   });
 
+  it("grants event.rsvp to any league or team member including GUEST", () => {
+    expect(canAccessFeature("event.rsvp", { orgRoles: "GUEST" })).toBe(true);
+    expect(canAccessFeature("event.rsvp", { teamRoles: "GUEST" })).toBe(true);
+    expect(canAccessFeature("event.rsvp", { orgRoles: "PLAYER" })).toBe(true);
+    expect(canAccessFeature("event.rsvp", { teamRoles: "COACH" })).toBe(true);
+    expect(canAccessFeature("event.rsvp", {})).toBe(false);
+  });
+
   it("throws when an action is not permitted", () => {
     expect(() => assertPermission("GUEST", ["OWNER", "ADMIN"])).toThrow(
       /not allowed/,

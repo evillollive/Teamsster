@@ -1,9 +1,11 @@
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, count, eq, isNull } from "drizzle-orm";
 
 import { db } from "./client";
 import {
   auditLogs,
   type EventRecurrenceRule,
+  type eventRsvpStatusValues,
+  teamEventRsvps,
   teamEvents,
   teams,
 } from "./schema";
@@ -294,4 +296,113 @@ export async function getTeamEventsByTeamId(
       ),
     )
     .orderBy(asc(teamEvents.startsAt), asc(teamEvents.createdAt));
+}
+
+type RsvpStatus = (typeof eventRsvpStatusValues)[number];
+
+export type EventRsvpSummary = {
+  yes: number;
+  no: number;
+  maybe: number;
+};
+
+export type UserEventRsvp = {
+  id: string;
+  status: RsvpStatus;
+  note: string | null;
+};
+
+type UpsertEventRsvpInput = {
+  eventId: string;
+  leagueId: string;
+  teamId: string;
+  userId: string;
+  status: RsvpStatus;
+  note?: string;
+};
+
+type DeleteEventRsvpInput = {
+  eventId: string;
+  userId: string;
+};
+
+export async function upsertEventRsvp(
+  input: UpsertEventRsvpInput,
+): Promise<void> {
+  const { eventId, leagueId, teamId, userId, status, note } = input;
+  await db
+    .insert(teamEventRsvps)
+    .values({
+      eventId,
+      leagueId,
+      teamId,
+      userId,
+      status,
+      note: note?.trim() || null,
+    })
+    .onConflictDoUpdate({
+      target: [teamEventRsvps.eventId, teamEventRsvps.userId],
+      set: {
+        note: note?.trim() || null,
+        status,
+        updatedAt: new Date(),
+      },
+    });
+}
+
+export async function deleteEventRsvp(
+  input: DeleteEventRsvpInput,
+): Promise<void> {
+  const { eventId, userId } = input;
+  await db
+    .delete(teamEventRsvps)
+    .where(
+      and(
+        eq(teamEventRsvps.eventId, eventId),
+        eq(teamEventRsvps.userId, userId),
+      ),
+    );
+}
+
+export async function getEventRsvpSummary(
+  eventId: string,
+): Promise<EventRsvpSummary> {
+  const rows = await db
+    .select({
+      status: teamEventRsvps.status,
+      total: count(),
+    })
+    .from(teamEventRsvps)
+    .where(eq(teamEventRsvps.eventId, eventId))
+    .groupBy(teamEventRsvps.status);
+
+  const summary: EventRsvpSummary = { yes: 0, no: 0, maybe: 0 };
+  for (const row of rows) {
+    if (row.status === "YES") summary.yes = Number(row.total);
+    else if (row.status === "NO") summary.no = Number(row.total);
+    else if (row.status === "MAYBE") summary.maybe = Number(row.total);
+  }
+  return summary;
+}
+
+export async function getUserRsvpForEvent(
+  eventId: string,
+  userId: string,
+): Promise<UserEventRsvp | null> {
+  const rows = await db
+    .select({
+      id: teamEventRsvps.id,
+      status: teamEventRsvps.status,
+      note: teamEventRsvps.note,
+    })
+    .from(teamEventRsvps)
+    .where(
+      and(
+        eq(teamEventRsvps.eventId, eventId),
+        eq(teamEventRsvps.userId, userId),
+      ),
+    )
+    .limit(1);
+
+  return rows[0] ?? null;
 }

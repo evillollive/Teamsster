@@ -91,7 +91,7 @@
 
 ### Work items
 - [x] Event CRUD and recurrence basics.
-- [ ] RSVP states and response summaries.
+- [x] RSVP states and response summaries.
 - [ ] Calendar exports (ICS) and reminders.
 - [ ] Team and league event views.
 - [ ] Playwright coverage for critical event journeys.
