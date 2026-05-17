@@ -24,10 +24,26 @@ export const roleValues = [
 
 export const membershipRoleEnum = pgEnum("membership_role", roleValues);
 
+export const playerEligibilityStatusValues = [
+  "PENDING",
+  "ELIGIBLE",
+  "INELIGIBLE",
+] as const;
+export const playerEligibilityStatusEnum = pgEnum(
+  "player_eligibility_status",
+  playerEligibilityStatusValues,
+);
+
 export type NotificationPreferences = {
   emailAnnouncements: boolean;
   eventReminders: boolean;
   weeklyDigest: boolean;
+};
+
+export type PlayerProfileMetadata = {
+  notes?: string;
+  primaryPosition?: string;
+  pronouns?: string;
 };
 
 const timestampColumns = {
@@ -220,6 +236,14 @@ export const players = pgTable(
     lastName: text("last_name").notNull(),
     preferredName: text("preferred_name"),
     jerseyNumber: text("jersey_number"),
+    eligibilityStatus: playerEligibilityStatusEnum("eligibility_status")
+      .notNull()
+      .default("PENDING"),
+    eligibilityNotes: text("eligibility_notes"),
+    profileMetadata: jsonb("profile_metadata")
+      .$type<PlayerProfileMetadata>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
     timezone: text("timezone").notNull().default("UTC"),
     createdById: uuid("created_by_id"),
     ...timestampColumns,

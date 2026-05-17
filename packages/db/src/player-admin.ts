@@ -3,12 +3,19 @@ import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { db } from "./client";
 import { auditLogs, playerContacts, players, teams } from "./schema";
 
+type PlayerEligibilityStatus =
+  (typeof players.$inferSelect)["eligibilityStatus"];
+type PlayerProfileMetadata = (typeof players.$inferSelect)["profileMetadata"];
+
 export type PlayerSummary = {
   id: string;
   firstName: string;
   lastName: string;
   preferredName: string | null;
   jerseyNumber: string | null;
+  eligibilityStatus: PlayerEligibilityStatus;
+  eligibilityNotes: string | null;
+  profileMetadata: PlayerProfileMetadata;
   timezone: string;
   createdAt: Date;
 };
@@ -32,6 +39,9 @@ type CreatePlayerInput = {
   lastName: string;
   preferredName?: string;
   jerseyNumber?: string;
+  eligibilityStatus: PlayerEligibilityStatus;
+  eligibilityNotes?: string;
+  profileMetadata?: PlayerProfileMetadata;
   timezone: string;
   userId: string;
 };
@@ -45,6 +55,9 @@ type BulkCreatePlayersInput = {
     lastName: string;
     preferredName?: string;
     jerseyNumber?: string;
+    eligibilityStatus: PlayerEligibilityStatus;
+    eligibilityNotes?: string;
+    profileMetadata?: PlayerProfileMetadata;
     timezone: string;
   }>;
 };
@@ -57,6 +70,9 @@ type UpdatePlayerInput = {
   lastName: string;
   preferredName?: string;
   jerseyNumber?: string;
+  eligibilityStatus: PlayerEligibilityStatus;
+  eligibilityNotes?: string;
+  profileMetadata?: PlayerProfileMetadata;
   timezone: string;
   actorUserId: string;
 };
@@ -67,6 +83,14 @@ type ArchivePlayerInput = {
   teamId: string;
   actorUserId: string;
 };
+
+function normalizePlayerProfileMetadata(input?: PlayerProfileMetadata) {
+  return {
+    notes: input?.notes?.trim() || undefined,
+    primaryPosition: input?.primaryPosition?.trim() || undefined,
+    pronouns: input?.pronouns?.trim() || undefined,
+  } as PlayerProfileMetadata;
+}
 
 type CreatePlayerContactInput = {
   leagueId: string;
@@ -92,9 +116,12 @@ type ArchivePlayerContactInput = {
 export async function createPlayer(input: CreatePlayerInput) {
   const {
     firstName,
+    eligibilityNotes,
+    eligibilityStatus,
     jerseyNumber,
     lastName,
     leagueId,
+    profileMetadata,
     preferredName,
     teamId,
     timezone,
@@ -117,16 +144,21 @@ export async function createPlayer(input: CreatePlayerInput) {
     if (!activeTeam[0]) {
       throw new Error("Team not found or already archived.");
     }
+    const normalizedProfileMetadata =
+      normalizePlayerProfileMetadata(profileMetadata);
 
     const playerId = (
       await tx
         .insert(players)
         .values({
+          eligibilityNotes: eligibilityNotes?.trim() || null,
+          eligibilityStatus,
           createdById: userId,
           firstName: firstName.trim(),
           jerseyNumber: jerseyNumber?.trim() || null,
           lastName: lastName.trim(),
           leagueId,
+          profileMetadata: normalizedProfileMetadata,
           preferredName: preferredName?.trim() || null,
           teamId,
           timezone,
@@ -141,9 +173,12 @@ export async function createPlayer(input: CreatePlayerInput) {
       entityType: "player",
       leagueId,
       metadata: {
+        eligibilityNotes: eligibilityNotes?.trim() || null,
+        eligibilityStatus,
         firstName: firstName.trim(),
         jerseyNumber: jerseyNumber?.trim() || null,
         lastName: lastName.trim(),
+        profileMetadata: normalizedProfileMetadata,
         preferredName: preferredName?.trim() || null,
         teamId,
         timezone,
@@ -179,11 +214,14 @@ export async function bulkCreatePlayers(input: BulkCreatePlayersInput) {
     }
 
     const normalizedPlayers = playerRows.map((player) => ({
+      eligibilityNotes: player.eligibilityNotes?.trim() || null,
+      eligibilityStatus: player.eligibilityStatus,
       createdById: userId,
       firstName: player.firstName.trim(),
       jerseyNumber: player.jerseyNumber?.trim() || null,
       lastName: player.lastName.trim(),
       leagueId,
+      profileMetadata: normalizePlayerProfileMetadata(player.profileMetadata),
       preferredName: player.preferredName?.trim() || null,
       teamId,
       timezone: player.timezone,
@@ -194,9 +232,12 @@ export async function bulkCreatePlayers(input: BulkCreatePlayersInput) {
       .values(normalizedPlayers)
       .returning({
         id: players.id,
+        eligibilityNotes: players.eligibilityNotes,
+        eligibilityStatus: players.eligibilityStatus,
         firstName: players.firstName,
         jerseyNumber: players.jerseyNumber,
         lastName: players.lastName,
+        profileMetadata: players.profileMetadata,
         preferredName: players.preferredName,
         timezone: players.timezone,
       });
@@ -209,9 +250,12 @@ export async function bulkCreatePlayers(input: BulkCreatePlayersInput) {
         entityType: "player" as const,
         leagueId,
         metadata: {
+          eligibilityNotes: player.eligibilityNotes,
+          eligibilityStatus: player.eligibilityStatus,
           firstName: player.firstName,
           jerseyNumber: player.jerseyNumber,
           lastName: player.lastName,
+          profileMetadata: player.profileMetadata,
           preferredName: player.preferredName,
           teamId,
           timezone: player.timezone,
@@ -226,23 +270,31 @@ export async function bulkCreatePlayers(input: BulkCreatePlayersInput) {
 export async function updatePlayer(input: UpdatePlayerInput) {
   const {
     actorUserId,
+    eligibilityNotes,
+    eligibilityStatus,
     firstName,
     jerseyNumber,
     lastName,
     leagueId,
     playerId,
+    profileMetadata,
     preferredName,
     teamId,
     timezone,
   } = input;
+  const normalizedProfileMetadata =
+    normalizePlayerProfileMetadata(profileMetadata);
 
   await db.transaction(async (tx) => {
     const updated = await tx
       .update(players)
       .set({
+        eligibilityNotes: eligibilityNotes?.trim() || null,
+        eligibilityStatus,
         firstName: firstName.trim(),
         jerseyNumber: jerseyNumber?.trim() || null,
         lastName: lastName.trim(),
+        profileMetadata: normalizedProfileMetadata,
         preferredName: preferredName?.trim() || null,
         timezone,
         updatedAt: new Date(),
@@ -268,9 +320,12 @@ export async function updatePlayer(input: UpdatePlayerInput) {
       entityType: "player",
       leagueId,
       metadata: {
+        eligibilityNotes: eligibilityNotes?.trim() || null,
+        eligibilityStatus,
         firstName: firstName.trim(),
         jerseyNumber: jerseyNumber?.trim() || null,
         lastName: lastName.trim(),
+        profileMetadata: normalizedProfileMetadata,
         preferredName: preferredName?.trim() || null,
         teamId,
         timezone,
@@ -319,8 +374,11 @@ export async function getPlayersByTeamId(
   const rows = await db
     .select({
       id: players.id,
+      eligibilityNotes: players.eligibilityNotes,
+      eligibilityStatus: players.eligibilityStatus,
       firstName: players.firstName,
       lastName: players.lastName,
+      profileMetadata: players.profileMetadata,
       preferredName: players.preferredName,
       jerseyNumber: players.jerseyNumber,
       timezone: players.timezone,
