@@ -16,7 +16,6 @@ import {
   createPlayerForUser,
   getPlayerContactsForTeam,
   getPlayersForTeam,
-  importPlayersFromCsvForUser,
   updatePlayerForUser,
 } from "@/lib/player";
 import { getTeamDetail } from "@/lib/team";
@@ -192,29 +191,6 @@ export default async function TeamRosterPage({
     revalidatePath(`/league/${leagueId}/team/${teamId}/roster`);
   }
 
-  async function importPlayersCsvAction(formData: FormData) {
-    "use server";
-
-    const currentSession = await auth.api.getSession({
-      headers: await headers(),
-    });
-    if (!currentSession?.user) {
-      throw new Error("You must be signed in to import players.");
-    }
-
-    await importPlayersFromCsvForUser(currentSession.user.id, {
-      csv: (formData.get("csv") as string | null) ?? "",
-      leagueId,
-      teamId,
-      timezone:
-        (formData.get("timezone") as string | null)?.trim() ||
-        activeTeam.timezone,
-    });
-
-    revalidatePath(`/league/${leagueId}/team/${teamId}`);
-    revalidatePath(`/league/${leagueId}/team/${teamId}/roster`);
-  }
-
   async function archivePlayerContactAction(formData: FormData) {
     "use server";
 
@@ -368,33 +344,6 @@ export default async function TeamRosterPage({
           <div className="sm:col-span-2">
             <Button disabled={!session?.user} type="submit">
               Add player
-            </Button>
-          </div>
-        </form>
-      </Card>
-
-      <Card className="grid gap-4">
-        <h2 className="text-lg font-semibold">Bulk import players (CSV)</h2>
-        <p className="text-sm text-slate-600">
-          Header columns: firstName,lastName,preferredName,jerseyNumber,
-          eligibilityStatus,eligibilityNotes,profilePronouns,
-          profilePrimaryPosition,profileNotes,timezone. Only firstName and
-          lastName are required, and column names are case-sensitive.
-        </p>
-        <form action={importPlayersCsvAction} className="grid gap-3">
-          <input name="timezone" type="hidden" value={activeTeam.timezone} />
-          <FormField htmlFor="player-csv-import" label="CSV content">
-            <textarea
-              className="min-h-40 w-full rounded-md border border-slate-200 bg-transparent px-3 py-2 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-              id="player-csv-import"
-              name="csv"
-              placeholder="firstName,lastName,preferredName,jerseyNumber,eligibilityStatus,eligibilityNotes,profilePronouns,profilePrimaryPosition,profileNotes,timezone"
-              required
-            />
-          </FormField>
-          <div>
-            <Button disabled={!session?.user} type="submit">
-              Import players
             </Button>
           </div>
         </form>
