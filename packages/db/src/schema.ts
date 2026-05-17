@@ -505,6 +505,33 @@ export const teamEventRsvps = pgTable(
   ],
 );
 
+export const announcements = pgTable(
+  "announcements",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    teamId: uuid("team_id").references(() => teams.id),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    createdById: uuid("created_by_id"),
+    publishedAt: timestamp("published_at", {
+      mode: "date",
+      withTimezone: true,
+    })
+      .defaultNow()
+      .notNull(),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("announcements_league_idx").on(table.leagueId),
+    index("announcements_team_idx").on(table.teamId),
+    index("announcements_published_at_idx").on(table.publishedAt),
+  ],
+);
+
 export const auditLogs = pgTable(
   "audit_logs",
   {

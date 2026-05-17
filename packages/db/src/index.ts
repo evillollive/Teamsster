@@ -2,6 +2,7 @@ export * from "./client";
 export * from "./event-admin";
 export * from "./league-admin";
 export * from "./membership-admin";
+export * from "./message-admin";
 export * from "./player-admin";
 export * from "./schema";
 export * from "./team-admin";

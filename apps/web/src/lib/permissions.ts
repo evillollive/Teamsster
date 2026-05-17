@@ -4,6 +4,8 @@ export type Role = (typeof roleValues)[number];
 export type RoleInput = Role | readonly Role[];
 export type PermissionScope = "org" | "team" | "feature" | "field";
 export type FeaturePermission =
+  | "announcement.manage"
+  | "announcement.read"
   | "audit.read"
   | "event.manage"
   | "event.rsvp"
@@ -64,6 +66,16 @@ export function canAccessFeature(
   context: PermissionContext,
 ) {
   switch (feature) {
+    case "announcement.manage":
+      return (
+        hasScopedPermission("org", "ADMIN", context) ||
+        hasScopedPermission("team", "COACH", context)
+      );
+    case "announcement.read":
+      return (
+        hasScopedPermission("org", "GUEST", context) ||
+        hasScopedPermission("team", "GUEST", context)
+      );
     case "league.manage":
     case "membership.manage":
       return hasScopedPermission("org", "ADMIN", context);

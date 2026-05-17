@@ -104,7 +104,7 @@
 - Respect roles, privacy, and auditability.
 
 ### Work items
-- [ ] Messaging primitives for league and team announcements.
+- [x] Messaging primitives for league and team announcements.
 - [ ] Notification preferences per user.
 - [ ] Email digests and reminder templates.
 - [ ] Delivery logging and audit hooks.
