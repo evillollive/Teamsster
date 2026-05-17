@@ -61,7 +61,7 @@
 - [x] Multi-role assignments where a user may hold multiple roles simultaneously within an org or team and effective permissions are resolved as the union of all assigned roles.
 - [x] Job/role templates where roles are reusable definitions (label + permission set) assignable across teams.
 - [x] Layered permission scoping across org-wide, team-level, feature-level, and field-level permissions, with org and feature scopes delivered in this milestone and field-level enforcement delivered in Milestone 3.
-- [ ] Explicit no-import policy: no external data import (Excel/CSV/third-party apps), with manual guided onboarding as the supported path.
+- [x] Explicit no-import policy: no external data import (Excel/CSV/third-party apps), with manual guided onboarding as the supported path.
 - [x] Audit log persistence and read views.
 - [x] League dashboard with empty states and onboarding guidance.
 - [x] Milestone checkpoint: refresh README and contributor-facing docs for shipped admin workflows.
@@ -76,7 +76,7 @@
 - [x] Player CRUD with soft deletes.
 - [x] Guardian/contact relationships.
 - [x] ~~Bulk import and CSV validation pipeline.~~ (Deprecated: retired in favor of manual onboarding and validation-first workflows.)
-- [ ] No external file import (CSV/Excel): out of scope by design; roster entry is manual only.
+- [x] No external file import (CSV/Excel): out of scope by design; roster entry is manual only.
 - [x] Eligibility, jersey, and profile metadata extensions.
 - [ ] Role-gated contact visibility for member phone/email using field-level read permissions through centralized permission helpers; no user opt-out.
 - [ ] Field-level permission enforcement to complete the four-level permission model introduced in Milestone 2.

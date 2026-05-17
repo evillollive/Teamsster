@@ -3,9 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createPlayerContactSchema,
   createPlayerSchema,
-  parsePlayerImportCsv,
   updatePlayerSchema,
-  validatePlayerImportCsv,
 } from "@/lib/player";
 
 describe("createPlayerSchema", () => {
@@ -164,83 +162,5 @@ describe("createPlayerContactSchema", () => {
         teamId,
       }),
     ).toThrow("Provide at least one contact method.");
-  });
-});
-
-describe("parsePlayerImportCsv", () => {
-  it("parses quoted fields and escaped quotes", () => {
-    const parsed = parsePlayerImportCsv(
-      'firstName,lastName,preferredName\n"Sam, Jr.",Rivera,"""Lightning"""',
-    );
-
-    expect(parsed.header).toEqual(["firstName", "lastName", "preferredName"]);
-    expect(parsed.rows).toEqual([
-      {
-        lineNumber: 2,
-        values: ["Sam, Jr.", "Rivera", '"Lightning"'],
-      },
-    ]);
-  });
-
-  it("rejects unmatched quotes", () => {
-    expect(() =>
-      parsePlayerImportCsv('firstName,lastName\n"Sam,Rivera'),
-    ).toThrow("CSV row 2 has an unmatched quote.");
-  });
-});
-
-describe("validatePlayerImportCsv", () => {
-  const leagueId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
-  const teamId = "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22";
-
-  it("returns normalized player rows", () => {
-    const result = validatePlayerImportCsv({
-      csv: "firstName,lastName,jerseyNumber,eligibilityStatus,profilePronouns\n Sam , Rivera , 17 , ELIGIBLE , they/them ",
-      leagueId,
-      teamId,
-      timezone: "America/Chicago",
-    });
-
-    expect(result.players).toEqual([
-      {
-        firstName: "Sam",
-        eligibilityNotes: undefined,
-        eligibilityStatus: "ELIGIBLE",
-        jerseyNumber: "17",
-        lastName: "Rivera",
-        profileNotes: undefined,
-        profilePrimaryPosition: undefined,
-        profilePronouns: "they/them",
-        preferredName: undefined,
-        timezone: "America/Chicago",
-      },
-    ]);
-  });
-
-  it("surfaces header and row validation errors", () => {
-    const run = () =>
-      validatePlayerImportCsv({
-        csv: "firstName,nickname\n,\n",
-        leagueId,
-        teamId,
-        timezone: "UTC",
-      });
-
-    expect(run).toThrow('Missing required "lastName" column in CSV header.');
-    expect(run).toThrow('Unsupported "nickname" column in CSV header.');
-    expect(run).toThrow("Row 2 validation error: firstName:");
-    expect(run).toThrow("Row 2 validation error: lastName:");
-  });
-
-  it("surfaces invalid eligibility values", () => {
-    const run = () =>
-      validatePlayerImportCsv({
-        csv: "firstName,lastName,eligibilityStatus\nSam,Rivera,UNKNOWN\n",
-        leagueId,
-        teamId,
-        timezone: "UTC",
-      });
-
-    expect(run).toThrow("Row 2 validation error: eligibilityStatus:");
   });
 });

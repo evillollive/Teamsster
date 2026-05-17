@@ -46,22 +46,6 @@ type CreatePlayerInput = {
   userId: string;
 };
 
-type BulkCreatePlayersInput = {
-  leagueId: string;
-  teamId: string;
-  userId: string;
-  players: Array<{
-    firstName: string;
-    lastName: string;
-    preferredName?: string;
-    jerseyNumber?: string;
-    eligibilityStatus: PlayerEligibilityStatus;
-    eligibilityNotes?: string;
-    profileMetadata?: PlayerProfileMetadata;
-    timezone: string;
-  }>;
-};
-
 type UpdatePlayerInput = {
   playerId: string;
   leagueId: string;
@@ -186,84 +170,6 @@ export async function createPlayer(input: CreatePlayerInput) {
     });
 
     return { playerId };
-  });
-}
-
-export async function bulkCreatePlayers(input: BulkCreatePlayersInput) {
-  const { leagueId, players: playerRows, teamId, userId } = input;
-
-  if (playerRows.length === 0) {
-    return { createdPlayerIds: [] as string[] };
-  }
-
-  return db.transaction(async (tx) => {
-    const activeTeam = await tx
-      .select({ id: teams.id })
-      .from(teams)
-      .where(
-        and(
-          eq(teams.id, teamId),
-          eq(teams.leagueId, leagueId),
-          isNull(teams.deletedAt),
-        ),
-      )
-      .limit(1);
-
-    if (!activeTeam[0]) {
-      throw new Error("Team not found or already archived.");
-    }
-
-    const normalizedPlayers = playerRows.map((player) => ({
-      eligibilityNotes: player.eligibilityNotes?.trim() || null,
-      eligibilityStatus: player.eligibilityStatus,
-      createdById: userId,
-      firstName: player.firstName.trim(),
-      jerseyNumber: player.jerseyNumber?.trim() || null,
-      lastName: player.lastName.trim(),
-      leagueId,
-      profileMetadata: normalizePlayerProfileMetadata(player.profileMetadata),
-      preferredName: player.preferredName?.trim() || null,
-      teamId,
-      timezone: player.timezone,
-    }));
-
-    const insertedPlayers = await tx
-      .insert(players)
-      .values(normalizedPlayers)
-      .returning({
-        id: players.id,
-        eligibilityNotes: players.eligibilityNotes,
-        eligibilityStatus: players.eligibilityStatus,
-        firstName: players.firstName,
-        jerseyNumber: players.jerseyNumber,
-        lastName: players.lastName,
-        profileMetadata: players.profileMetadata,
-        preferredName: players.preferredName,
-        timezone: players.timezone,
-      });
-
-    await tx.insert(auditLogs).values(
-      insertedPlayers.map((player) => ({
-        action: "player.create",
-        actorUserId: userId,
-        entityId: player.id,
-        entityType: "player" as const,
-        leagueId,
-        metadata: {
-          eligibilityNotes: player.eligibilityNotes,
-          eligibilityStatus: player.eligibilityStatus,
-          firstName: player.firstName,
-          jerseyNumber: player.jerseyNumber,
-          lastName: player.lastName,
-          profileMetadata: player.profileMetadata,
-          preferredName: player.preferredName,
-          teamId,
-          timezone: player.timezone,
-        },
-      })),
-    );
-
-    return { createdPlayerIds: insertedPlayers.map((player) => player.id) };
   });
 }
 
