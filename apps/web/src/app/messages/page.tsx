@@ -13,6 +13,11 @@ import {
   getAnnouncementsForLeagueAsUser,
 } from "@/lib/announcement";
 import { getLeaguesForUser } from "@/lib/league";
+import {
+  buildEventReminderTemplate,
+  buildWeeklyDigestTemplate,
+} from "@/lib/notification-template";
+import { getEventRemindersForUser } from "@/lib/reminder";
 import { getTeamsForLeague } from "@/lib/team";
 
 export default async function MessagesPage({
@@ -71,6 +76,31 @@ export default async function MessagesPage({
         selectedLeagueId,
       ).catch(() => [])
     : [];
+  const reminderSummary = await getEventRemindersForUser(session.user.id).catch(
+    () => ({
+      due: [],
+      upcoming: [],
+    }),
+  );
+  const reminderForLeague = selectedLeagueId
+    ? ([...reminderSummary.due, ...reminderSummary.upcoming].find(
+        (item) => item.leagueId === selectedLeagueId,
+      ) ?? null)
+    : null;
+  const digestTemplate = selectedLeague
+    ? buildWeeklyDigestTemplate({
+        announcements,
+        generatedAt: new Date(),
+        leagueName: selectedLeague.name,
+      })
+    : null;
+  const reminderTemplate =
+    selectedLeague && reminderForLeague
+      ? buildEventReminderTemplate({
+          leagueName: selectedLeague.name,
+          reminder: reminderForLeague,
+        })
+      : null;
 
   async function createAnnouncementAction(formData: FormData) {
     "use server";
@@ -274,6 +304,42 @@ export default async function MessagesPage({
                   </article>
                 ))}
               </div>
+            )}
+          </Card>
+
+          <Card className="grid gap-4">
+            <h2 className="text-lg font-semibold">
+              Email digest and reminder templates
+            </h2>
+            <p className="text-sm text-slate-600">
+              Preview the email content used for weekly digests and event
+              reminders.
+            </p>
+            {digestTemplate ? (
+              <article className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-4">
+                <h3 className="text-base font-semibold">Weekly digest</h3>
+                <p className="text-xs text-slate-500">
+                  Subject: {digestTemplate.subject}
+                </p>
+                <pre className="whitespace-pre-wrap rounded-xl bg-slate-50 p-3 text-xs text-slate-700">
+                  {digestTemplate.body}
+                </pre>
+              </article>
+            ) : null}
+            {reminderTemplate ? (
+              <article className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-4">
+                <h3 className="text-base font-semibold">Event reminder</h3>
+                <p className="text-xs text-slate-500">
+                  Subject: {reminderTemplate.subject}
+                </p>
+                <pre className="whitespace-pre-wrap rounded-xl bg-slate-50 p-3 text-xs text-slate-700">
+                  {reminderTemplate.body}
+                </pre>
+              </article>
+            ) : (
+              <p className="text-sm text-slate-600">
+                No upcoming reminder examples available for this league yet.
+              </p>
             )}
           </Card>
         </>
