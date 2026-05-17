@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { getTeamEventsForTeamAsViewer } from "@/lib/event";
 import { getLeagueDetail } from "@/lib/league";
 import { getPlayersForTeam } from "@/lib/player";
 import { getTeamDetail } from "@/lib/team";
@@ -26,6 +27,14 @@ export default async function TeamDetailPage({
   if (!league || !team || team.leagueId !== leagueId) {
     notFound();
   }
+
+  const teamEvents = session?.user
+    ? await getTeamEventsForTeamAsViewer(
+        session.user.id,
+        leagueId,
+        teamId,
+      ).catch(() => [])
+    : [];
 
   return (
     <div className="grid gap-6">
@@ -103,6 +112,43 @@ export default async function TeamDetailPage({
           </p>
         </Card>
       </div>
+
+      <Card className="grid gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Team event agenda</h2>
+          {session?.user ? (
+            <Link
+              className="text-xs font-medium text-sky-600 hover:underline"
+              href={`/events?leagueId=${leagueId}&teamId=${teamId}`}
+            >
+              Open events workspace →
+            </Link>
+          ) : null}
+        </div>
+        {!session?.user ? (
+          <p className="text-sm text-slate-600">
+            Sign in to view upcoming team events.
+          </p>
+        ) : teamEvents.length === 0 ? (
+          <p className="text-sm text-slate-600">
+            No upcoming events yet for this team.
+          </p>
+        ) : (
+          <ul className="grid gap-2">
+            {teamEvents.slice(0, 6).map((event) => (
+              <li
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2"
+                key={event.id}
+              >
+                <p className="font-medium">{event.title}</p>
+                <p className="text-sm text-slate-600">
+                  {event.startsAt.toLocaleString()} · {event.eventType}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
     </div>
   );
 }

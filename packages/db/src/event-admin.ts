@@ -1,4 +1,4 @@
-import { and, asc, count, eq, isNull } from "drizzle-orm";
+import { and, asc, count, eq, gt, isNull } from "drizzle-orm";
 
 import { db } from "./client";
 import {
@@ -23,6 +23,23 @@ export type TeamEventSummary = {
   timezone: string;
   recurrenceRule: EventRecurrenceRule;
   createdAt: Date;
+};
+
+export type LeagueEventSummary = TeamEventSummary & {
+  leagueId: string;
+  teamId: string;
+  teamName: string;
+};
+
+export type UserEventReminderCandidate = {
+  eventId: string;
+  leagueId: string;
+  teamId: string;
+  teamName: string;
+  title: string;
+  startsAt: Date;
+  timezone: string;
+  rsvpStatus: RsvpStatus;
 };
 
 type CreateTeamEventInput = {
@@ -298,6 +315,37 @@ export async function getTeamEventsByTeamId(
     .orderBy(asc(teamEvents.startsAt), asc(teamEvents.createdAt));
 }
 
+export async function getTeamEventsByLeagueId(
+  leagueId: string,
+): Promise<LeagueEventSummary[]> {
+  return db
+    .select({
+      id: teamEvents.id,
+      eventType: teamEvents.eventType,
+      title: teamEvents.title,
+      description: teamEvents.description,
+      location: teamEvents.location,
+      startsAt: teamEvents.startsAt,
+      endsAt: teamEvents.endsAt,
+      timezone: teamEvents.timezone,
+      recurrenceRule: teamEvents.recurrenceRule,
+      createdAt: teamEvents.createdAt,
+      leagueId: teamEvents.leagueId,
+      teamId: teamEvents.teamId,
+      teamName: teams.name,
+    })
+    .from(teamEvents)
+    .innerJoin(teams, eq(teams.id, teamEvents.teamId))
+    .where(
+      and(
+        eq(teamEvents.leagueId, leagueId),
+        isNull(teamEvents.deletedAt),
+        isNull(teams.deletedAt),
+      ),
+    )
+    .orderBy(asc(teamEvents.startsAt), asc(teamEvents.createdAt));
+}
+
 type RsvpStatus = (typeof eventRsvpStatusValues)[number];
 
 export type EventRsvpSummary = {
@@ -405,4 +453,33 @@ export async function getUserRsvpForEvent(
     .limit(1);
 
   return rows[0] ?? null;
+}
+
+export async function getEventReminderCandidatesByUserId(
+  userId: string,
+  from: Date,
+): Promise<UserEventReminderCandidate[]> {
+  return db
+    .select({
+      eventId: teamEvents.id,
+      leagueId: teamEvents.leagueId,
+      teamId: teamEvents.teamId,
+      teamName: teams.name,
+      title: teamEvents.title,
+      startsAt: teamEvents.startsAt,
+      timezone: teamEvents.timezone,
+      rsvpStatus: teamEventRsvps.status,
+    })
+    .from(teamEventRsvps)
+    .innerJoin(teamEvents, eq(teamEvents.id, teamEventRsvps.eventId))
+    .innerJoin(teams, eq(teams.id, teamEvents.teamId))
+    .where(
+      and(
+        eq(teamEventRsvps.userId, userId),
+        isNull(teamEvents.deletedAt),
+        isNull(teams.deletedAt),
+        gt(teamEvents.startsAt, from),
+      ),
+    )
+    .orderBy(asc(teamEvents.startsAt));
 }

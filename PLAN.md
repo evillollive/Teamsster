@@ -92,10 +92,10 @@
 ### Work items
 - [x] Event CRUD and recurrence basics.
 - [x] RSVP states and response summaries.
-- [ ] Calendar exports (ICS) and reminders.
-- [ ] Team and league event views.
-- [ ] Playwright coverage for critical event journeys.
-- [ ] Milestone checkpoint: refresh README and contributor-facing docs for scheduling workflows.
+- [x] Calendar exports (ICS) and reminders.
+- [x] Team and league event views.
+- [x] Playwright coverage for critical event journeys.
+- [x] Milestone checkpoint: refresh README and contributor-facing docs for scheduling workflows.
 
 ## Milestone 5 — communications and notifications
 
