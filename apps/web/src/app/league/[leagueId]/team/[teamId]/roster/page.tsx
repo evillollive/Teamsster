@@ -69,11 +69,25 @@ export default async function TeamRosterPage({
     }
 
     await createPlayerForUser(currentSession.user.id, {
+      eligibilityNotes:
+        (formData.get("eligibilityNotes") as string | null) ?? undefined,
+      eligibilityStatus:
+        (formData.get("eligibilityStatus") as
+          | "PENDING"
+          | "ELIGIBLE"
+          | "INELIGIBLE"
+          | null) ?? "PENDING",
       firstName: (formData.get("firstName") as string | null) ?? "",
       jerseyNumber:
         (formData.get("jerseyNumber") as string | null) ?? undefined,
       lastName: (formData.get("lastName") as string | null) ?? "",
       leagueId,
+      profileNotes:
+        (formData.get("profileNotes") as string | null) ?? undefined,
+      profilePrimaryPosition:
+        (formData.get("profilePrimaryPosition") as string | null) ?? undefined,
+      profilePronouns:
+        (formData.get("profilePronouns") as string | null) ?? undefined,
       preferredName:
         (formData.get("preferredName") as string | null) ?? undefined,
       teamId,
@@ -97,12 +111,26 @@ export default async function TeamRosterPage({
     }
 
     await updatePlayerForUser(currentSession.user.id, {
+      eligibilityNotes:
+        (formData.get("eligibilityNotes") as string | null) ?? undefined,
+      eligibilityStatus:
+        (formData.get("eligibilityStatus") as
+          | "PENDING"
+          | "ELIGIBLE"
+          | "INELIGIBLE"
+          | null) ?? "PENDING",
       firstName: (formData.get("firstName") as string | null) ?? "",
       jerseyNumber:
         (formData.get("jerseyNumber") as string | null) ?? undefined,
       lastName: (formData.get("lastName") as string | null) ?? "",
       leagueId,
       playerId: (formData.get("playerId") as string | null) ?? "",
+      profileNotes:
+        (formData.get("profileNotes") as string | null) ?? undefined,
+      profilePrimaryPosition:
+        (formData.get("profilePrimaryPosition") as string | null) ?? undefined,
+      profilePronouns:
+        (formData.get("profilePronouns") as string | null) ?? undefined,
       preferredName:
         (formData.get("preferredName") as string | null) ?? undefined,
       teamId,
@@ -272,6 +300,58 @@ export default async function TeamRosterPage({
               placeholder="Optional"
             />
           </FormField>
+          <FormField htmlFor="player-eligibility-status" label="Eligibility">
+            <select
+              className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-200"
+              defaultValue="PENDING"
+              id="player-eligibility-status"
+              name="eligibilityStatus"
+            >
+              <option value="PENDING">Pending review</option>
+              <option value="ELIGIBLE">Eligible</option>
+              <option value="INELIGIBLE">Ineligible</option>
+            </select>
+          </FormField>
+          <FormField htmlFor="player-profile-pronouns" label="Pronouns">
+            <Input
+              id="player-profile-pronouns"
+              maxLength={80}
+              name="profilePronouns"
+              placeholder="Optional"
+            />
+          </FormField>
+          <FormField htmlFor="player-profile-position" label="Primary position">
+            <Input
+              id="player-profile-position"
+              maxLength={120}
+              name="profilePrimaryPosition"
+              placeholder="Optional"
+            />
+          </FormField>
+          <FormField
+            className="sm:col-span-2"
+            htmlFor="player-eligibility-notes"
+            label="Eligibility notes"
+          >
+            <Input
+              id="player-eligibility-notes"
+              maxLength={500}
+              name="eligibilityNotes"
+              placeholder="Optional registration or waiver notes"
+            />
+          </FormField>
+          <FormField
+            className="sm:col-span-2"
+            htmlFor="player-profile-notes"
+            label="Profile notes"
+          >
+            <Input
+              id="player-profile-notes"
+              maxLength={500}
+              name="profileNotes"
+              placeholder="Optional player profile details"
+            />
+          </FormField>
           <FormField
             className="sm:col-span-2"
             htmlFor="player-timezone"
@@ -296,9 +376,10 @@ export default async function TeamRosterPage({
       <Card className="grid gap-4">
         <h2 className="text-lg font-semibold">Bulk import players (CSV)</h2>
         <p className="text-sm text-slate-600">
-          Header columns:
-          firstName,lastName,preferredName,jerseyNumber,timezone. Only firstName
-          and lastName are required, and column names are case-sensitive.
+          Header columns: firstName,lastName,preferredName,jerseyNumber,
+          eligibilityStatus,eligibilityNotes,profilePronouns,
+          profilePrimaryPosition,profileNotes,timezone. Only firstName and
+          lastName are required, and column names are case-sensitive.
         </p>
         <form action={importPlayersCsvAction} className="grid gap-3">
           <input name="timezone" type="hidden" value={activeTeam.timezone} />
@@ -307,7 +388,7 @@ export default async function TeamRosterPage({
               className="min-h-40 w-full rounded-md border border-slate-200 bg-transparent px-3 py-2 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
               id="player-csv-import"
               name="csv"
-              placeholder="firstName,lastName,preferredName,jerseyNumber,timezone"
+              placeholder="firstName,lastName,preferredName,jerseyNumber,eligibilityStatus,eligibilityNotes,profilePronouns,profilePrimaryPosition,profileNotes,timezone"
               required
             />
           </FormField>
@@ -385,6 +466,73 @@ export default async function TeamRosterPage({
                         maxLength={20}
                         name="jerseyNumber"
                         placeholder="Optional"
+                      />
+                    </FormField>
+                    <FormField
+                      htmlFor={`player-eligibility-status-${player.id}`}
+                      label="Eligibility"
+                    >
+                      <select
+                        className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 shadow-sm outline-none transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-200"
+                        defaultValue={player.eligibilityStatus}
+                        id={`player-eligibility-status-${player.id}`}
+                        name="eligibilityStatus"
+                      >
+                        <option value="PENDING">Pending review</option>
+                        <option value="ELIGIBLE">Eligible</option>
+                        <option value="INELIGIBLE">Ineligible</option>
+                      </select>
+                    </FormField>
+                    <FormField
+                      htmlFor={`player-profile-pronouns-${player.id}`}
+                      label="Pronouns"
+                    >
+                      <Input
+                        defaultValue={player.profileMetadata.pronouns ?? ""}
+                        id={`player-profile-pronouns-${player.id}`}
+                        maxLength={80}
+                        name="profilePronouns"
+                        placeholder="Optional"
+                      />
+                    </FormField>
+                    <FormField
+                      htmlFor={`player-profile-position-${player.id}`}
+                      label="Primary position"
+                    >
+                      <Input
+                        defaultValue={
+                          player.profileMetadata.primaryPosition ?? ""
+                        }
+                        id={`player-profile-position-${player.id}`}
+                        maxLength={120}
+                        name="profilePrimaryPosition"
+                        placeholder="Optional"
+                      />
+                    </FormField>
+                    <FormField
+                      className="sm:col-span-2"
+                      htmlFor={`player-eligibility-notes-${player.id}`}
+                      label="Eligibility notes"
+                    >
+                      <Input
+                        defaultValue={player.eligibilityNotes ?? ""}
+                        id={`player-eligibility-notes-${player.id}`}
+                        maxLength={500}
+                        name="eligibilityNotes"
+                        placeholder="Optional registration or waiver notes"
+                      />
+                    </FormField>
+                    <FormField
+                      className="sm:col-span-2"
+                      htmlFor={`player-profile-notes-${player.id}`}
+                      label="Profile notes"
+                    >
+                      <Input
+                        defaultValue={player.profileMetadata.notes ?? ""}
+                        id={`player-profile-notes-${player.id}`}
+                        maxLength={500}
+                        name="profileNotes"
+                        placeholder="Optional player profile details"
                       />
                     </FormField>
                     <FormField

@@ -17,25 +17,36 @@ import { timezoneSchema } from "@/lib/account";
 import { canEditRoster, canManageLeague } from "@/lib/permissions";
 
 const playerNameSchema = z.string().trim().min(1).max(120);
-const optionalTextSchema = z
-  .string()
-  .trim()
-  .max(120)
-  .optional()
-  .transform((value) => value || undefined);
+const optionalTextSchema = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .optional()
+    .transform((value) => value || undefined);
+const eligibilityStatusSchema = z.enum(["PENDING", "ELIGIBLE", "INELIGIBLE"]);
+const optionalEligibilityNotesSchema = optionalTextSchema(500);
+const optionalProfilePronounsSchema = optionalTextSchema(80);
+const optionalProfilePositionSchema = optionalTextSchema(120);
+const optionalProfileNotesSchema = optionalTextSchema(500);
 
 export const createPlayerSchema = z.object({
   leagueId: z.string().uuid(),
   teamId: z.string().uuid(),
   firstName: playerNameSchema,
   lastName: playerNameSchema,
-  preferredName: optionalTextSchema,
+  preferredName: optionalTextSchema(120),
   jerseyNumber: z
     .string()
     .trim()
     .max(20)
     .optional()
     .transform((value) => value || undefined),
+  eligibilityStatus: eligibilityStatusSchema.default("PENDING"),
+  eligibilityNotes: optionalEligibilityNotesSchema,
+  profilePronouns: optionalProfilePronounsSchema,
+  profilePrimaryPosition: optionalProfilePositionSchema,
+  profileNotes: optionalProfileNotesSchema,
   timezone: timezoneSchema,
 });
 
@@ -45,13 +56,18 @@ export const updatePlayerSchema = z.object({
   teamId: z.string().uuid(),
   firstName: playerNameSchema,
   lastName: playerNameSchema,
-  preferredName: optionalTextSchema,
+  preferredName: optionalTextSchema(120),
   jerseyNumber: z
     .string()
     .trim()
     .max(20)
     .optional()
     .transform((value) => value || undefined),
+  eligibilityStatus: eligibilityStatusSchema.default("PENDING"),
+  eligibilityNotes: optionalEligibilityNotesSchema,
+  profilePronouns: optionalProfilePronounsSchema,
+  profilePrimaryPosition: optionalProfilePositionSchema,
+  profileNotes: optionalProfileNotesSchema,
   timezone: timezoneSchema,
 });
 
@@ -68,7 +84,7 @@ export const createPlayerContactSchema = z
     teamId: z.string().uuid(),
     firstName: playerNameSchema,
     lastName: playerNameSchema,
-    relationship: optionalTextSchema,
+    relationship: optionalTextSchema(120),
     email: z
       .string()
       .trim()
@@ -119,6 +135,11 @@ const supportedImportColumns = [
   "lastName",
   "preferredName",
   "jerseyNumber",
+  "eligibilityStatus",
+  "eligibilityNotes",
+  "profilePronouns",
+  "profilePrimaryPosition",
+  "profileNotes",
   "timezone",
 ] as const;
 const requiredImportColumns = ["firstName", "lastName"] as const;
@@ -192,6 +213,11 @@ type ValidatedImportPlayer = {
   lastName: string;
   preferredName: string | undefined;
   jerseyNumber: string | undefined;
+  eligibilityStatus: z.infer<typeof eligibilityStatusSchema>;
+  eligibilityNotes: string | undefined;
+  profilePronouns: string | undefined;
+  profilePrimaryPosition: string | undefined;
+  profileNotes: string | undefined;
   timezone: string;
 };
 
@@ -234,9 +260,18 @@ export function validatePlayerImportCsv(input: ImportPlayersCsvInput): {
 
     const parsed = createPlayerSchema.safeParse({
       firstName: getColumnValue(row.values, "firstName") ?? "",
+      eligibilityNotes: getColumnValue(row.values, "eligibilityNotes"),
+      eligibilityStatus:
+        getColumnValue(row.values, "eligibilityStatus") ?? "PENDING",
       jerseyNumber: getColumnValue(row.values, "jerseyNumber"),
       lastName: getColumnValue(row.values, "lastName") ?? "",
       leagueId,
+      profileNotes: getColumnValue(row.values, "profileNotes"),
+      profilePrimaryPosition: getColumnValue(
+        row.values,
+        "profilePrimaryPosition",
+      ),
+      profilePronouns: getColumnValue(row.values, "profilePronouns"),
       preferredName: getColumnValue(row.values, "preferredName"),
       teamId,
       timezone: getColumnValue(row.values, "timezone") || timezone,
@@ -260,8 +295,13 @@ export function validatePlayerImportCsv(input: ImportPlayersCsvInput): {
 
     mappedRows.push({
       firstName: parsed.data.firstName,
+      eligibilityNotes: parsed.data.eligibilityNotes,
+      eligibilityStatus: parsed.data.eligibilityStatus,
       jerseyNumber: parsed.data.jerseyNumber,
       lastName: parsed.data.lastName,
+      profileNotes: parsed.data.profileNotes,
+      profilePrimaryPosition: parsed.data.profilePrimaryPosition,
+      profilePronouns: parsed.data.profilePronouns,
       preferredName: parsed.data.preferredName,
       timezone: parsed.data.timezone,
     });
@@ -320,9 +360,16 @@ export async function createPlayerForUser(
 
   return createPlayer({
     firstName: parsed.firstName,
+    eligibilityNotes: parsed.eligibilityNotes,
+    eligibilityStatus: parsed.eligibilityStatus,
     jerseyNumber: parsed.jerseyNumber,
     lastName: parsed.lastName,
     leagueId: parsed.leagueId,
+    profileMetadata: {
+      notes: parsed.profileNotes,
+      primaryPosition: parsed.profilePrimaryPosition,
+      pronouns: parsed.profilePronouns,
+    },
     preferredName: parsed.preferredName,
     teamId: parsed.teamId,
     timezone: parsed.timezone,
@@ -357,11 +404,18 @@ export async function updatePlayerForUser(
 
   await updatePlayer({
     actorUserId: userId,
+    eligibilityNotes: parsed.eligibilityNotes,
+    eligibilityStatus: parsed.eligibilityStatus,
     firstName: parsed.firstName,
     jerseyNumber: parsed.jerseyNumber,
     lastName: parsed.lastName,
     leagueId: parsed.leagueId,
     playerId: parsed.playerId,
+    profileMetadata: {
+      notes: parsed.profileNotes,
+      primaryPosition: parsed.profilePrimaryPosition,
+      pronouns: parsed.profilePronouns,
+    },
     preferredName: parsed.preferredName,
     teamId: parsed.teamId,
     timezone: parsed.timezone,

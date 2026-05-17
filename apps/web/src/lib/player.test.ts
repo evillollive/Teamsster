@@ -15,9 +15,14 @@ describe("createPlayerSchema", () => {
   it("accepts a valid player payload", () => {
     const parsed = createPlayerSchema.parse({
       firstName: "  Sam  ",
+      eligibilityNotes: " Waiver signed ",
+      eligibilityStatus: "ELIGIBLE",
       jerseyNumber: " 17 ",
       lastName: "Rivera",
       leagueId,
+      profileNotes: " Left-footed ",
+      profilePrimaryPosition: " Midfielder ",
+      profilePronouns: " they/them ",
       preferredName: " Sammy ",
       teamId,
       timezone: "America/Chicago",
@@ -27,6 +32,11 @@ describe("createPlayerSchema", () => {
     expect(parsed.lastName).toBe("Rivera");
     expect(parsed.preferredName).toBe("Sammy");
     expect(parsed.jerseyNumber).toBe("17");
+    expect(parsed.eligibilityStatus).toBe("ELIGIBLE");
+    expect(parsed.eligibilityNotes).toBe("Waiver signed");
+    expect(parsed.profilePronouns).toBe("they/them");
+    expect(parsed.profilePrimaryPosition).toBe("Midfielder");
+    expect(parsed.profileNotes).toBe("Left-footed");
   });
 
   it("defaults timezone to UTC when omitted", () => {
@@ -69,10 +79,12 @@ describe("updatePlayerSchema", () => {
   it("accepts valid update fields", () => {
     const parsed = updatePlayerSchema.parse({
       firstName: "Jordan",
+      eligibilityStatus: "INELIGIBLE",
       jerseyNumber: "9",
       lastName: "Mills",
       leagueId,
       playerId,
+      profilePronouns: "",
       preferredName: "",
       teamId,
       timezone: "Europe/London",
@@ -81,6 +93,8 @@ describe("updatePlayerSchema", () => {
     expect(parsed.playerId).toBe(playerId);
     expect(parsed.preferredName).toBeUndefined();
     expect(parsed.jerseyNumber).toBe("9");
+    expect(parsed.eligibilityStatus).toBe("INELIGIBLE");
+    expect(parsed.profilePronouns).toBeUndefined();
   });
 
   it("rejects invalid ids", () => {
@@ -181,7 +195,7 @@ describe("validatePlayerImportCsv", () => {
 
   it("returns normalized player rows", () => {
     const result = validatePlayerImportCsv({
-      csv: "firstName,lastName,jerseyNumber\n Sam , Rivera , 17 ",
+      csv: "firstName,lastName,jerseyNumber,eligibilityStatus,profilePronouns\n Sam , Rivera , 17 , ELIGIBLE , they/them ",
       leagueId,
       teamId,
       timezone: "America/Chicago",
@@ -190,8 +204,13 @@ describe("validatePlayerImportCsv", () => {
     expect(result.players).toEqual([
       {
         firstName: "Sam",
+        eligibilityNotes: undefined,
+        eligibilityStatus: "ELIGIBLE",
         jerseyNumber: "17",
         lastName: "Rivera",
+        profileNotes: undefined,
+        profilePrimaryPosition: undefined,
+        profilePronouns: "they/them",
         preferredName: undefined,
         timezone: "America/Chicago",
       },
@@ -211,5 +230,17 @@ describe("validatePlayerImportCsv", () => {
     expect(run).toThrow('Unsupported "nickname" column in CSV header.');
     expect(run).toThrow("Row 2 validation error: firstName:");
     expect(run).toThrow("Row 2 validation error: lastName:");
+  });
+
+  it("surfaces invalid eligibility values", () => {
+    const run = () =>
+      validatePlayerImportCsv({
+        csv: "firstName,lastName,eligibilityStatus\nSam,Rivera,UNKNOWN\n",
+        leagueId,
+        teamId,
+        timezone: "UTC",
+      });
+
+    expect(run).toThrow("Row 2 validation error: eligibilityStatus:");
   });
 });

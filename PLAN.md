@@ -71,9 +71,9 @@
 - [x] Player CRUD with soft deletes.
 - [x] Guardian/contact relationships.
 - [x] Bulk import and CSV validation pipeline.
-- [ ] Eligibility, jersey, and profile metadata extensions.
+- [x] Eligibility, jersey, and profile metadata extensions.
 - [ ] Roster permission regression tests.
-- [ ] Milestone checkpoint: refresh README and contributor-facing docs for roster workflows.
+- [x] Milestone checkpoint: refresh README and contributor-facing docs for roster workflows.
 
 ## Milestone 4 — scheduling and attendance
 
