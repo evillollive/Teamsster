@@ -1,6 +1,7 @@
 import {
   CalendarDays,
   Home,
+  MessageSquare,
   ShieldCheck,
   Trophy,
   UserRound,
@@ -45,8 +46,14 @@ const navItems = [
     blurb: "Games, practices, and reminders",
     icon: CalendarDays,
   },
+  {
+    href: "/messages",
+    label: "Messages",
+    blurb: "League and team announcements",
+    icon: MessageSquare,
+  },
 ] satisfies ReadonlyArray<{
-  href: Route;
+  href: string;
   label: string;
   blurb: string;
   icon: typeof Home;
@@ -117,7 +124,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "rounded-3xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:border-sky-200 hover:shadow-md",
                 )}
-                href={href}
+                href={href as Route}
                 key={href}
               >
                 <div className="flex items-center gap-3">

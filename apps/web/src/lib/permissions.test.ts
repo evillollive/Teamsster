@@ -56,6 +56,12 @@ describe("permissions", () => {
       }),
     ).toBe(true);
     expect(
+      canAccessFeature("announcement.manage", {
+        orgRoles: "PLAYER",
+        teamRoles: "COACH",
+      }),
+    ).toBe(true);
+    expect(
       canAccessFeature("audit.read", {
         teamRoles: "HEAD_COACH",
       }),
@@ -68,6 +74,16 @@ describe("permissions", () => {
     expect(canAccessFeature("event.rsvp", { orgRoles: "PLAYER" })).toBe(true);
     expect(canAccessFeature("event.rsvp", { teamRoles: "COACH" })).toBe(true);
     expect(canAccessFeature("event.rsvp", {})).toBe(false);
+  });
+
+  it("grants announcement.read to any league or team member including GUEST", () => {
+    expect(canAccessFeature("announcement.read", { orgRoles: "GUEST" })).toBe(
+      true,
+    );
+    expect(canAccessFeature("announcement.read", { teamRoles: "GUEST" })).toBe(
+      true,
+    );
+    expect(canAccessFeature("announcement.read", {})).toBe(false);
   });
 
   it("throws when an action is not permitted", () => {
