@@ -1,4 +1,5 @@
 export * from "./client";
+export * from "./event-admin";
 export * from "./league-admin";
 export * from "./membership-admin";
 export * from "./player-admin";

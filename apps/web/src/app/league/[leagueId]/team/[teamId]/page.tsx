@@ -54,7 +54,7 @@ export default async function TeamDetailPage({
         </div>
       </Card>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
@@ -81,6 +81,25 @@ export default async function TeamDetailPage({
           </p>
           <p className="mt-2 text-sm text-slate-600">
             Manage team member roles and invitations from team settings.
+          </p>
+        </Card>
+        <Card>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+              Events
+            </p>
+            {session?.user ? (
+              <Link
+                className="text-xs font-medium text-sky-600 hover:underline"
+                href={`/events?leagueId=${leagueId}&teamId=${teamId}`}
+              >
+                Manage →
+              </Link>
+            ) : null}
+          </div>
+          <p className="mt-2 text-sm text-slate-600">
+            Schedule games and practices with recurrence options in the events
+            workspace.
           </p>
         </Card>
       </div>

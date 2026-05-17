@@ -34,6 +34,20 @@ export const playerEligibilityStatusEnum = pgEnum(
   playerEligibilityStatusValues,
 );
 
+export const eventTypeValues = ["GAME", "PRACTICE", "GENERAL"] as const;
+export const eventTypeEnum = pgEnum("event_type", eventTypeValues);
+
+export const eventRecurrenceFrequencyValues = [
+  "NONE",
+  "DAILY",
+  "WEEKLY",
+  "MONTHLY",
+] as const;
+export const eventRecurrenceFrequencyEnum = pgEnum(
+  "event_recurrence_frequency",
+  eventRecurrenceFrequencyValues,
+);
+
 export type NotificationPreferences = {
   emailAnnouncements: boolean;
   eventReminders: boolean;
@@ -44,6 +58,13 @@ export type PlayerProfileMetadata = {
   notes?: string;
   primaryPosition?: string;
   pronouns?: string;
+};
+
+export type EventRecurrenceRule = {
+  frequency: (typeof eventRecurrenceFrequencyValues)[number];
+  interval: number;
+  until?: string;
+  count?: number;
 };
 
 const timestampColumns = {
@@ -282,6 +303,44 @@ export const playerContacts = pgTable(
     index("player_contacts_league_idx").on(table.leagueId),
     index("player_contacts_team_idx").on(table.teamId),
     index("player_contacts_player_idx").on(table.playerId),
+  ],
+);
+
+export const teamEvents = pgTable(
+  "team_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id),
+    eventType: eventTypeEnum("event_type").notNull().default("GENERAL"),
+    title: text("title").notNull(),
+    description: text("description"),
+    location: text("location"),
+    startsAt: timestamp("starts_at", {
+      mode: "date",
+      withTimezone: true,
+    }).notNull(),
+    endsAt: timestamp("ends_at", {
+      mode: "date",
+      withTimezone: true,
+    }).notNull(),
+    timezone: text("timezone").notNull().default("UTC"),
+    recurrenceRule: jsonb("recurrence_rule")
+      .$type<EventRecurrenceRule>()
+      .notNull()
+      .default(sql`'{"frequency":"NONE","interval":1}'::jsonb`),
+    createdById: uuid("created_by_id"),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("team_events_league_idx").on(table.leagueId),
+    index("team_events_team_idx").on(table.teamId),
+    index("team_events_starts_at_idx").on(table.startsAt),
   ],
 );
 

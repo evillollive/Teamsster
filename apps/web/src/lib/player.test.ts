@@ -1,9 +1,30 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@teamsster/db", () => ({
+  archivePlayer: vi.fn(),
+  archivePlayerContact: vi.fn(),
+  createPlayer: vi.fn(),
+  createPlayerContact: vi.fn(),
+  getPlayerContactsByTeamId: vi.fn(),
+  getPlayersByTeamId: vi.fn(),
+  getUserIdByAuthUserId: vi.fn(),
+  getUserLeagueMembership: vi.fn(),
+  getUserTeamMembership: vi.fn(),
+  updatePlayer: vi.fn(),
+}));
+
+import {
+  getPlayerContactsByTeamId,
+  getUserIdByAuthUserId,
+  getUserLeagueMembership,
+  getUserTeamMembership,
+} from "@teamsster/db";
 
 import {
   applyContactFieldMask,
   createPlayerContactSchema,
   createPlayerSchema,
+  getPlayerContactsForTeamAsUser,
   updatePlayerSchema,
 } from "@/lib/player";
 
@@ -230,5 +251,70 @@ describe("applyContactFieldMask", () => {
 
     expect(result.email).toBeNull();
     expect(result.phone).toBeNull();
+  });
+});
+
+describe("getPlayerContactsForTeamAsUser", () => {
+  const leagueId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
+  const teamId = "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22";
+  const contacts = [
+    {
+      id: "c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33",
+      playerId: "d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a44",
+      firstName: "Riley",
+      lastName: "Jordan",
+      relationship: "Parent",
+      email: "riley@example.com",
+      phone: "555-0100",
+      isPrimary: true,
+      createdAt: new Date("2024-01-01"),
+    },
+  ];
+
+  const mockedGetPlayerContactsByTeamId = vi.mocked(getPlayerContactsByTeamId);
+  const mockedGetUserIdByAuthUserId = vi.mocked(getUserIdByAuthUserId);
+  const mockedGetUserLeagueMembership = vi.mocked(getUserLeagueMembership);
+  const mockedGetUserTeamMembership = vi.mocked(getUserTeamMembership);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedGetPlayerContactsByTeamId.mockResolvedValue(contacts);
+  });
+
+  it("masks contact details for unauthenticated requests", async () => {
+    const result = await getPlayerContactsForTeamAsUser(null, leagueId, teamId);
+
+    expect(result[0]?.email).toBeNull();
+    expect(result[0]?.phone).toBeNull();
+  });
+
+  it("preserves contact details for coach-level team members", async () => {
+    mockedGetUserIdByAuthUserId.mockResolvedValue("user-1");
+    mockedGetUserLeagueMembership.mockResolvedValue({ roles: ["PLAYER"] });
+    mockedGetUserTeamMembership.mockResolvedValue({ roles: ["COACH"] });
+
+    const result = await getPlayerContactsForTeamAsUser(
+      "auth-user-1",
+      leagueId,
+      teamId,
+    );
+
+    expect(result[0]?.email).toBe("riley@example.com");
+    expect(result[0]?.phone).toBe("555-0100");
+  });
+
+  it("masks contact details when memberships are below permission thresholds", async () => {
+    mockedGetUserIdByAuthUserId.mockResolvedValue("user-1");
+    mockedGetUserLeagueMembership.mockResolvedValue({ roles: ["PLAYER"] });
+    mockedGetUserTeamMembership.mockResolvedValue({ roles: ["PARENT"] });
+
+    const result = await getPlayerContactsForTeamAsUser(
+      "auth-user-1",
+      leagueId,
+      teamId,
+    );
+
+    expect(result[0]?.email).toBeNull();
+    expect(result[0]?.phone).toBeNull();
   });
 });

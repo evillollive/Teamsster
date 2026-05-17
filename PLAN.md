@@ -79,8 +79,8 @@
 - [x] No external file import (CSV/Excel): out of scope by design; roster entry is manual only.
 - [x] Eligibility, jersey, and profile metadata extensions.
 - [x] Role-gated contact visibility for member phone/email using field-level read permissions through centralized permission helpers; no user opt-out.
-- [ ] Field-level permission enforcement to complete the four-level permission model introduced in Milestone 2.
-- [ ] Roster permission regression tests.
+- [x] Field-level permission enforcement to complete the four-level permission model introduced in Milestone 2.
+- [x] Roster permission regression tests.
 - [x] Milestone checkpoint: refresh README and contributor-facing docs for roster workflows.
 
 ## Milestone 4 — scheduling and attendance
@@ -90,7 +90,7 @@
 - Make attendance and reminders friendly for busy families.
 
 ### Work items
-- [ ] Event CRUD and recurrence basics.
+- [x] Event CRUD and recurrence basics.
 - [ ] RSVP states and response summaries.
 - [ ] Calendar exports (ICS) and reminders.
 - [ ] Team and league event views.

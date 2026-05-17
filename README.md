@@ -14,7 +14,8 @@ Teamsster aims to give leagues, clubs, volunteer boards, coaches, and families a
 - **Drizzle ORM + Neon Postgres** database package with league-first schema and migrations
 - **Better Auth** with email/password and magic-link sign-in, onboarding, and account settings
 - **League administration** — create, update, and archive leagues and teams; role assignment, reusable role templates, and invitation workflows; audit log persistence and read views; league dashboard with empty states and onboarding guidance
-- **Roster workflows** — player CRUD with soft deletes, guardian contacts, CSV import validation, and player eligibility/profile metadata fields
+- **Roster workflows** — player CRUD with soft deletes, guardian contacts, and player eligibility/profile metadata fields
+- **Scheduling workflows (basics)** — team event create/update/archive flows with recurrence metadata for game, practice, and general event types
 - **Centralized Zod validation** and permission helpers for all mutations
 - **Biome** formatting and linting, plus Husky, lint-staged, and commitlint
 - **Vitest + Testing Library + Playwright** testing stack
@@ -118,8 +119,8 @@ Milestones 0 (repository foundation), 1 (auth and onboarding), and 2 (league adm
 
 1. ~~Auth and onboarding flows~~ ✓
 2. ~~League and team CRUD foundations~~ ✓
-3. Roster workflows and invitations (permission regression tests remain)
-4. Event scheduling, RSVPs, and calendar exports
+3. ~~Roster workflows and invitations~~ ✓
+4. Event scheduling foundations (event CRUD and recurrence basics complete; RSVPs and calendar exports remain)
 5. Messaging, reporting, and extension points
 
 See [`PLAN.md`](./PLAN.md) for the full milestone breakdown.
