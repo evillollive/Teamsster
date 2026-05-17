@@ -11,7 +11,7 @@ import {
 } from "@teamsster/db";
 import { z } from "zod";
 import { timezoneSchema } from "@/lib/account";
-import { canManageLeague, canViewAuditLog } from "@/lib/permissions";
+import { canAccessFeature } from "@/lib/permissions";
 
 export { buildLeagueSlug };
 
@@ -49,7 +49,7 @@ async function assertLeagueAdmin(
   if (!membership) {
     throw new Error("You are not a member of this league.");
   }
-  if (!canManageLeague(membership.roles)) {
+  if (!canAccessFeature("league.manage", { orgRoles: membership.roles })) {
     throw new Error("You do not have permission to manage this league.");
   }
 }
@@ -104,7 +104,10 @@ export async function getAuditLogForLeague(
 ) {
   const userId = await resolveUserId(authUserId);
   const membership = await getUserLeagueMembership(leagueId, userId);
-  if (!membership || !canViewAuditLog(membership.roles)) {
+  if (
+    !membership ||
+    !canAccessFeature("audit.read", { orgRoles: membership.roles })
+  ) {
     throw new Error(
       "You do not have permission to view the audit log for this league.",
     );

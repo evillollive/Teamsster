@@ -14,7 +14,7 @@ import {
 import { z } from "zod";
 
 import { timezoneSchema } from "@/lib/account";
-import { canEditRoster, canManageLeague } from "@/lib/permissions";
+import { canAccessFeature } from "@/lib/permissions";
 
 const playerNameSchema = z.string().trim().min(1).max(120);
 const optionalTextSchema = (max: number) =>
@@ -333,12 +333,18 @@ async function assertRosterEditor(
     throw new Error("You are not a member of this league.");
   }
 
-  if (canManageLeague(leagueMembership.roles)) {
+  if (canAccessFeature("roster.edit", { orgRoles: leagueMembership.roles })) {
     return;
   }
 
   const teamMembership = await getUserTeamMembership(teamId, userId);
-  if (!teamMembership || !canEditRoster(teamMembership.roles)) {
+  if (
+    !teamMembership ||
+    !canAccessFeature("roster.edit", {
+      orgRoles: leagueMembership.roles,
+      teamRoles: teamMembership.roles,
+    })
+  ) {
     throw new Error("You do not have permission to manage this roster.");
   }
 }

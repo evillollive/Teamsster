@@ -11,7 +11,7 @@ import {
 import { z } from "zod";
 
 import { timezoneSchema } from "@/lib/account";
-import { canManageLeague } from "@/lib/permissions";
+import { canAccessFeature } from "@/lib/permissions";
 
 export { buildTeamSlug };
 
@@ -52,7 +52,7 @@ async function assertLeagueAdmin(
   if (!membership) {
     throw new Error("You are not a member of this league.");
   }
-  if (!canManageLeague(membership.roles)) {
+  if (!canAccessFeature("league.manage", { orgRoles: membership.roles })) {
     throw new Error(
       "You do not have permission to manage teams in this league.",
     );

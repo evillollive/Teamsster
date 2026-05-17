@@ -21,7 +21,7 @@ import {
 } from "@teamsster/db";
 import { z } from "zod";
 
-import { canManageLeague } from "@/lib/permissions";
+import { canAccessFeature } from "@/lib/permissions";
 
 const roleSchema = z.enum(roleValues);
 const memberEmailSchema = z.string().trim().email().max(320);
@@ -108,7 +108,7 @@ async function assertLeagueAdmin(leagueId: string, userId: string) {
     throw new Error("You are not a member of this league.");
   }
 
-  if (!canManageLeague(membership.roles)) {
+  if (!canAccessFeature("membership.manage", { orgRoles: membership.roles })) {
     throw new Error("You do not have permission to manage members.");
   }
 }
