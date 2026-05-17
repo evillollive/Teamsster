@@ -508,7 +508,7 @@ export default async function EventsPage({
                         name="description"
                       />
                     </FormField>
-                    <div className="sm:col-span-2 flex flex-wrap items-center gap-2">
+                    <div className="sm:col-span-2 flex flex-wrap gap-2 items-center">
                       <Button size="sm" type="submit">
                         Save event
                       </Button>
