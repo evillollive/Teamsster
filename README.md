@@ -118,7 +118,7 @@ Milestones 0 (repository foundation), 1 (auth and onboarding), and 2 (league adm
 
 1. ~~Auth and onboarding flows~~ ✓
 2. ~~League and team CRUD foundations~~ ✓
-3. Roster workflows and invitations (permission regression tests remain)
+3. ~~Roster workflows and invitations~~ ✓
 4. Event scheduling, RSVPs, and calendar exports
 5. Messaging, reporting, and extension points
 
