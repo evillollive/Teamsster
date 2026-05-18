@@ -6,6 +6,8 @@
   "scripts": {
     "build": "pnpm -r --if-present build",
     "commitlint": "commitlint --edit",
+    "db:generate": "pnpm --filter @teamsster/db db:generate",
+    "db:migrate": "pnpm --filter @teamsster/db db:migrate",
     "dev": "pnpm --filter @teamsster/web dev",
     "e2e": "pnpm --filter @teamsster/web e2e",
     "format": "biome format --write .",

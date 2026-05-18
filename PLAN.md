@@ -126,6 +126,32 @@
 - [ ] API contracts for external consumers and mobile clients.
 - [ ] Milestone checkpoint: refresh README and contributor-facing docs for extension points.
 
+### Suggested issue-sized breakdown
+- [ ] 6.1 Deployment hardening baseline
+  - [ ] Finalize and maintain deployment runbook.
+  - [ ] Keep environment matrix current across local/staging/production.
+  - [ ] Keep migration/release/rollback steps current with platform changes.
+- [ ] 6.2 Extension architecture
+  - [ ] Define core-vs-optional package boundaries.
+  - [ ] Identify stable extension seams for modules and feature toggles.
+  - [ ] Document ownership and compatibility expectations for extension points.
+- [ ] 6.3 Integration surface
+  - [ ] Introduce domain event hooks for announcements, roster, scheduling, and membership changes.
+  - [ ] Document supported lifecycle hooks and payload stability guarantees.
+  - [ ] Add tests to protect hook contracts from accidental breakage.
+- [ ] 6.4 Developer platform
+  - [ ] Publish contributor guide for creating add-on modules.
+  - [ ] Provide module templates for validation, permissions, and data access patterns.
+  - [ ] Add a reference add-on module skeleton in the monorepo.
+- [ ] 6.5 External API contracts
+  - [ ] Define versioned external contract surface for web/mobile consumers.
+  - [ ] Separate internal-only server actions from public API boundaries.
+  - [ ] Document authentication and deprecation policy for external clients.
+- [ ] 6.6 Proof modules
+  - [ ] Deliver one payments prototype module.
+  - [ ] Deliver one stats or tournament/bracket prototype module.
+  - [ ] Run checkpoint review to confirm extension architecture supports both.
+
 ## Continuous best practices
 
 - Every form validated with Zod.

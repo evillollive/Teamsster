@@ -61,6 +61,13 @@ pnpm build
 pnpm e2e
 ```
 
+### Database migration commands
+
+```bash
+pnpm db:generate
+pnpm db:migrate
+```
+
 ## Workspace layout
 
 ```text
@@ -109,6 +116,7 @@ For the full terms, see [`LICENSE`](./LICENSE).
 ## Documentation
 
 - [`PLAN.md`](./PLAN.md) — detailed roadmap and milestone plan
+- [`DEPLOYMENT.md`](./DEPLOYMENT.md) — deployment runbook, env matrix, and release/rollback steps
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) — local workflow, branch expectations, and review notes
 - [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md) — community participation standards
 - [`SECURITY.md`](./SECURITY.md) — how to report vulnerabilities

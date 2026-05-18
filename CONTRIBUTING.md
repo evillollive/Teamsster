@@ -7,6 +7,7 @@ Thanks for helping build Teamsster.
 1. Read the [README](./README.md) for setup steps.
 2. Review the [Code of Conduct](./CODE_OF_CONDUCT.md).
 3. Check the roadmap in [PLAN.md](./PLAN.md) so work aligns with current milestones.
+4. Use the deployment runbook in [DEPLOYMENT.md](./DEPLOYMENT.md) for environment and release expectations.
 
 ## Local workflow
 
@@ -18,6 +19,7 @@ cp .env.example .env.local
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm db:migrate
 ```
 
 ## Development expectations
