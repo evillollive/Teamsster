@@ -1,0 +1,21 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAM_ID.com.teamsster.app",
+        "paths": [
+          "/invite/*",
+          "/league/*",
+          "/events",
+          "/messages"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "TEAM_ID.com.teamsster.app"
+    ]
+  }
+}

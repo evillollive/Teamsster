@@ -59,6 +59,18 @@ const navItems = [
   icon: typeof Home;
 }>;
 
+const mobileNavItems = [
+  { href: "/", label: "Home", icon: Home },
+  { href: "/league", label: "Leagues", icon: Trophy },
+  { href: "/events", label: "Events", icon: CalendarDays },
+  { href: "/messages", label: "Messages", icon: MessageSquare },
+  { href: "/account", label: "Account", icon: UserRound },
+] satisfies ReadonlyArray<{
+  href: string;
+  label: string;
+  icon: typeof Home;
+}>;
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -163,6 +175,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </footer>
+
+      {/* Mobile bottom navigation */}
+      <nav
+        aria-label="Mobile navigation"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden"
+      >
+        <div className="flex items-center justify-around px-2 py-1">
+          {mobileNavItems.map(({ href, icon: Icon, label }) => (
+            <Link
+              className="flex flex-col items-center gap-0.5 px-2 py-1.5 text-slate-600 transition-colors hover:text-sky-600"
+              href={href as Route}
+              key={href}
+            >
+              <Icon aria-hidden="true" className="h-5 w-5" />
+              <span className="text-[10px] font-medium">{label}</span>
+            </Link>
+          ))}
+        </div>
+      </nav>
+      {/* Spacer for mobile bottom nav */}
+      <div className="h-16 md:hidden" />
     </div>
   );
 }

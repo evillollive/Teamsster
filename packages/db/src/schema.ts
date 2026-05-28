@@ -54,7 +54,7 @@ export const eventRsvpStatusEnum = pgEnum(
   eventRsvpStatusValues,
 );
 
-export const notificationDeliveryChannelValues = ["EMAIL"] as const;
+export const notificationDeliveryChannelValues = ["EMAIL", "PUSH"] as const;
 export const notificationDeliveryChannelEnum = pgEnum(
   "notification_delivery_channel",
   notificationDeliveryChannelValues,
@@ -612,3 +612,51 @@ export function buildPersonalLeagueName(displayName?: string | null) {
   const trimmed = displayName?.trim();
   return trimmed ? `${trimmed}'s Personal League` : "Personal League";
 }
+
+// ── Push notification device tokens ──────────────────────────────────────────
+
+export const devicePlatformValues = ["ios", "android", "web"] as const;
+export const devicePlatformEnum = pgEnum("device_platform", devicePlatformValues);
+
+export const deviceTokens = pgTable(
+  "device_tokens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    token: text("token").notNull(),
+    platform: devicePlatformEnum("platform").notNull(),
+    deviceName: text("device_name"),
+    ...timestampColumns,
+  },
+  (table) => [
+    uniqueIndex("device_tokens_token_unique").on(table.token),
+    index("device_tokens_user_idx").on(table.userId),
+  ],
+);
+
+// ── File uploads ─────────────────────────────────────────────────────────────
+
+export const uploads = pgTable(
+  "uploads",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    uploadedById: uuid("uploaded_by_id")
+      .notNull()
+      .references(() => users.id),
+    url: text("url").notNull(),
+    pathname: text("pathname").notNull(),
+    contentType: text("content_type"),
+    sizeBytes: text("size_bytes"),
+    purpose: text("purpose").notNull().default("general"),
+    entityType: text("entity_type"),
+    entityId: uuid("entity_id"),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("uploads_entity_idx").on(table.entityType, table.entityId),
+    index("uploads_user_idx").on(table.uploadedById),
+  ],
+);

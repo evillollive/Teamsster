@@ -8,6 +8,7 @@ const publicEnvSchema = z.object({
 });
 
 const serverEnvSchema = z.object({
+  BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
   CRON_SECRET: z.string().min(1).optional(),
   DATABASE_URL: z.string().min(1).optional(),
   SENTRY_DSN: z.string().default(""),
@@ -23,6 +24,7 @@ export const publicEnv = publicEnvSchema.parse({
 });
 
 export const serverEnv = serverEnvSchema.parse({
+  BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
   CRON_SECRET: process.env.CRON_SECRET,
   DATABASE_URL: process.env.DATABASE_URL,
   SENTRY_DSN: process.env.SENTRY_DSN,
