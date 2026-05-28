@@ -11,6 +11,7 @@ export type FeaturePermission =
   | "event.rsvp"
   | "league.manage"
   | "membership.manage"
+  | "notification.manage"
   | "roster.edit"
   | "team.manage";
 export type FieldPermission = "contact.viewEmail" | "contact.viewPhone";
@@ -83,6 +84,7 @@ export function canAccessFeature(
       );
     case "league.manage":
     case "membership.manage":
+    case "notification.manage":
       return hasScopedPermission("org", "ADMIN", context);
     case "team.manage":
       return (

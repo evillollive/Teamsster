@@ -87,6 +87,22 @@ describe("permissions", () => {
     expect(canAccessFeature("announcement.read", {})).toBe(false);
   });
 
+  it("grants notification.manage only to org ADMIN or above", () => {
+    expect(
+      canAccessFeature("notification.manage", { orgRoles: "ADMIN" }),
+    ).toBe(true);
+    expect(
+      canAccessFeature("notification.manage", { orgRoles: "OWNER" }),
+    ).toBe(true);
+    expect(
+      canAccessFeature("notification.manage", { orgRoles: "COACH" }),
+    ).toBe(false);
+    expect(
+      canAccessFeature("notification.manage", { teamRoles: "HEAD_COACH" }),
+    ).toBe(false);
+    expect(canAccessFeature("notification.manage", {})).toBe(false);
+  });
+
   it("throws when an action is not permitted", () => {
     expect(() => assertPermission("GUEST", ["OWNER", "ADMIN"])).toThrow(
       /not allowed/,
