@@ -1,10 +1,10 @@
-import { describe, expect, it, type SpyInstance, vi } from "vitest";
+import { describe, expect, it, type MockInstance, vi } from "vitest";
 
 import { captureBoundaryError, captureServerError } from "./observability";
 
 describe("captureBoundaryError", () => {
   it("logs the error with boundary tag and digest", () => {
-    const spy: SpyInstance = vi
+    const spy: MockInstance = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
     const err = new Error("test boundary error");
@@ -20,7 +20,7 @@ describe("captureBoundaryError", () => {
   });
 
   it("logs without digest when omitted", () => {
-    const spy: SpyInstance = vi
+    const spy: MockInstance = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
     const err = new Error("no digest");
@@ -38,7 +38,7 @@ describe("captureBoundaryError", () => {
 
 describe("captureServerError", () => {
   it("logs the error with server tag and context", () => {
-    const spy: SpyInstance = vi
+    const spy: MockInstance = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
     const err = new Error("server error");
@@ -51,7 +51,7 @@ describe("captureServerError", () => {
   });
 
   it("logs without context when omitted", () => {
-    const spy: SpyInstance = vi
+    const spy: MockInstance = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
     const err = "string error";

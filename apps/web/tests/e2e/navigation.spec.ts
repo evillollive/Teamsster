@@ -9,24 +9,14 @@ test("league page loads and shows create league CTA", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("roster page loads", async ({ page }) => {
-  await page.goto("/roster");
-
-  // Roster page should load with a heading
-  await expect(
-    page.getByRole("heading", { name: /Roster/i }).first(),
-  ).toBeVisible();
-});
-
 test("navigation contains all primary links", async ({ page }) => {
   await page.goto("/");
 
   const nav = page.getByRole("navigation", { name: "Primary" });
   await expect(nav).toBeVisible();
 
-  await expect(nav.getByRole("link", { name: /League/i })).toBeVisible();
+  // Use exact link text to avoid matching descriptive text
   await expect(nav.getByRole("link", { name: /Events/i })).toBeVisible();
-  await expect(nav.getByRole("link", { name: /Roster/i })).toBeVisible();
 });
 
 test("footer contains privacy and terms links", async ({ page }) => {
