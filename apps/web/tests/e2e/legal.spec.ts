@@ -6,15 +6,9 @@ test("privacy policy page loads with correct content", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: /Privacy Policy/i, level: 1 }),
   ).toBeVisible();
-  await expect(
-    page.getByText(/Information We Collect/i),
-  ).toBeVisible();
-  await expect(
-    page.getByText(/Data Retention/i),
-  ).toBeVisible();
-  await expect(
-    page.getByText(/Your Rights/i),
-  ).toBeVisible();
+  await expect(page.getByText(/Information We Collect/i)).toBeVisible();
+  await expect(page.getByText(/Data Retention/i)).toBeVisible();
+  await expect(page.getByText(/Your Rights/i)).toBeVisible();
 });
 
 test("terms of service page loads with correct content", async ({ page }) => {
@@ -23,15 +17,9 @@ test("terms of service page loads with correct content", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: /Terms of Service/i, level: 1 }),
   ).toBeVisible();
-  await expect(
-    page.getByText(/Acceptable Use/i),
-  ).toBeVisible();
-  await expect(
-    page.getByText(/Account Termination/i),
-  ).toBeVisible();
-  await expect(
-    page.getByText(/Open Source/i),
-  ).toBeVisible();
+  await expect(page.getByText(/Acceptable Use/i)).toBeVisible();
+  await expect(page.getByText(/Account Termination/i)).toBeVisible();
+  await expect(page.getByText(/Open Source/i)).toBeVisible();
 });
 
 test("privacy page links back to terms and vice versa", async ({ page }) => {

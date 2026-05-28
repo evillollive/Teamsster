@@ -1,9 +1,6 @@
 import { describe, expect, it, type SpyInstance, vi } from "vitest";
 
-import {
-  captureBoundaryError,
-  captureServerError,
-} from "./observability";
+import { captureBoundaryError, captureServerError } from "./observability";
 
 describe("captureBoundaryError", () => {
   it("logs the error with boundary tag and digest", () => {
@@ -49,11 +46,7 @@ describe("captureServerError", () => {
 
     captureServerError(err, ctx);
 
-    expect(spy).toHaveBeenCalledWith(
-      "[teamsster-server-error]",
-      ctx,
-      err,
-    );
+    expect(spy).toHaveBeenCalledWith("[teamsster-server-error]", ctx, err);
     spy.mockRestore();
   });
 

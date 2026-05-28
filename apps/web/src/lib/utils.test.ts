@@ -28,9 +28,7 @@ describe("cn", () => {
   });
 
   it("handles object syntax for conditional classes", () => {
-    expect(cn({ hidden: false, visible: true }, "base")).toBe(
-      "visible base",
-    );
+    expect(cn({ hidden: false, visible: true }, "base")).toBe("visible base");
   });
 
   it("returns empty string for no inputs", () => {
