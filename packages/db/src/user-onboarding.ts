@@ -8,6 +8,7 @@ import {
   leagueMembers,
   leagues,
   type NotificationPreferences,
+  teamMembers,
   users,
 } from "./schema";
 
@@ -220,4 +221,50 @@ export async function getUserSettingsByAuthUserId(authUserId: string) {
     .limit(1);
 
   return result[0] ?? null;
+}
+
+export async function deleteUserAccount(authUserId: string) {
+  return db.transaction(async (tx) => {
+    const existingUser = await tx
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.authUserId, authUserId))
+      .limit(1);
+
+    if (!existingUser[0]) {
+      throw new Error("User account not found.");
+    }
+
+    const userId = existingUser[0].id;
+    const now = new Date();
+
+    // Soft-delete all league memberships
+    await tx
+      .update(leagueMembers)
+      .set({ deletedAt: now, deletedById: userId })
+      .where(
+        and(eq(leagueMembers.userId, userId), isNull(leagueMembers.deletedAt)),
+      );
+
+    // Soft-delete all team memberships
+    await tx
+      .update(teamMembers)
+      .set({ deletedAt: now, deletedById: userId })
+      .where(
+        and(eq(teamMembers.userId, userId), isNull(teamMembers.deletedAt)),
+      );
+
+    // Soft-delete the user profile
+    await tx
+      .update(users)
+      .set({
+        authUserId: null,
+        deletedAt: now,
+        deletedById: userId,
+        displayName: null,
+      })
+      .where(eq(users.id, userId));
+
+    return { userId };
+  });
 }

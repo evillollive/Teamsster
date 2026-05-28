@@ -1,4 +1,5 @@
 import {
+  deleteUserAccount,
   getUserSettingsByAuthUserId,
   type NotificationPreferences,
   provisionUserOnboarding,
@@ -92,4 +93,8 @@ export async function getAccountSettings(authUserId: string) {
 
 export function shouldProvisionPersonalLeague(invitationToken?: string) {
   return shouldCreatePersonalLeague(invitationToken);
+}
+
+export async function deleteAccountForUser(authUserId: string) {
+  return deleteUserAccount(authUserId);
 }

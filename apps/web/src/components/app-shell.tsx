@@ -62,6 +62,12 @@ const navItems = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
+      <a
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-sky-600 focus:px-4 focus:py-2 focus:text-white focus:shadow-lg"
+        href="#main-content"
+      >
+        Skip to main content
+      </a>
       <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <Link className="flex items-center gap-3" href="/">
@@ -70,17 +76,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             <div>
               <p className="text-lg font-semibold">Teamsster</p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600">
                 Friendly league ops for small organizations
               </p>
             </div>
           </Link>
           <div className="flex items-center gap-2">
             <Button asChild size="sm" variant="secondary">
-              <Link href="/account">Auth scaffold</Link>
+              <Link href="/account">Account</Link>
             </Button>
             <Button asChild size="sm">
-              <Link href="/league">Explore the shell</Link>
+              <Link href="/league">Leagues</Link>
             </Button>
           </div>
         </div>
@@ -129,7 +135,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               >
                 <div className="flex items-center gap-3">
                   <div className="grid h-10 w-10 place-items-center rounded-2xl bg-slate-100 text-slate-700">
-                    <Icon className="h-5 w-5" />
+                    <Icon aria-hidden="true" className="h-5 w-5" />
                   </div>
                   <div>
                     <p className="font-semibold">{label}</p>
@@ -141,8 +147,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
         </aside>
 
-        <main className="flex-1">{children}</main>
+        <main className="flex-1" id="main-content">{children}</main>
       </div>
+
+      <footer className="border-t border-slate-200 bg-white/90">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 text-xs text-slate-500 sm:px-6">
+          <p>© {new Date().getFullYear()} Teamsster. All rights reserved.</p>
+          <div className="flex gap-4">
+            <Link className="hover:text-slate-700 hover:underline" href="/privacy">
+              Privacy Policy
+            </Link>
+            <Link className="hover:text-slate-700 hover:underline" href="/terms">
+              Terms of Service
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

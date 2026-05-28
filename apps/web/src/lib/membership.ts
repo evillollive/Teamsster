@@ -1,4 +1,6 @@
 import {
+  acceptLeagueInvitation,
+  acceptTeamInvitation,
   assignLeagueMemberRole,
   assignTeamMemberRole,
   assignTeamRoleTemplate,
@@ -25,6 +27,7 @@ import { canAccessFeature } from "@/lib/permissions";
 
 const roleSchema = z.enum(roleValues);
 const memberEmailSchema = z.string().trim().email().max(320);
+const invitationTokenSchema = z.string().trim().min(1).max(120);
 
 const baseMembershipSchema = z.object({
   email: memberEmailSchema,
@@ -235,6 +238,24 @@ export async function getTeamMemberWorkspaceForUser(
   ]);
 
   return { invitations, members, roleTemplates };
+}
+
+export async function acceptLeagueInvitationForUser(
+  authUserId: string,
+  token: string,
+) {
+  const userId = await resolveUserId(authUserId);
+  const parsedToken = invitationTokenSchema.parse(token);
+  return acceptLeagueInvitation(parsedToken, userId);
+}
+
+export async function acceptTeamInvitationForUser(
+  authUserId: string,
+  token: string,
+) {
+  const userId = await resolveUserId(authUserId);
+  const parsedToken = invitationTokenSchema.parse(token);
+  return acceptTeamInvitation(parsedToken, userId);
 }
 
 export async function removeLeagueRoleForUser(

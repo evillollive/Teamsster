@@ -6,10 +6,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { FormField } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 
 const highlights = [
   {
@@ -72,30 +70,23 @@ export default function Home() {
 
           <Card className="self-start bg-white text-slate-900 shadow-xl">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-600">
-              Early access vibes
+              Get started
             </p>
             <h2 className="mt-3 text-2xl font-semibold">
-              Scaffolded input helpers
+              Ready to organize your league?
             </h2>
             <p className="mt-2 text-sm text-slate-600">
-              This card is intentionally non-functional business-wise, but it
-              proves the shared form pieces are ready for future validated
-              mutations.
+              Create your first league, invite your coaching staff, and start
+              managing rosters and schedules in minutes.
             </p>
-            <form className="mt-4 grid gap-4">
-              <FormField
-                description="For now this is a design stub wired to reusable form components."
-                htmlFor="early-access-email"
-                label="Email address"
-              >
-                <Input
-                  id="early-access-email"
-                  placeholder="coach@sunnyvaleunited.org"
-                  type="email"
-                />
-              </FormField>
-              <Button type="button">Keep me posted</Button>
-            </form>
+            <div className="mt-4 grid gap-3">
+              <Button asChild>
+                <Link href="/league/new">Create a league</Link>
+              </Button>
+              <Button asChild variant="secondary">
+                <Link href="/account">Sign in</Link>
+              </Button>
+            </div>
           </Card>
         </div>
       </Card>
@@ -104,7 +95,7 @@ export default function Home() {
         {highlights.map(({ description, icon: Icon, title }) => (
           <Card className="grid gap-3" key={title}>
             <div className="grid h-12 w-12 place-items-center rounded-2xl bg-sky-100 text-sky-700">
-              <Icon className="h-6 w-6" />
+              <Icon aria-hidden="true" className="h-6 w-6" />
             </div>
             <div>
               <h2 className="text-lg font-semibold">{title}</h2>

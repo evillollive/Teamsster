@@ -8,9 +8,11 @@ import {
   leagueInvitations,
   leagueMembers,
   leagueRoleTemplates,
+  leagues,
   type roleValues,
   teamInvitations,
   teamMembers,
+  teams,
   users,
 } from "./schema";
 
@@ -96,6 +98,39 @@ function buildExpiryDate() {
 
 function normalizeRoleSet(roles: readonly MembershipRole[]): MembershipRole[] {
   return [...new Set(roles)];
+}
+
+type InvitationStatus = "pending" | "accepted" | "revoked" | "expired";
+
+type InvitationLifecycle = {
+  acceptedAt: Date | null;
+  revokedAt: Date | null;
+  expiresAt: Date;
+};
+
+function getInvitationStatus(invitation: InvitationLifecycle): InvitationStatus {
+  if (invitation.acceptedAt) {
+    return "accepted";
+  }
+  if (invitation.revokedAt) {
+    return "revoked";
+  }
+  if (invitation.expiresAt.getTime() <= Date.now()) {
+    return "expired";
+  }
+  return "pending";
+}
+
+function assertInvitationIsPending(status: InvitationStatus) {
+  if (status === "accepted") {
+    throw new Error("Invitation has already been accepted.");
+  }
+  if (status === "revoked") {
+    throw new Error("Invitation has been revoked.");
+  }
+  if (status === "expired") {
+    throw new Error("Invitation has expired.");
+  }
 }
 
 export async function assignLeagueMemberRole(input: AssignLeagueRoleInput) {
@@ -349,6 +384,292 @@ export async function assignTeamRoleTemplate(
         templateLabel: template.label,
       },
     });
+  });
+}
+
+export async function getLeagueInvitationByToken(token: string) {
+  const normalizedToken = token.trim();
+  const rows = await db
+    .select({
+      acceptedAt: leagueInvitations.acceptedAt,
+      email: leagueInvitations.email,
+      expiresAt: leagueInvitations.expiresAt,
+      id: leagueInvitations.id,
+      leagueId: leagueInvitations.leagueId,
+      leagueName: leagues.name,
+      revokedAt: leagueInvitations.revokedAt,
+      role: leagueInvitations.role,
+      token: leagueInvitations.token,
+    })
+    .from(leagueInvitations)
+    .innerJoin(leagues, eq(leagueInvitations.leagueId, leagues.id))
+    .where(
+      and(
+        eq(leagueInvitations.token, normalizedToken),
+        isNull(leagues.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  return rows[0] ?? null;
+}
+
+export async function getTeamInvitationByToken(token: string) {
+  const normalizedToken = token.trim();
+  const rows = await db
+    .select({
+      acceptedAt: teamInvitations.acceptedAt,
+      email: teamInvitations.email,
+      expiresAt: teamInvitations.expiresAt,
+      id: teamInvitations.id,
+      leagueId: teams.leagueId,
+      leagueName: leagues.name,
+      revokedAt: teamInvitations.revokedAt,
+      role: teamInvitations.role,
+      teamId: teamInvitations.teamId,
+      teamName: teams.name,
+      token: teamInvitations.token,
+    })
+    .from(teamInvitations)
+    .innerJoin(teams, eq(teamInvitations.teamId, teams.id))
+    .innerJoin(leagues, eq(teams.leagueId, leagues.id))
+    .where(
+      and(
+        eq(teamInvitations.token, normalizedToken),
+        isNull(teams.deletedAt),
+        isNull(leagues.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  return rows[0] ?? null;
+}
+
+export async function acceptLeagueInvitation(token: string, userId: string) {
+  const normalizedToken = token.trim();
+
+  return db.transaction(async (tx) => {
+    const [invitation] = await tx
+      .select({
+        acceptedAt: leagueInvitations.acceptedAt,
+        email: leagueInvitations.email,
+        expiresAt: leagueInvitations.expiresAt,
+        id: leagueInvitations.id,
+        leagueId: leagueInvitations.leagueId,
+        revokedAt: leagueInvitations.revokedAt,
+        role: leagueInvitations.role,
+      })
+      .from(leagueInvitations)
+      .innerJoin(leagues, eq(leagueInvitations.leagueId, leagues.id))
+      .where(
+        and(
+          eq(leagueInvitations.token, normalizedToken),
+          isNull(leagues.deletedAt),
+        ),
+      )
+      .limit(1);
+
+    if (!invitation) {
+      throw new Error("Invitation not found.");
+    }
+
+    assertInvitationIsPending(getInvitationStatus(invitation));
+
+    const [user] = await tx
+      .select({ email: users.email })
+      .from(users)
+      .where(and(eq(users.id, userId), isNull(users.deletedAt)))
+      .limit(1);
+
+    if (!user) {
+      throw new Error("User not found.");
+    }
+    if (normalizeEmail(user.email) !== normalizeEmail(invitation.email)) {
+      throw new Error("This invitation was sent to a different email address.");
+    }
+
+    const now = new Date();
+    const accepted = await tx
+      .update(leagueInvitations)
+      .set({
+        acceptedAt: now,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(leagueInvitations.id, invitation.id),
+          isNull(leagueInvitations.acceptedAt),
+          isNull(leagueInvitations.revokedAt),
+          gt(leagueInvitations.expiresAt, now),
+        ),
+      )
+      .returning({ id: leagueInvitations.id });
+
+    if (!accepted[0]) {
+      throw new Error("Invitation is no longer active.");
+    }
+
+    await tx
+      .insert(leagueMembers)
+      .values({
+        leagueId: invitation.leagueId,
+        roles: [invitation.role],
+        userId,
+      })
+      .onConflictDoUpdate({
+        set: {
+          deletedAt: null,
+          deletedById: null,
+          roles: sql`CASE
+            WHEN array_position(${leagueMembers.roles}, ${invitation.role}::membership_role) IS NULL
+              THEN ${leagueMembers.roles} || ${invitation.role}::membership_role
+            ELSE ${leagueMembers.roles}
+          END`,
+          updatedAt: now,
+        },
+        target: [leagueMembers.leagueId, leagueMembers.userId],
+      });
+
+    await tx.insert(auditLogs).values({
+      action: "league.member.invite.accept",
+      actorUserId: userId,
+      entityId: invitation.id,
+      entityType: "league_invitation",
+      leagueId: invitation.leagueId,
+      metadata: { email: invitation.email, role: invitation.role },
+    });
+
+    return { leagueId: invitation.leagueId, role: invitation.role };
+  });
+}
+
+export async function acceptTeamInvitation(token: string, userId: string) {
+  const normalizedToken = token.trim();
+
+  return db.transaction(async (tx) => {
+    const [invitation] = await tx
+      .select({
+        acceptedAt: teamInvitations.acceptedAt,
+        email: teamInvitations.email,
+        expiresAt: teamInvitations.expiresAt,
+        id: teamInvitations.id,
+        leagueId: teams.leagueId,
+        revokedAt: teamInvitations.revokedAt,
+        role: teamInvitations.role,
+        teamId: teamInvitations.teamId,
+      })
+      .from(teamInvitations)
+      .innerJoin(teams, eq(teamInvitations.teamId, teams.id))
+      .innerJoin(leagues, eq(teams.leagueId, leagues.id))
+      .where(
+        and(
+          eq(teamInvitations.token, normalizedToken),
+          isNull(teams.deletedAt),
+          isNull(leagues.deletedAt),
+        ),
+      )
+      .limit(1);
+
+    if (!invitation) {
+      throw new Error("Invitation not found.");
+    }
+
+    assertInvitationIsPending(getInvitationStatus(invitation));
+
+    const [user] = await tx
+      .select({ email: users.email })
+      .from(users)
+      .where(and(eq(users.id, userId), isNull(users.deletedAt)))
+      .limit(1);
+
+    if (!user) {
+      throw new Error("User not found.");
+    }
+    if (normalizeEmail(user.email) !== normalizeEmail(invitation.email)) {
+      throw new Error("This invitation was sent to a different email address.");
+    }
+
+    const now = new Date();
+    const accepted = await tx
+      .update(teamInvitations)
+      .set({
+        acceptedAt: now,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(teamInvitations.id, invitation.id),
+          isNull(teamInvitations.acceptedAt),
+          isNull(teamInvitations.revokedAt),
+          gt(teamInvitations.expiresAt, now),
+        ),
+      )
+      .returning({ id: teamInvitations.id });
+
+    if (!accepted[0]) {
+      throw new Error("Invitation is no longer active.");
+    }
+
+    await tx
+      .insert(leagueMembers)
+      .values({
+        leagueId: invitation.leagueId,
+        roles: [invitation.role],
+        userId,
+      })
+      .onConflictDoUpdate({
+        set: {
+          deletedAt: null,
+          deletedById: null,
+          roles: sql`CASE
+            WHEN array_position(${leagueMembers.roles}, ${invitation.role}::membership_role) IS NULL
+              THEN ${leagueMembers.roles} || ${invitation.role}::membership_role
+            ELSE ${leagueMembers.roles}
+          END`,
+          updatedAt: now,
+        },
+        target: [leagueMembers.leagueId, leagueMembers.userId],
+      });
+
+    await tx
+      .insert(teamMembers)
+      .values({
+        roles: [invitation.role],
+        teamId: invitation.teamId,
+        userId,
+      })
+      .onConflictDoUpdate({
+        set: {
+          deletedAt: null,
+          deletedById: null,
+          roles: sql`CASE
+            WHEN array_position(${teamMembers.roles}, ${invitation.role}::membership_role) IS NULL
+              THEN ${teamMembers.roles} || ${invitation.role}::membership_role
+            ELSE ${teamMembers.roles}
+          END`,
+          updatedAt: now,
+        },
+        target: [teamMembers.teamId, teamMembers.userId],
+      });
+
+    await tx.insert(auditLogs).values({
+      action: "team.member.invite.accept",
+      actorUserId: userId,
+      entityId: invitation.id,
+      entityType: "team_invitation",
+      leagueId: invitation.leagueId,
+      metadata: {
+        email: invitation.email,
+        role: invitation.role,
+        teamId: invitation.teamId,
+      },
+    });
+
+    return {
+      leagueId: invitation.leagueId,
+      role: invitation.role,
+      teamId: invitation.teamId,
+    };
   });
 }
 
