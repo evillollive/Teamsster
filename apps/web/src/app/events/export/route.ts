@@ -25,8 +25,8 @@ export async function GET(request: Request) {
   }
 
   const [league, team] = await Promise.all([
-    getLeagueDetail(leagueId),
-    getTeamDetail(teamId),
+    getLeagueDetail(session.user.id, leagueId),
+    getTeamDetail(session.user.id, teamId),
   ]);
   if (!league || !team || team.leagueId !== leagueId) {
     return new Response("Team not found", { status: 404 });

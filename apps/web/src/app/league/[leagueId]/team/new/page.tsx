@@ -16,10 +16,10 @@ export default async function NewTeamPage({
   params: Promise<{ leagueId: string }>;
 }) {
   const { leagueId } = await params;
-  const [session, league] = await Promise.all([
-    auth.api.getSession({ headers: await headers() }),
-    getLeagueDetail(leagueId),
-  ]);
+  const session = await auth.api.getSession({ headers: await headers() });
+  const league = session?.user
+    ? await getLeagueDetail(session.user.id, leagueId)
+    : null;
 
   if (!league) {
     notFound();

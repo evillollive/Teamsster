@@ -187,6 +187,44 @@ describe("createPlayerContactSchema", () => {
       }),
     ).toThrow("Provide at least one contact method.");
   });
+
+  it("accepts valid phone number formats", () => {
+    for (const phone of ["555-0100", "+1 (555) 010-0100", "+44 20 7946 0958", "5550100"]) {
+      const parsed = createPlayerContactSchema.parse({
+        firstName: "Riley",
+        lastName: "Jordan",
+        leagueId,
+        phone,
+        playerId,
+        teamId,
+      });
+      expect(parsed.phone).toBe(phone);
+    }
+  });
+
+  it("rejects invalid phone number characters", () => {
+    expect(() =>
+      createPlayerContactSchema.parse({
+        firstName: "Riley",
+        lastName: "Jordan",
+        leagueId,
+        phone: "555-CALL-ME",
+        playerId,
+        teamId,
+      }),
+    ).toThrow();
+
+    expect(() =>
+      createPlayerContactSchema.parse({
+        firstName: "Riley",
+        lastName: "Jordan",
+        leagueId,
+        phone: "<script>alert(1)</script>",
+        playerId,
+        teamId,
+      }),
+    ).toThrow();
+  });
 });
 
 describe("applyContactFieldMask", () => {

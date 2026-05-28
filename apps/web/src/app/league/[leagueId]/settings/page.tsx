@@ -29,10 +29,10 @@ export default async function LeagueSettingsPage({
   params: Promise<{ leagueId: string }>;
 }) {
   const { leagueId } = await params;
-  const [session, league] = await Promise.all([
-    auth.api.getSession({ headers: await headers() }),
-    getLeagueDetail(leagueId),
-  ]);
+  const session = await auth.api.getSession({ headers: await headers() });
+  const league = session?.user
+    ? await getLeagueDetail(session.user.id, leagueId)
+    : null;
 
   if (!league) {
     notFound();
@@ -52,7 +52,10 @@ export default async function LeagueSettingsPage({
       throw new Error("You must be signed in to update a league.");
     }
 
-    const currentLeague = await getLeagueDetail(leagueId);
+    const currentLeague = await getLeagueDetail(
+      currentSession.user.id,
+      leagueId,
+    );
     if (!currentLeague) {
       throw new Error("League not found.");
     }
