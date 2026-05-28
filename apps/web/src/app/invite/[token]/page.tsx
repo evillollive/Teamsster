@@ -278,7 +278,7 @@ export default async function InvitePage({
             </div>
             <div className="flex items-center gap-3">
               <Button asChild size="sm">
-                <Link href={destinationHref}>Open dashboard</Link>
+                <Link href={destinationHref as never}>Open dashboard</Link>
               </Button>
               <Button asChild size="sm" variant="ghost">
                 <Link href="/league">Back to leagues</Link>

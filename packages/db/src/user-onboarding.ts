@@ -163,7 +163,10 @@ export async function provisionUserOnboarding(input: ProvisionInput) {
       } catch (err: unknown) {
         const isUniqueViolation =
           err instanceof Error && err.message.includes("unique");
-        if (!isUniqueViolation || attempt === MAX_SLUG_GENERATION_ATTEMPTS - 1) {
+        if (
+          !isUniqueViolation ||
+          attempt === MAX_SLUG_GENERATION_ATTEMPTS - 1
+        ) {
           throw err;
         }
       }

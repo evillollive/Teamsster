@@ -24,19 +24,13 @@ export function FormField({
 
   return (
     <div
-      className={cn(
-        "grid gap-2 text-sm font-medium text-slate-700",
-        className,
-      )}
+      className={cn("grid gap-2 text-sm font-medium text-slate-700", className)}
       data-described-by={describedBy}
     >
       <label htmlFor={htmlFor}>{label}</label>
       {children}
       {description ? (
-        <span
-          className="text-xs font-normal text-slate-500"
-          id={descriptionId}
-        >
+        <span className="text-xs font-normal text-slate-500" id={descriptionId}>
           {description}
         </span>
       ) : null}

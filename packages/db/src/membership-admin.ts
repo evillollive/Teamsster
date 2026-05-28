@@ -108,7 +108,9 @@ type InvitationLifecycle = {
   expiresAt: Date;
 };
 
-function getInvitationStatus(invitation: InvitationLifecycle): InvitationStatus {
+function getInvitationStatus(
+  invitation: InvitationLifecycle,
+): InvitationStatus {
   if (invitation.acceptedAt) {
     return "accepted";
   }

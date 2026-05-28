@@ -94,10 +94,7 @@ export async function getLeaguesForUser(authUserId: string) {
   return getLeaguesByUserId(userId);
 }
 
-export async function getLeagueDetail(
-  authUserId: string,
-  leagueId: string,
-) {
+export async function getLeagueDetail(authUserId: string, leagueId: string) {
   const userId = await getUserIdByAuthUserId(authUserId);
   if (!userId) return null;
   const membership = await getUserLeagueMembership(leagueId, userId);
