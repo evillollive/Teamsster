@@ -1,18 +1,95 @@
-import { StubPage } from "@/components/stub-page";
+import { auth } from "@teamsster/auth";
+import { ShieldCheck } from "lucide-react";
+import { headers } from "next/headers";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export default function RosterPage() {
+import { Card } from "@/components/ui/card";
+import { getLeaguesForUser } from "@/lib/league";
+import { getPlayersForTeam } from "@/lib/player";
+import { getTeamsForLeague } from "@/lib/team";
+
+export default async function RosterPage() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) {
+    redirect("/");
+  }
+
+  const leagues = await getLeaguesForUser(session.user.id);
+  const leaguesWithTeamsAndCounts = await Promise.all(
+    leagues.map(async (league) => {
+      const teams = await getTeamsForLeague(session.user.id, league.id);
+      const teamsWithPlayerCounts = await Promise.all(
+        teams.map(async (team) => {
+          const players = await getPlayersForTeam(league.id, team.id);
+          return { ...team, playerCount: players.length };
+        }),
+      );
+      return { ...league, teams: teamsWithPlayerCounts };
+    }),
+  );
+
+  const totalPlayers = leaguesWithTeamsAndCounts.reduce(
+    (sum, l) => l.teams.reduce((s, t) => s + t.playerCount, sum),
+    0,
+  );
+
   return (
-    <StubPage
-      bullets={[
-        "Players are modeled separately from users so parents, guardians, and volunteers can collaborate cleanly.",
-        "Team roster pages now support player create, update, and archive actions with soft deletes.",
-        "Players now track eligibility status/notes and optional profile metadata like pronouns and primary position.",
-        "Every roster mutation flows through shared Zod validation and centralized permission checks.",
-        "Audit log events are written for player create, update, and archive actions.",
-      ]}
-      description="Roster management is often the heart of a youth sports app. Start from a league team dashboard and open a team's roster manager to maintain active players without destructive deletes."
-      eyebrow="Roster"
-      title="Player CRUD, contacts, and metadata workflows are now in place"
-    />
+    <div className="grid gap-6">
+      <Card className="grid gap-2">
+        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-sky-600">
+          Rosters
+        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          All your rosters
+        </h1>
+        <p className="text-sm text-slate-500">
+          {totalPlayers === 0
+            ? "No players on any roster yet. Add players from a team's roster page."
+            : `${totalPlayers} player${totalPlayers === 1 ? "" : "s"} across all teams.`}
+        </p>
+      </Card>
+
+      {leaguesWithTeamsAndCounts.map((league) => (
+        <Card className="grid gap-4" key={league.id}>
+          <Link
+            className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-600 hover:underline"
+            href={`/league/${league.id}`}
+          >
+            {league.name}
+          </Link>
+
+          {league.teams.length === 0 ? (
+            <p className="text-sm text-slate-500">
+              No teams in this league yet.
+            </p>
+          ) : (
+            <ul className="grid gap-3">
+              {league.teams.map((team) => (
+                <li key={team.id}>
+                  <Link
+                    className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition hover:border-sky-200 hover:shadow-md"
+                    href={`/league/${league.id}/team/${team.id}/roster`}
+                  >
+                    <ShieldCheck className="h-5 w-5 shrink-0 text-slate-400" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold">{team.name}</p>
+                      <p className="text-sm text-slate-500">
+                        {team.playerCount === 0
+                          ? "No players yet"
+                          : `${team.playerCount} player${team.playerCount === 1 ? "" : "s"}`}
+                      </p>
+                    </div>
+                    <span className="text-xs font-medium text-sky-600">
+                      Manage roster →
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      ))}
+    </div>
   );
 }
