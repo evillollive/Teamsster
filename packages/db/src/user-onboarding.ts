@@ -59,6 +59,7 @@ export async function provisionUserOnboarding(input: ProvisionInput) {
     const existingUser = await tx
       .select({
         id: users.id,
+        authUserId: users.authUserId,
         email: users.email,
       })
       .from(users)
@@ -70,9 +71,33 @@ export async function provisionUserOnboarding(input: ProvisionInput) {
       )
       .limit(1);
 
-    const userId =
-      existingUser[0]?.id ??
-      (
+    let userId: string;
+
+    if (existingUser[0]) {
+      // If the existing row belongs to a different auth user, refuse the merge
+      // to prevent account hijacking via email reuse or typos.
+      const claimedByOther =
+        existingUser[0].authUserId !== null &&
+        existingUser[0].authUserId !== input.authUserId;
+
+      if (claimedByOther) {
+        throw new Error(
+          "This email is already associated with another account.",
+        );
+      }
+
+      userId = existingUser[0].id;
+      await tx
+        .update(users)
+        .set({
+          authUserId: input.authUserId,
+          displayName,
+          email: input.email,
+          timezone,
+        })
+        .where(eq(users.id, userId));
+    } else {
+      userId = (
         await tx
           .insert(users)
           .values({
@@ -84,17 +109,6 @@ export async function provisionUserOnboarding(input: ProvisionInput) {
           })
           .returning({ id: users.id })
       )[0].id;
-
-    if (existingUser[0]) {
-      await tx
-        .update(users)
-        .set({
-          authUserId: input.authUserId,
-          displayName,
-          email: input.email,
-          timezone,
-        })
-        .where(eq(users.id, userId));
     }
 
     if (!createPersonalLeague) {
@@ -132,30 +146,26 @@ export async function provisionUserOnboarding(input: ProvisionInput) {
       attempt += 1
     ) {
       const candidateSlug = buildPersonalLeagueSlug(leagueName);
-      const existingSlug = await tx
-        .select({
-          id: leagues.id,
-        })
-        .from(leagues)
-        .where(eq(leagues.slug, candidateSlug))
-        .limit(1);
-
-      if (existingSlug[0]) {
-        continue;
+      try {
+        leagueId = (
+          await tx
+            .insert(leagues)
+            .values({
+              createdById: userId,
+              name: leagueName,
+              slug: candidateSlug,
+              timezone,
+            })
+            .returning({ id: leagues.id })
+        )[0].id;
+        break;
+      } catch (err: unknown) {
+        const isUniqueViolation =
+          err instanceof Error && err.message.includes("unique");
+        if (!isUniqueViolation || attempt === MAX_SLUG_GENERATION_ATTEMPTS - 1) {
+          throw err;
+        }
       }
-
-      leagueId = (
-        await tx
-          .insert(leagues)
-          .values({
-            createdById: userId,
-            name: leagueName,
-            slug: candidateSlug,
-            timezone,
-          })
-          .returning({ id: leagues.id })
-      )[0].id;
-      break;
     }
 
     if (!leagueId) {
