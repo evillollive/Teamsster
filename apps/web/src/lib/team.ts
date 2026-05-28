@@ -105,10 +105,26 @@ export async function archiveTeamForUser(
   });
 }
 
-export async function getTeamsForLeague(leagueId: string) {
+export async function getTeamsForLeague(
+  authUserId: string,
+  leagueId: string,
+) {
+  const userId = await getUserIdByAuthUserId(authUserId);
+  if (!userId) return [];
+  const membership = await getUserLeagueMembership(leagueId, userId);
+  if (!membership) return [];
   return getTeamsByLeagueId(leagueId);
 }
 
-export async function getTeamDetail(teamId: string) {
-  return getTeamById(teamId);
+export async function getTeamDetail(
+  authUserId: string,
+  teamId: string,
+) {
+  const userId = await getUserIdByAuthUserId(authUserId);
+  if (!userId) return null;
+  const team = await getTeamById(teamId);
+  if (!team) return null;
+  const membership = await getUserLeagueMembership(team.leagueId, userId);
+  if (!membership) return null;
+  return team;
 }

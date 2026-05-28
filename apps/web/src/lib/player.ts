@@ -102,6 +102,7 @@ export const createPlayerContactSchema = z
       .string()
       .trim()
       .max(32)
+      .regex(/^[+\d\s().-]*$/, "Invalid phone number format")
       .optional()
       .transform((value) => value || undefined),
     isPrimary: z.boolean().default(false),

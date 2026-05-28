@@ -8,11 +8,17 @@ import { z } from "zod";
 // DEV ONLY - Must be overridden in production.
 const DEFAULT_AUTH_SECRET = "insecure-dev-secret-change-in-production-1234";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const envSchema = z.object({
   AUTH_EMAIL_FROM: z.string().default("Teamsster <noreply@example.com>"),
   AUTH_SMTP_URL: z.string().url().optional(),
-  BETTER_AUTH_SECRET: z.string().default(DEFAULT_AUTH_SECRET),
-  BETTER_AUTH_URL: z.string().url().default("http://localhost:3000"),
+  BETTER_AUTH_SECRET: isProduction
+    ? z.string().min(1, "BETTER_AUTH_SECRET is required in production")
+    : z.string().default(DEFAULT_AUTH_SECRET),
+  BETTER_AUTH_URL: isProduction
+    ? z.string().url("BETTER_AUTH_URL is required in production")
+    : z.string().url().default("http://localhost:3000"),
 });
 
 const env = envSchema.parse({
@@ -21,6 +27,11 @@ const env = envSchema.parse({
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
   BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
 });
+
+// Fail fast: never allow the default dev secret in production.
+if (isProduction && env.BETTER_AUTH_SECRET === DEFAULT_AUTH_SECRET) {
+  throw new Error("BETTER_AUTH_SECRET must be overridden in production.");
+}
 
 function getMailTransport() {
   if (!env.AUTH_SMTP_URL) {
@@ -49,7 +60,13 @@ async function sendAuthEmail(
         ? "Verify your Teamsster email"
         : "Reset your Teamsster password";
 
-  const html = `<p>Hi there,</p><p>Use this secure link for Teamsster:</p><p><a href="${payload.url}">${payload.url}</a></p><p>If you didn't request this, you can safely ignore this email.</p>`;
+  const escapedUrl = payload.url
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+  const html = `<p>Hi there,</p><p>Use this secure link for Teamsster:</p><p><a href="${escapedUrl}">${escapedUrl}</a></p><p>If you didn't request this, you can safely ignore this email.</p>`;
 
   await getMailTransport().sendMail({
     from: env.AUTH_EMAIL_FROM,

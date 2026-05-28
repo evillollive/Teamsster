@@ -73,7 +73,7 @@ export default async function EventsPage({
       ? params.leagueId
       : leagues[0]?.id;
   const teams = selectedLeagueId
-    ? await getTeamsForLeague(selectedLeagueId)
+    ? await getTeamsForLeague(session.user.id, selectedLeagueId)
     : [];
   const selectedTeamId =
     teams.some((team) => team.id === params.teamId) && params.teamId
@@ -636,6 +636,7 @@ export default async function EventsPage({
                             const isActive = current === s;
                             return (
                               <button
+                                aria-pressed={isActive}
                                 className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
                                   isActive
                                     ? "border-sky-500 bg-sky-500 text-white"

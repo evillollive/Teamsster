@@ -63,7 +63,7 @@ export default async function MessagesPage({
       ? params.leagueId
       : leagues[0]?.id;
   const teams = selectedLeagueId
-    ? await getTeamsForLeague(selectedLeagueId)
+    ? await getTeamsForLeague(session.user.id, selectedLeagueId)
     : [];
   const selectedTeamId =
     teams.some((team) => team.id === params.teamId) && params.teamId

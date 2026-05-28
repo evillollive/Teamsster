@@ -17,11 +17,16 @@ export default async function LeagueDashboardPage({
   params: Promise<{ leagueId: string }>;
 }) {
   const { leagueId } = await params;
-  const [session, league, teams] = await Promise.all([
-    auth.api.getSession({ headers: await headers() }),
-    getLeagueDetail(leagueId),
-    getTeamsForLeague(leagueId),
-  ]);
+  const session = await auth.api.getSession({ headers: await headers() });
+  let league: Awaited<ReturnType<typeof getLeagueDetail>> = null;
+  let teams: Awaited<ReturnType<typeof getTeamsForLeague>> = [];
+
+  if (session?.user) {
+    [league, teams] = await Promise.all([
+      getLeagueDetail(session.user.id, leagueId),
+      getTeamsForLeague(session.user.id, leagueId),
+    ]);
+  }
 
   if (!league) {
     notFound();

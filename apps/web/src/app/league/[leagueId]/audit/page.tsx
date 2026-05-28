@@ -13,24 +13,14 @@ export default async function LeagueAuditLogPage({
   params: Promise<{ leagueId: string }>;
 }) {
   const { leagueId } = await params;
-  const [session, league] = await Promise.all([
-    auth.api.getSession({ headers: await headers() }),
-    getLeagueDetail(leagueId),
-  ]);
-
-  if (!league) {
-    notFound();
-  }
+  const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session?.user) {
     return (
       <div className="grid gap-6">
         <Card className="grid gap-2">
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-sky-600">
-            <Link className="hover:underline" href={`/league/${leagueId}`}>
-              {league.name}
-            </Link>
-            {" · Audit log"}
+            Audit log
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">Audit log</h1>
         </Card>
@@ -41,6 +31,12 @@ export default async function LeagueAuditLogPage({
         </Card>
       </div>
     );
+  }
+
+  const league = await getLeagueDetail(session.user.id, leagueId);
+
+  if (!league) {
+    notFound();
   }
 
   let entries: Awaited<ReturnType<typeof getAuditLogForLeague>> = [];

@@ -1,3 +1,12 @@
+/**
+ * @module @teamsster/db
+ *
+ * Database access layer. All write operations (create/update/archive/assign)
+ * are low-level and do NOT enforce authorization. They must only be called
+ * through the auth-gated helpers in `apps/web/src/lib/`.
+ *
+ * Do NOT import write functions directly in page/route/action code.
+ */
 export * from "./client";
 export * from "./event-admin";
 export * from "./league-admin";
