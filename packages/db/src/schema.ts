@@ -110,9 +110,7 @@ const timestampColumns = {
 
 const softDeleteColumns = {
   deletedAt: timestamp("deleted_at", { mode: "date", withTimezone: true }),
-  deletedById: uuid("deleted_by_id").references(
-    (): AnyPgColumn => users.id,
-  ),
+  deletedById: uuid("deleted_by_id").references((): AnyPgColumn => users.id),
 };
 
 export const authUsers = pgTable(
