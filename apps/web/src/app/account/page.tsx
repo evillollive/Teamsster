@@ -1,12 +1,14 @@
 import { auth } from "@teamsster/auth";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 import { FormField } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  deleteAccountForUser,
   getAccountSettings,
   parseInvitationToken,
   parseNotificationPreferencesFromFormData,
@@ -57,6 +59,50 @@ async function saveSettingsAction(formData: FormData) {
     displayName: getString(formData, "displayName") || currentSession.user.name,
     notificationPreferences: parseNotificationPreferencesFromFormData(formData),
     timezone: getString(formData, "timezone") || "UTC",
+  });
+
+  revalidatePath("/account");
+}
+
+async function deleteAccountAction() {
+  "use server";
+
+  const currentSession = await getCurrentSession();
+  if (!currentSession?.user) {
+    throw new Error("You must be signed in to delete your account.");
+  }
+
+  await deleteAccountForUser(currentSession.user.id);
+  redirect("/");
+}
+
+async function changePasswordAction(formData: FormData) {
+  "use server";
+
+  const currentSession = await getCurrentSession();
+  if (!currentSession?.user) {
+    throw new Error("You must be signed in to change your password.");
+  }
+
+  const currentPassword = getString(formData, "currentPassword");
+  const newPassword = getString(formData, "newPassword");
+  const confirmPassword = getString(formData, "confirmPassword");
+
+  if (!currentPassword || !newPassword) {
+    throw new Error("Both current and new passwords are required.");
+  }
+
+  if (newPassword.length < 8) {
+    throw new Error("New password must be at least 8 characters.");
+  }
+
+  if (newPassword !== confirmPassword) {
+    throw new Error("New password and confirmation do not match.");
+  }
+
+  await auth.api.changePassword({
+    body: { currentPassword, newPassword },
+    headers: await headers(),
   });
 
   revalidatePath("/account");
@@ -134,6 +180,19 @@ export default async function AccountPage() {
               placeholder="invite_abc123"
             />
           </FormField>
+          <label className="flex items-start gap-2 text-sm text-slate-700">
+            <input
+              className="mt-0.5"
+              name="ageConfirmation"
+              required
+              type="checkbox"
+            />
+            <span>
+              I confirm that I am at least 18 years old or have parental/guardian
+              consent to use this service. I understand that player records for
+              minors are managed by authorized adults only.
+            </span>
+          </label>
           <div>
             <Button disabled={!currentSession?.user} type="submit">
               Run onboarding
@@ -203,6 +262,81 @@ export default async function AccountPage() {
           </div>
         </form>
       </Card>
+
+      {currentSession?.user ? (
+        <Card className="grid gap-4">
+          <div>
+            <h2 className="text-lg font-semibold">Change password</h2>
+            <p className="text-sm text-slate-600">
+              Update your account password. You&apos;ll need to enter your
+              current password for verification.
+            </p>
+          </div>
+          <form action={changePasswordAction} className="grid gap-4">
+            <FormField
+              htmlFor="current-password"
+              label="Current password"
+            >
+              <Input
+                autoComplete="current-password"
+                id="current-password"
+                name="currentPassword"
+                required
+                type="password"
+              />
+            </FormField>
+            <FormField htmlFor="new-password" label="New password">
+              <Input
+                autoComplete="new-password"
+                id="new-password"
+                minLength={8}
+                name="newPassword"
+                required
+                type="password"
+              />
+            </FormField>
+            <FormField
+              htmlFor="confirm-password"
+              label="Confirm new password"
+            >
+              <Input
+                autoComplete="new-password"
+                id="confirm-password"
+                minLength={8}
+                name="confirmPassword"
+                required
+                type="password"
+              />
+            </FormField>
+            <div>
+              <Button type="submit">Change password</Button>
+            </div>
+          </form>
+        </Card>
+      ) : null}
+
+      {currentSession?.user ? (
+        <Card className="grid gap-4 border-rose-200 bg-rose-50">
+          <div>
+            <h2 className="text-lg font-semibold text-rose-900">
+              Danger zone
+            </h2>
+            <p className="text-sm text-rose-800">
+              Permanently delete your account and remove yourself from all
+              leagues and teams. This action cannot be undone.
+            </p>
+          </div>
+          <form action={deleteAccountAction}>
+            <input name="confirm" type="hidden" value="delete" />
+            <Button
+              className="bg-rose-600 text-white hover:bg-rose-700"
+              type="submit"
+            >
+              Delete my account
+            </Button>
+          </form>
+        </Card>
+      ) : null}
     </div>
   );
 }
