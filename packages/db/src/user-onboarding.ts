@@ -268,3 +268,14 @@ export async function deleteUserAccount(authUserId: string) {
     return { userId };
   });
 }
+
+export async function getActiveUserAuthIds() {
+  const result = await db
+    .select({ authUserId: users.authUserId })
+    .from(users)
+    .where(isNull(users.deletedAt));
+
+  return result
+    .map((row) => row.authUserId)
+    .filter((id): id is string => id !== null);
+}

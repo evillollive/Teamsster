@@ -188,9 +188,9 @@ export default async function AccountPage() {
               type="checkbox"
             />
             <span>
-              I confirm that I am at least 18 years old or have parental/guardian
-              consent to use this service. I understand that player records for
-              minors are managed by authorized adults only.
+              I confirm that I am at least 18 years old or have
+              parental/guardian consent to use this service. I understand that
+              player records for minors are managed by authorized adults only.
             </span>
           </label>
           <div>
