@@ -20,6 +20,7 @@ import {
   canAccessFeature,
   canAccessField,
 } from "@/lib/permissions";
+import { getTeamDetail } from "@/lib/team";
 
 const playerNameSchema = z.string().trim().min(1).max(120);
 const optionalTextSchema = (max: number) =>
@@ -244,6 +245,30 @@ export async function archivePlayerForUser(
 
 export async function getPlayersForTeam(leagueId: string, teamId: string) {
   return getPlayersByTeamId(leagueId, teamId);
+}
+
+export async function getTeamRosterForUser(
+  authUserId: string,
+  leagueId: string,
+  teamId: string,
+) {
+  const team = await getTeamDetail(authUserId, teamId);
+  if (!team || team.leagueId !== leagueId) {
+    return null;
+  }
+
+  const [players, contacts, contactActionPermissions] = await Promise.all([
+    getPlayersForTeam(leagueId, teamId),
+    getPlayerContactsForTeamAsUser(authUserId, leagueId, teamId),
+    getContactActionPermissionsForTeamAsUser(authUserId, leagueId, teamId),
+  ]);
+
+  return {
+    contactActionPermissions,
+    contacts,
+    players,
+    team,
+  };
 }
 
 export async function createPlayerContactForUser(
