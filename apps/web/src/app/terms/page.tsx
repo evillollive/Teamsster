@@ -61,8 +61,8 @@ export default function TermsOfServicePage() {
             others&apos; rights
           </li>
           <li>
-            Attempt to gain unauthorized access to other users&apos; accounts
-            or data
+            Attempt to gain unauthorized access to other users&apos; accounts or
+            data
           </li>
           <li>Interfere with or disrupt the service infrastructure</li>
           <li>

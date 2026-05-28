@@ -273,10 +273,7 @@ export default async function AccountPage() {
             </p>
           </div>
           <form action={changePasswordAction} className="grid gap-4">
-            <FormField
-              htmlFor="current-password"
-              label="Current password"
-            >
+            <FormField htmlFor="current-password" label="Current password">
               <Input
                 autoComplete="current-password"
                 id="current-password"
@@ -295,10 +292,7 @@ export default async function AccountPage() {
                 type="password"
               />
             </FormField>
-            <FormField
-              htmlFor="confirm-password"
-              label="Confirm new password"
-            >
+            <FormField htmlFor="confirm-password" label="Confirm new password">
               <Input
                 autoComplete="new-password"
                 id="confirm-password"
@@ -318,9 +312,7 @@ export default async function AccountPage() {
       {currentSession?.user ? (
         <Card className="grid gap-4 border-rose-200 bg-rose-50">
           <div>
-            <h2 className="text-lg font-semibold text-rose-900">
-              Danger zone
-            </h2>
+            <h2 className="text-lg font-semibold text-rose-900">Danger zone</h2>
             <p className="text-sm text-rose-800">
               Permanently delete your account and remove yourself from all
               leagues and teams. This action cannot be undone.

@@ -159,17 +159,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
         </aside>
 
-        <main className="flex-1" id="main-content">{children}</main>
+        <main className="flex-1" id="main-content">
+          {children}
+        </main>
       </div>
 
       <footer className="border-t border-slate-200 bg-white/90">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 text-xs text-slate-500 sm:px-6">
           <p>© {new Date().getFullYear()} Teamsster. All rights reserved.</p>
           <div className="flex gap-4">
-            <Link className="hover:text-slate-700 hover:underline" href="/privacy">
+            <Link
+              className="hover:text-slate-700 hover:underline"
+              href="/privacy"
+            >
               Privacy Policy
             </Link>
-            <Link className="hover:text-slate-700 hover:underline" href="/terms">
+            <Link
+              className="hover:text-slate-700 hover:underline"
+              href="/terms"
+            >
               Terms of Service
             </Link>
           </div>

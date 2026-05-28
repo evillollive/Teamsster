@@ -81,10 +81,10 @@ export default function PrivacyPolicyPage() {
         <h2 className="mt-6 text-lg font-semibold">5. Data Retention</h2>
         <p>
           We retain your account data as long as your account is active.
-          Archived records (leagues, teams, players) are soft-deleted and can
-          be permanently removed upon request. You may delete your account at
-          any time from your account settings, which will remove your personal
-          data and disassociate you from all leagues and teams.
+          Archived records (leagues, teams, players) are soft-deleted and can be
+          permanently removed upon request. You may delete your account at any
+          time from your account settings, which will remove your personal data
+          and disassociate you from all leagues and teams.
         </p>
 
         <h2 className="mt-6 text-lg font-semibold">6. Your Rights</h2>
