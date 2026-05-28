@@ -47,7 +47,7 @@ export async function logNotificationDeliveryForUser(
     throw new Error("You are not a member of this league.");
   }
 
-  let canManage = canAccessFeature("announcement.manage", {
+  let canManage = canAccessFeature("notification.manage", {
     orgRoles: leagueMembership.roles,
   });
 
@@ -55,7 +55,7 @@ export async function logNotificationDeliveryForUser(
     const teamMembership = await getUserTeamMembership(parsed.teamId, userId);
     canManage =
       !!teamMembership &&
-      canAccessFeature("announcement.manage", {
+      canAccessFeature("notification.manage", {
         orgRoles: leagueMembership.roles,
         teamRoles: teamMembership.roles,
       });
@@ -88,7 +88,7 @@ export async function getNotificationDeliveriesForLeagueAsUser(
   }
 
   if (
-    !canAccessFeature("announcement.manage", {
+    !canAccessFeature("notification.manage", {
       orgRoles: leagueMembership.roles,
     })
   ) {
