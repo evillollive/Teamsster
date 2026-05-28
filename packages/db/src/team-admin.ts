@@ -66,29 +66,27 @@ export async function createTeam(input: CreateTeamInput) {
 
     for (let attempt = 0; attempt < MAX_SLUG_ATTEMPTS; attempt += 1) {
       const candidateSlug = buildTeamSlug(name);
-      const existing = await tx
-        .select({ id: teams.id })
-        .from(teams)
-        .where(and(eq(teams.leagueId, leagueId), eq(teams.slug, candidateSlug)))
-        .limit(1);
-
-      if (existing[0]) {
-        continue;
+      try {
+        teamId = (
+          await tx
+            .insert(teams)
+            .values({
+              createdById: userId,
+              leagueId,
+              name: name.trim(),
+              slug: candidateSlug,
+              timezone,
+            })
+            .returning({ id: teams.id })
+        )[0].id;
+        break;
+      } catch (err: unknown) {
+        const isUniqueViolation =
+          err instanceof Error && err.message.includes("unique");
+        if (!isUniqueViolation || attempt === MAX_SLUG_ATTEMPTS - 1) {
+          throw err;
+        }
       }
-
-      teamId = (
-        await tx
-          .insert(teams)
-          .values({
-            createdById: userId,
-            leagueId,
-            name: name.trim(),
-            slug: candidateSlug,
-            timezone,
-          })
-          .returning({ id: teams.id })
-      )[0].id;
-      break;
     }
 
     if (!teamId) {

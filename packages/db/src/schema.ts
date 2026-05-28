@@ -109,7 +109,7 @@ const timestampColumns = {
 
 const softDeleteColumns = {
   deletedAt: timestamp("deleted_at", { mode: "date", withTimezone: true }),
-  deletedById: uuid("deleted_by_id"),
+  deletedById: uuid("deleted_by_id").references(() => users.id),
 };
 
 export const authUsers = pgTable(
@@ -249,7 +249,7 @@ export const leagues = pgTable(
     name: text("name").notNull(),
     slug: text("slug").notNull(),
     timezone: text("timezone").notNull().default("UTC"),
-    createdById: uuid("created_by_id"),
+    createdById: uuid("created_by_id").references(() => users.id),
     ...timestampColumns,
     ...softDeleteColumns,
   },
@@ -266,7 +266,7 @@ export const teams = pgTable(
     name: text("name").notNull(),
     slug: text("slug").notNull(),
     timezone: text("timezone").notNull().default("UTC"),
-    createdById: uuid("created_by_id"),
+    createdById: uuid("created_by_id").references(() => users.id),
     ...timestampColumns,
     ...softDeleteColumns,
   },
@@ -297,7 +297,7 @@ export const players = pgTable(
       .notNull()
       .default(sql`'{}'::jsonb`),
     timezone: text("timezone").notNull().default("UTC"),
-    createdById: uuid("created_by_id"),
+    createdById: uuid("created_by_id").references(() => users.id),
     ...timestampColumns,
     ...softDeleteColumns,
   },
@@ -326,7 +326,7 @@ export const playerContacts = pgTable(
     email: text("email"),
     phone: text("phone"),
     isPrimary: boolean("is_primary").notNull().default(false),
-    createdById: uuid("created_by_id"),
+    createdById: uuid("created_by_id").references(() => users.id),
     ...timestampColumns,
     ...softDeleteColumns,
   },
@@ -364,7 +364,7 @@ export const teamEvents = pgTable(
       .$type<EventRecurrenceRule>()
       .notNull()
       .default(sql`'{"frequency":"NONE","interval":1}'::jsonb`),
-    createdById: uuid("created_by_id"),
+    createdById: uuid("created_by_id").references(() => users.id),
     ...timestampColumns,
     ...softDeleteColumns,
   },
@@ -540,7 +540,7 @@ export const announcements = pgTable(
     teamId: uuid("team_id").references(() => teams.id),
     title: text("title").notNull(),
     body: text("body").notNull(),
-    createdById: uuid("created_by_id"),
+    createdById: uuid("created_by_id").references(() => users.id),
     publishedAt: timestamp("published_at", {
       mode: "date",
       withTimezone: true,
