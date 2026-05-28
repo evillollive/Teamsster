@@ -31,13 +31,13 @@ const navItems = [
   {
     href: "/team",
     label: "Team",
-    blurb: "Roster, staff, and timezone stubs",
+    blurb: "All your teams across leagues",
     icon: Users,
   },
   {
     href: "/roster",
     label: "Roster",
-    blurb: "Players stay decoupled from users",
+    blurb: "Players across all your teams",
     icon: ShieldCheck,
   },
   {
