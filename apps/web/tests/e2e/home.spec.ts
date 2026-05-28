@@ -7,7 +7,7 @@ test("home page shows the Teamsster scaffold", async ({ page }) => {
     page.getByRole("heading", { name: /A playful home base/i }),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: /Explore the shell/i }),
+    page.getByRole("link", { name: /View league shell/i }),
   ).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Primary" })).toContainText(
     "League",

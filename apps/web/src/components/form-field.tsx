@@ -19,7 +19,8 @@ export function FormField({
 }) {
   const descriptionId = description ? `${htmlFor}-description` : undefined;
   const errorId = error ? `${htmlFor}-error` : undefined;
-  const describedBy = [descriptionId, errorId].filter(Boolean).join(" ") || undefined;
+  const describedBy =
+    [descriptionId, errorId].filter(Boolean).join(" ") || undefined;
 
   return (
     <div
@@ -34,7 +35,11 @@ export function FormField({
         </span>
       ) : null}
       {error ? (
-        <span className="text-xs font-semibold text-rose-600" id={errorId} role="alert">
+        <span
+          className="text-xs font-semibold text-rose-600"
+          id={errorId}
+          role="alert"
+        >
           {error}
         </span>
       ) : null}

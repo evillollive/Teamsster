@@ -45,9 +45,7 @@ export async function registerDeviceToken(input: {
 export async function unregisterDeviceToken(userId: string, token: string) {
   await db
     .delete(deviceTokens)
-    .where(
-      and(eq(deviceTokens.userId, userId), eq(deviceTokens.token, token)),
-    );
+    .where(and(eq(deviceTokens.userId, userId), eq(deviceTokens.token, token)));
 }
 
 export async function getDeviceTokensForUser(userId: string) {

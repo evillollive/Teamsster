@@ -11,7 +11,12 @@ export default function PrivacyPolicyPage() {
           Privacy Policy
         </h1>
         <p className="text-sm text-slate-500">
-          Last updated: {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+          Last updated:{" "}
+          {new Date().toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })}
         </p>
       </Card>
 
@@ -43,10 +48,18 @@ export default function PrivacyPolicyPage() {
         </h2>
         <ul className="list-disc pl-5">
           <li>To provide and maintain the Teamsster service</li>
-          <li>To send notifications you have opted into (announcements, event reminders, weekly digests)</li>
-          <li>To enforce permissions and access controls within leagues and teams</li>
+          <li>
+            To send notifications you have opted into (announcements, event
+            reminders, weekly digests)
+          </li>
+          <li>
+            To enforce permissions and access controls within leagues and teams
+          </li>
           <li>To generate audit logs for administrative transparency</li>
-          <li>To improve the service through anonymized usage analytics (when enabled)</li>
+          <li>
+            To improve the service through anonymized usage analytics (when
+            enabled)
+          </li>
         </ul>
 
         <h2 className="mt-6 text-lg font-semibold">4. Data Sharing</h2>
@@ -54,18 +67,24 @@ export default function PrivacyPolicyPage() {
           We do not sell your personal information. We share data only with:
         </p>
         <ul className="list-disc pl-5">
-          <li>Other members of your leagues and teams, as permitted by your role and the app&apos;s permission system</li>
-          <li>Service providers who help us operate (database hosting, email delivery) under strict data processing agreements</li>
+          <li>
+            Other members of your leagues and teams, as permitted by your role
+            and the app&apos;s permission system
+          </li>
+          <li>
+            Service providers who help us operate (database hosting, email
+            delivery) under strict data processing agreements
+          </li>
           <li>Law enforcement when required by law</li>
         </ul>
 
         <h2 className="mt-6 text-lg font-semibold">5. Data Retention</h2>
         <p>
           We retain your account data as long as your account is active.
-          Archived records (leagues, teams, players) are soft-deleted and can
-          be permanently removed upon request. You may delete your account at
-          any time from your account settings, which will remove your personal
-          data and disassociate you from all leagues and teams.
+          Archived records (leagues, teams, players) are soft-deleted and can be
+          permanently removed upon request. You may delete your account at any
+          time from your account settings, which will remove your personal data
+          and disassociate you from all leagues and teams.
         </p>
 
         <h2 className="mt-6 text-lg font-semibold">6. Your Rights</h2>

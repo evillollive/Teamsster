@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   index,
   jsonb,
@@ -109,7 +110,7 @@ const timestampColumns = {
 
 const softDeleteColumns = {
   deletedAt: timestamp("deleted_at", { mode: "date", withTimezone: true }),
-  deletedById: uuid("deleted_by_id").references(() => users.id),
+  deletedById: uuid("deleted_by_id").references((): AnyPgColumn => users.id),
 };
 
 export const authUsers = pgTable(
@@ -616,7 +617,10 @@ export function buildPersonalLeagueName(displayName?: string | null) {
 // ── Push notification device tokens ──────────────────────────────────────────
 
 export const devicePlatformValues = ["ios", "android", "web"] as const;
-export const devicePlatformEnum = pgEnum("device_platform", devicePlatformValues);
+export const devicePlatformEnum = pgEnum(
+  "device_platform",
+  devicePlatformValues,
+);
 
 export const deviceTokens = pgTable(
   "device_tokens",

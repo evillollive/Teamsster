@@ -88,15 +88,15 @@ describe("permissions", () => {
   });
 
   it("grants notification.manage only to org ADMIN or above", () => {
-    expect(
-      canAccessFeature("notification.manage", { orgRoles: "ADMIN" }),
-    ).toBe(true);
-    expect(
-      canAccessFeature("notification.manage", { orgRoles: "OWNER" }),
-    ).toBe(true);
-    expect(
-      canAccessFeature("notification.manage", { orgRoles: "COACH" }),
-    ).toBe(false);
+    expect(canAccessFeature("notification.manage", { orgRoles: "ADMIN" })).toBe(
+      true,
+    );
+    expect(canAccessFeature("notification.manage", { orgRoles: "OWNER" })).toBe(
+      true,
+    );
+    expect(canAccessFeature("notification.manage", { orgRoles: "COACH" })).toBe(
+      false,
+    );
     expect(
       canAccessFeature("notification.manage", { teamRoles: "HEAD_COACH" }),
     ).toBe(false);

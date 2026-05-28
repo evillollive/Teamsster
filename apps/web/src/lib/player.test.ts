@@ -189,7 +189,12 @@ describe("createPlayerContactSchema", () => {
   });
 
   it("accepts valid phone number formats", () => {
-    for (const phone of ["555-0100", "+1 (555) 010-0100", "+44 20 7946 0958", "5550100"]) {
+    for (const phone of [
+      "555-0100",
+      "+1 (555) 010-0100",
+      "+44 20 7946 0958",
+      "5550100",
+    ]) {
       const parsed = createPlayerContactSchema.parse({
         firstName: "Riley",
         lastName: "Jordan",

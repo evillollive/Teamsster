@@ -1,5 +1,4 @@
-import { db, users } from "@teamsster/db";
-import { isNull } from "drizzle-orm";
+import { getActiveUserAuthIds } from "@teamsster/db";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { getEventRemindersForUser } from "@/lib/reminder";
@@ -28,31 +27,26 @@ export async function GET(request: NextRequest) {
   }
 
   const now = new Date();
-  const activeUsers = await db
-    .select({ authUserId: users.authUserId })
-    .from(users)
-    .where(isNull(users.deletedAt));
+  const authUserIds = await getActiveUserAuthIds();
 
   let processed = 0;
   let remindersFound = 0;
 
-  for (const user of activeUsers) {
-    if (!user.authUserId) continue;
-
+  for (const authUserId of authUserIds) {
     try {
-      const { due } = await getEventRemindersForUser(user.authUserId, now);
+      const { due } = await getEventRemindersForUser(authUserId, now);
       if (due.length > 0) {
         remindersFound += due.length;
         // TODO: Send reminder emails via SMTP transport once configured.
         // For now, log the reminders for observability.
         console.log(
-          `[cron/reminders] ${due.length} due reminder(s) for user ${user.authUserId}`,
+          `[cron/reminders] ${due.length} due reminder(s) for user ${authUserId}`,
         );
       }
       processed++;
     } catch (error) {
       console.error(
-        `[cron/reminders] Error processing user ${user.authUserId}:`,
+        `[cron/reminders] Error processing user ${authUserId}:`,
         error,
       );
     }

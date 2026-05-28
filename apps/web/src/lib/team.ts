@@ -105,10 +105,7 @@ export async function archiveTeamForUser(
   });
 }
 
-export async function getTeamsForLeague(
-  authUserId: string,
-  leagueId: string,
-) {
+export async function getTeamsForLeague(authUserId: string, leagueId: string) {
   const userId = await getUserIdByAuthUserId(authUserId);
   if (!userId) return [];
   const membership = await getUserLeagueMembership(leagueId, userId);
@@ -116,10 +113,7 @@ export async function getTeamsForLeague(
   return getTeamsByLeagueId(leagueId);
 }
 
-export async function getTeamDetail(
-  authUserId: string,
-  teamId: string,
-) {
+export async function getTeamDetail(authUserId: string, teamId: string) {
   const userId = await getUserIdByAuthUserId(authUserId);
   if (!userId) return null;
   const team = await getTeamById(teamId);

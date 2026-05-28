@@ -34,4 +34,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build
         run: pnpm build
+        env:
+          DATABASE_URL: postgres://ci:ci@localhost:5432/ci
+          BETTER_AUTH_SECRET: ci-placeholder-secret-not-real
+          BETTER_AUTH_URL: http://localhost:3000
       - uses: github/codeql-action/analyze@v3

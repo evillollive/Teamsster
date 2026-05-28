@@ -24,3 +24,9 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Run ${{ matrix.command }}
         run: pnpm ${{ matrix.command }}
+        env:
+          # Dummy values so module-level env validation passes during build.
+          # Real secrets are only needed at runtime.
+          DATABASE_URL: postgres://ci:ci@localhost:5432/ci
+          BETTER_AUTH_SECRET: ci-placeholder-secret-not-real
+          BETTER_AUTH_URL: http://localhost:3000

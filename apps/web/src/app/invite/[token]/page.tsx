@@ -149,8 +149,8 @@ export default async function InvitePage({
             Invitation not found
           </h1>
           <p className="mt-2 text-sm text-slate-600">
-            This invite link is invalid or no longer points to an active league or
-            team.
+            This invite link is invalid or no longer points to an active league
+            or team.
           </p>
         </div>
         <div>
@@ -207,7 +207,9 @@ export default async function InvitePage({
       );
     } catch (error) {
       if (error instanceof Error) {
-        redirect(`/invite/${token}?error=${mapAcceptErrorToCode(error.message)}`);
+        redirect(
+          `/invite/${token}?error=${mapAcceptErrorToCode(error.message)}`,
+        );
       }
       throw error;
     }
@@ -266,7 +268,9 @@ export default async function InvitePage({
         {invitationStatus === "accepted" ? (
           <>
             <div>
-              <h2 className="text-lg font-semibold">Invitation already accepted</h2>
+              <h2 className="text-lg font-semibold">
+                Invitation already accepted
+              </h2>
               <p className="mt-1 text-sm text-slate-600">
                 This link has already been used. You can still open the related
                 dashboard if you have access.
@@ -274,7 +278,7 @@ export default async function InvitePage({
             </div>
             <div className="flex items-center gap-3">
               <Button asChild size="sm">
-                <Link href={destinationHref}>Open dashboard</Link>
+                <Link href={destinationHref as never}>Open dashboard</Link>
               </Button>
               <Button asChild size="sm" variant="ghost">
                 <Link href="/league">Back to leagues</Link>
@@ -323,8 +327,8 @@ export default async function InvitePage({
           <div className="grid gap-2">
             <h2 className="text-lg font-semibold">Wrong account signed in</h2>
             <p className="text-sm text-slate-600">
-              This invite was sent to {invitation.email}. Sign in with that email
-              address to accept it.
+              This invite was sent to {invitation.email}. Sign in with that
+              email address to accept it.
             </p>
             <div>
               <Button asChild size="sm" variant="secondary">
@@ -339,8 +343,8 @@ export default async function InvitePage({
             <div>
               <h2 className="text-lg font-semibold">Accept invitation</h2>
               <p className="mt-1 text-sm text-slate-600">
-                You&apos;re signed in as {session.user.email}. Accepting this invite
-                will add you to the destination right away.
+                You&apos;re signed in as {session.user.email}. Accepting this
+                invite will add you to the destination right away.
               </p>
             </div>
             <form action={acceptInvitationAction}>
