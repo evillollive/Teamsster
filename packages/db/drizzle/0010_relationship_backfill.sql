@@ -1,3 +1,15 @@
+-- Add the relationship_type enum and structured columns to player_contacts.
+-- The schema already defines these, but no prior migration added them.
+
+DO $$ BEGIN
+  CREATE TYPE "relationship_type" AS ENUM ('parent', 'guardian', 'stepparent', 'grandparent', 'sibling', 'coach', 'other');
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+ALTER TABLE "player_contacts"
+  ADD COLUMN IF NOT EXISTS "relationship_type" "relationship_type",
+  ADD COLUMN IF NOT EXISTS "custom_relationship" text;
+
 -- Backfill legacy free-text relationship values into the structured
 -- relationship_type and custom_relationship columns.
 -- Uses the same synonym mapping as normalizeRelationship() in schema.ts.
