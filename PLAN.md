@@ -4,9 +4,11 @@
 
 - Build a sport-agnostic, league-first foundation.
 - Prioritize inclusive collaboration for families, volunteers, staff, and players.
+- Support participants of all ages, including minors who may not have email addresses.
 - Optimize the project for onboarding, extensibility, and dependable maintenance.
 - Establish quality, security, and contributor guardrails before shipping business logic.
 - Design natively for all-volunteer organizations with no assumption of paid staff, flexible multi-role membership, and deep permission control at every layer of the product.
+- Provide built-in communication so leagues don't need external chat tools.
 
 ## Milestone 0 — repository foundation (this scaffold)
 
@@ -151,6 +153,77 @@
   - [ ] Deliver one payments prototype module.
   - [ ] Deliver one stats or tournament/bracket prototype module.
   - [ ] Run checkpoint review to confirm extension architecture supports both.
+
+## Milestone 7 — username-only auth and minor accounts
+
+### Goals
+- Let kids sign up and log in with just a username and password, no email required.
+- Keep existing email-based auth for adults.
+- Support the reality that many players are too young for email but old enough to use the app.
+
+### Work items
+- [ ] Add optional `username` field to user schema (unique, nullable).
+- [ ] Username/password auth flow alongside existing email/password and magic-link flows.
+- [ ] Username validation rules (length, allowed characters, uniqueness).
+- [ ] Account type flag (standard vs. minor) to enable safety guardrails downstream.
+- [ ] Admin/coach ability to create minor accounts on behalf of a player.
+- [ ] Minor accounts can optionally link to a parent/guardian's email account for recovery.
+- [ ] Profile settings page works for username-only accounts (no email change section).
+- [ ] Tests for username auth edge cases (duplicate usernames, recovery without email, etc.).
+- [ ] Milestone checkpoint: update README and auth documentation.
+
+## Milestone 8 — structured relationship tags
+
+### Goals
+- Replace the free-text guardian relationship field with defined, selectable options.
+- Keep flexibility for situations that don't fit the defaults.
+
+### Work items
+- [ ] Define standard relationship types (parent, guardian, grandparent, stepparent, sibling, coach, emergency contact, other).
+- [ ] Migration to convert existing free-text values to the new structured field.
+- [ ] "Other" option with custom text entry for edge cases.
+- [ ] Update player contact forms to use a dropdown with optional custom entry.
+- [ ] Permission implications: relationship type can influence contact visibility rules.
+- [ ] Tests for migration, form validation, and permission interactions.
+- [ ] Milestone checkpoint: update roster documentation.
+
+## Milestone 9 — volunteer tracking
+
+### Goals
+- Give leagues a simple, reliable way to track volunteer signups and hours.
+- Make it easy for admins to see who's contributing and export the data when they need it.
+
+### Work items
+- [ ] Volunteer opportunity schema (title, description, date/time, location, slots available, associated event/team/league).
+- [ ] Signup flow: volunteers can claim open slots from a list of opportunities.
+- [ ] Check-in and hours tracking: auto-calculated from slot times, with optional manual hour entry for off-app work.
+- [ ] Volunteer dashboard for users to see their own signups and logged hours.
+- [ ] Admin volunteer management view: see all volunteers, hours, and signups across the league.
+- [ ] Spreadsheet export (CSV) of volunteer hours and signups, admin-only, filterable by date range, team, and volunteer.
+- [ ] Volunteer role integration: link volunteer status to existing role/membership system.
+- [ ] Notifications for upcoming volunteer slots (opt-in).
+- [ ] Tests for signup flows, hour calculations, and export output.
+- [ ] Milestone checkpoint: update README and admin documentation.
+
+## Milestone 10 — in-app messaging
+
+### Goals
+- Replace the need for Slack, Discord, or group texts with built-in messaging.
+- Keep it safe for organizations with minor participants.
+
+### Work items
+- [ ] Conversations schema: support both one-on-one DMs and group threads.
+- [ ] Team and league group threads auto-created when teams/leagues are created.
+- [ ] DM initiation between members within the same league scope.
+- [ ] Real-time or near-real-time message delivery (polling or WebSocket).
+- [ ] Unread counts and notification badges.
+- [ ] Message composition with basic formatting (text, links).
+- [ ] Minor safety controls: admins/coaches can restrict who minor accounts can message (e.g., no unsupervised DMs, team threads only, or specific contact lists).
+- [ ] Admin moderation tools: ability to review flagged messages, mute users, and set messaging policies per league.
+- [ ] Message retention and audit logging consistent with existing audit patterns.
+- [ ] Push notification integration for new messages (ties into existing notification preferences).
+- [ ] Tests for messaging permissions, minor safety rules, and delivery.
+- [ ] Milestone checkpoint: update README and communication documentation.
 
 ## Continuous best practices
 
