@@ -119,17 +119,22 @@
 ### Goals
 - Let kids sign up and log in with just a username and password, no email required.
 - Keep existing email-based auth for adults.
-- Support the reality that many players are too young for email but old enough to use the app.
+- Every minor account must be linked to at least one parent/guardian account.
+- Support many-to-many relationships: multiple guardians per minor, multiple minors per guardian.
+- Emails meant for minor accounts (notifications, reminders, etc.) should route to their attached parent/guardian(s) instead.
 
 ### Work items
 - [ ] Add optional `username` field to user schema (unique, nullable).
 - [ ] Username/password auth flow alongside existing email/password and magic-link flows.
 - [ ] Username validation rules (length, allowed characters, uniqueness).
 - [ ] Account type flag (standard vs. minor) to enable safety guardrails downstream.
-- [ ] Admin/coach ability to create minor accounts on behalf of a player.
-- [ ] Minor accounts can optionally link to a parent/guardian's email account for recovery.
+- [ ] Guardian-minor link table: many-to-many relationship between minor accounts and guardian accounts. A minor must have at least one linked guardian at all times.
+- [ ] Enforce guardian requirement: minor account creation requires linking to an existing guardian account. Unlinking the last guardian from a minor is blocked.
+- [ ] Admin/coach ability to create minor accounts on behalf of a player, with guardian linking in the same flow.
+- [ ] Guardian dashboard: parent/guardian users can see and manage all linked minor accounts from their own profile.
+- [ ] Email routing for minors: all email notifications (reminders, announcements, digests) for minor accounts are delivered to their linked guardian(s) instead, with clear labeling of which child the email is about.
 - [ ] Profile settings page works for username-only accounts (no email change section).
-- [ ] Tests for username auth edge cases (duplicate usernames, recovery without email, etc.).
+- [ ] Tests for username auth, guardian linking (many-to-many), email routing, and edge cases (last guardian removal blocked, duplicate usernames, etc.).
 - [ ] Milestone checkpoint: update README and auth documentation.
 
 ## Milestone 7 — structured relationship tags
