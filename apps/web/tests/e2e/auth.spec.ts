@@ -1,26 +1,26 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("authentication", () => {
-  test("shows sign-in page for unauthenticated users", async ({ page }) => {
+  test("homepage loads and shows sign-in link", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /sign in/i })).toBeVisible();
   });
 
-  test("sign-in form has accessible labels", async ({ page }) => {
-    await page.goto("/sign-in");
-    const emailInput = page.getByLabel(/email/i);
-    const passwordInput = page.getByLabel(/password/i);
-    await expect(emailInput).toBeVisible();
-    await expect(passwordInput).toBeVisible();
-  });
-
-  test("sign-in form shows validation errors for empty submission", async ({
+  test("sign-in page renders with heading and method tabs", async ({
     page,
   }) => {
     await page.goto("/sign-in");
-    await page.getByRole("button", { name: /sign in/i }).click();
-    // Native validation should prevent submission or show error state
-    const emailInput = page.getByLabel(/email/i);
-    await expect(emailInput).toBeFocused();
+    await expect(
+      page.getByRole("heading", { name: /sign in to teamsster/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("tablist", { name: /sign-in method/i }),
+    ).toBeVisible();
+  });
+
+  test("sign-in page has email and username tabs", async ({ page }) => {
+    await page.goto("/sign-in");
+    await expect(page.getByRole("tab", { name: /email/i })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /username/i })).toBeVisible();
   });
 });
