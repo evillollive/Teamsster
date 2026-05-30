@@ -171,7 +171,25 @@
 - [ ] Tests for migration, form validation, and permission interactions.
 - [ ] Milestone checkpoint: update roster documentation.
 
-## Milestone 8 — seasonal registration and forms
+## Milestone 8 — template system
+
+### Goals
+- Give admins a reusable template engine so they don't rebuild the same events, forms, announcements, and volunteer slots from scratch every time.
+- Ship sensible starter templates out of the box so leagues can get going fast, but make them easy to delete or replace.
+
+### Work items
+- [ ] Template schema: unified template table with a `type` discriminator (event, registration_form, announcement, volunteer_opportunity) and a JSON `payload` column for type-specific field data.
+- [ ] League-level templates: templates are scoped to a league and visible to all teams within it.
+- [ ] Team-level overrides: teams can clone a league template and customize it, or create their own templates from scratch. Team templates are only visible to that team.
+- [ ] Template CRUD: create, edit, rename, duplicate, and delete templates. Admin/role-gated.
+- [ ] "Use template" flow: anywhere you create an event, announcement, registration form, or volunteer opportunity, a "Use template" button pre-fills the form from a selected template. The created item is independent of the template after creation (no live link).
+- [ ] Starter templates: ship built-in defaults per type (e.g., "Weekly Practice", "Game Day", "Tournament" for events; "Rain Cancellation", "Field Change" for announcements; "Standard Season Registration" for forms; "Concession Stand Shift", "Field Setup" for volunteer slots). Leagues can delete or replace these.
+- [ ] Template management UI: admin page to browse, edit, and organize templates by type. Shows which are league-level vs. team-level.
+- [ ] Template preview: admins can preview what a template will look like before using it.
+- [ ] Tests for template CRUD, clone/override behavior, starter template seeding, and permission gating.
+- [ ] Milestone checkpoint: update README and admin documentation.
+
+## Milestone 9 — seasonal registration and forms
 
 ### Goals
 - Give leagues a self-service registration flow that families complete each season.
@@ -194,7 +212,7 @@
 - [ ] Tests for form validation, waiver recording, season transitions, and permission-gated field visibility.
 - [ ] Milestone checkpoint: update README and admin documentation.
 
-## Milestone 9 — volunteer tracking
+## Milestone 10 — volunteer tracking
 
 ### Goals
 - Give leagues a simple, reliable way to track volunteer signups and hours.
@@ -212,7 +230,7 @@
 - [ ] Tests for signup flows, hour calculations, and export output.
 - [ ] Milestone checkpoint: update README and admin documentation.
 
-## Milestone 10 — in-app messaging
+## Milestone 11 — in-app messaging
 
 ### Goals
 - Replace the need for Slack, Discord, or group texts with built-in messaging.
@@ -232,7 +250,7 @@
 - [ ] Tests for messaging permissions, minor safety rules, and delivery.
 - [ ] Milestone checkpoint: update README and communication documentation.
 
-## Milestone 11 — extensibility and ecosystem
+## Milestone 12 — extensibility and ecosystem
 
 ### Goals
 - Make Teamsster easy to adapt for different sports and organization sizes.
@@ -247,27 +265,27 @@
 - [ ] Milestone checkpoint: refresh README and contributor-facing docs for extension points.
 
 ### Suggested issue-sized breakdown
-- [ ] 11.1 Deployment hardening baseline
+- [ ] 12.1 Deployment hardening baseline
   - [ ] Finalize and maintain deployment runbook.
   - [ ] Keep environment matrix current across local/staging/production.
   - [ ] Keep migration/release/rollback steps current with platform changes.
-- [ ] 11.2 Extension architecture
+- [ ] 12.2 Extension architecture
   - [ ] Define core-vs-optional package boundaries.
   - [ ] Identify stable extension seams for modules and feature toggles.
   - [ ] Document ownership and compatibility expectations for extension points.
-- [ ] 11.3 Integration surface
+- [ ] 12.3 Integration surface
   - [ ] Introduce domain event hooks for announcements, roster, scheduling, and membership changes.
   - [ ] Document supported lifecycle hooks and payload stability guarantees.
   - [ ] Add tests to protect hook contracts from accidental breakage.
-- [ ] 11.4 Developer platform
+- [ ] 12.4 Developer platform
   - [ ] Publish contributor guide for creating add-on modules.
   - [ ] Provide module templates for validation, permissions, and data access patterns.
   - [ ] Add a reference add-on module skeleton in the monorepo.
-- [ ] 11.5 External API contracts
+- [ ] 12.5 External API contracts
   - [ ] Define versioned external contract surface for web/mobile consumers.
   - [ ] Separate internal-only server actions from public API boundaries.
   - [ ] Document authentication and deprecation policy for external clients.
-- [ ] 11.6 Proof modules
+- [ ] 12.6 Proof modules
   - [ ] Deliver one payments prototype module.
   - [ ] Deliver one stats or tournament/bracket prototype module.
   - [ ] Run checkpoint review to confirm extension architecture supports both.
