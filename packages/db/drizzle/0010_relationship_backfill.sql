@@ -16,7 +16,7 @@ ALTER TABLE "player_contacts"
 
 UPDATE player_contacts
 SET
-  relationship_type = CASE lower(trim(relationship))
+  relationship_type = (CASE lower(trim(relationship))
     WHEN 'mom' THEN 'parent'
     WHEN 'mother' THEN 'parent'
     WHEN 'dad' THEN 'parent'
@@ -46,7 +46,7 @@ SET
     WHEN 'sister' THEN 'sibling'
     WHEN 'coach' THEN 'coach'
     ELSE 'other'
-  END,
+  END)::relationship_type,
   custom_relationship = CASE
     WHEN lower(trim(relationship)) IN (
       'mom', 'mother', 'dad', 'father', 'parent',
@@ -65,6 +65,6 @@ WHERE relationship IS NOT NULL
 
 -- Safety net: set remaining NULL relationship_type to 'other'
 UPDATE player_contacts
-SET relationship_type = 'other'
+SET relationship_type = 'other'::relationship_type
 WHERE relationship_type IS NULL
   AND deleted_at IS NULL;
