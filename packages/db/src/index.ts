@@ -14,6 +14,7 @@ export * from "./guardian-admin";
 export * from "./league-admin";
 export * from "./membership-admin";
 export * from "./message-admin";
+export * from "./notification-admin";
 export * from "./player-admin";
 export * from "./push-tokens";
 export * from "./schema";

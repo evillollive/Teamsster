@@ -1,4 +1,5 @@
 import {
+  Bell,
   CalendarDays,
   Home,
   MessageSquare,
@@ -52,6 +53,12 @@ const navItems = [
     blurb: "League and team announcements",
     icon: MessageSquare,
   },
+  {
+    href: "/notifications",
+    label: "Notifications",
+    blurb: "Your in-app feed and alerts",
+    icon: Bell,
+  },
 ] satisfies ReadonlyArray<{
   href: string;
   label: string;
@@ -64,6 +71,7 @@ const mobileNavItems = [
   { href: "/league", label: "Leagues", icon: Trophy },
   { href: "/events", label: "Events", icon: CalendarDays },
   { href: "/messages", label: "Messages", icon: MessageSquare },
+  { href: "/notifications", label: "Alerts", icon: Bell },
   { href: "/account", label: "Account", icon: UserRound },
 ] satisfies ReadonlyArray<{
   href: string;

@@ -30,7 +30,7 @@ function buildContactExportHref(
     firstName: string;
     lastName: string;
     relationship: string | null;
-    relationshipType: keyof typeof RELATIONSHIP_TYPE_LABELS | null;
+    relationshipType: keyof typeof RELATIONSHIP_TYPE_LABELS | null | undefined;
     customRelationship: string | null;
     email: string | null;
     phone: string | null;
@@ -115,7 +115,10 @@ export default async function TeamRosterPage({
         firstName: string;
         lastName: string;
         relationship: string | null;
-        relationshipType: keyof typeof RELATIONSHIP_TYPE_LABELS | null;
+        relationshipType:
+          | keyof typeof RELATIONSHIP_TYPE_LABELS
+          | null
+          | undefined;
         customRelationship: string | null;
         isEmergencyContact: boolean;
         email: string | null;

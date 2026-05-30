@@ -7,6 +7,7 @@ import {
   getUserTeamMembership,
 } from "@teamsster/db";
 
+import { hasEnabledNotificationChannel } from "@/lib/account";
 import { canAccessFeature } from "@/lib/permissions";
 
 type RsvpStatus = (typeof eventRsvpStatusValues)[number];
@@ -49,7 +50,12 @@ export async function getEventRemindersForUser(
     getUserIdByAuthUserId(authUserId),
   ]);
 
-  if (!settings?.notificationPreferences.eventReminders || !userId) {
+  if (
+    !hasEnabledNotificationChannel(
+      settings?.notificationPreferences.EVENT_REMINDER,
+    ) ||
+    !userId
+  ) {
     return { due: [] as EventReminder[], upcoming: [] as EventReminder[] };
   }
 

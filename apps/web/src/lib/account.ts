@@ -1,12 +1,61 @@
 import {
+  defaultNotificationPreferences,
   deleteUserAccount,
   getUserSettingsByAuthUserId,
+  type NotificationChannelPreference,
+  type NotificationEventType,
   type NotificationPreferences,
+  normalizeNotificationPreferences,
+  notificationEventTypeValues,
   provisionUserOnboarding,
   shouldCreatePersonalLeague,
   upsertUserSettings,
 } from "@teamsster/db";
 import { z } from "zod";
+
+const notificationChannels = ["email", "inApp", "push"] as const;
+type NotificationChannelKey = (typeof notificationChannels)[number];
+
+export const notificationPreferenceLabels: Record<
+  NotificationEventType,
+  { description: string; label: string }
+> = {
+  ANNOUNCEMENT: {
+    description: "League and team announcements",
+    label: "Announcements",
+  },
+  ASSIGNMENT: {
+    description: "Assignments and volunteer responsibilities",
+    label: "Assignments",
+  },
+  EVENT_REMINDER: {
+    description: "Upcoming games, practices, and RSVP reminders",
+    label: "Event reminders",
+  },
+  MESSAGE: {
+    description: "Direct and threaded message activity",
+    label: "Messages",
+  },
+  REGISTRATION_DEADLINE: {
+    description: "Registration and paperwork deadlines",
+    label: "Registration deadlines",
+  },
+  VOLUNTEER_REMINDER: {
+    description: "Volunteer shift reminders and follow-ups",
+    label: "Volunteer reminders",
+  },
+  WEEKLY_DIGEST: {
+    description: "Weekly summary rollups",
+    label: "Weekly digest",
+  },
+};
+
+export const notificationChannelLabels: Record<NotificationChannelKey, string> =
+  {
+    email: "Email",
+    inApp: "In-app",
+    push: "Push",
+  };
 
 export const timezoneSchema = z.string().trim().min(1).max(100).default("UTC");
 
@@ -16,10 +65,20 @@ export const onboardingSchema = z.object({
   timezone: timezoneSchema,
 });
 
+const notificationChannelPreferenceSchema = z.object({
+  email: z.boolean(),
+  inApp: z.boolean(),
+  push: z.boolean(),
+});
+
 export const notificationPreferencesSchema = z.object({
-  emailAnnouncements: z.boolean().default(true),
-  eventReminders: z.boolean().default(true),
-  weeklyDigest: z.boolean().default(false),
+  ANNOUNCEMENT: notificationChannelPreferenceSchema,
+  ASSIGNMENT: notificationChannelPreferenceSchema,
+  EVENT_REMINDER: notificationChannelPreferenceSchema,
+  MESSAGE: notificationChannelPreferenceSchema,
+  REGISTRATION_DEADLINE: notificationChannelPreferenceSchema,
+  VOLUNTEER_REMINDER: notificationChannelPreferenceSchema,
+  WEEKLY_DIGEST: notificationChannelPreferenceSchema,
 });
 
 export const accountSettingsSchema = z.object({
@@ -29,11 +88,24 @@ export const accountSettingsSchema = z.object({
 });
 
 export function parseNotificationPreferencesFromFormData(formData: FormData) {
-  return notificationPreferencesSchema.parse({
-    emailAnnouncements: formData.get("emailAnnouncements") === "on",
-    eventReminders: formData.get("eventReminders") === "on",
-    weeklyDigest: formData.get("weeklyDigest") === "on",
-  });
+  const nextPreferences = normalizeNotificationPreferences(
+    defaultNotificationPreferences,
+  );
+
+  for (const eventType of notificationEventTypeValues) {
+    for (const channel of notificationChannels) {
+      nextPreferences[eventType][channel] =
+        formData.get(`notification-${eventType}-${channel}`) === "on";
+    }
+  }
+
+  return notificationPreferencesSchema.parse(nextPreferences);
+}
+
+export function hasEnabledNotificationChannel(
+  preference?: NotificationChannelPreference | null,
+) {
+  return Boolean(preference?.email || preference?.inApp || preference?.push);
 }
 
 export function parseInvitationToken(formData: FormData) {
@@ -75,7 +147,9 @@ export async function saveAccountSettings(input: {
 }) {
   const parsed = accountSettingsSchema.parse({
     displayName: input.displayName ?? undefined,
-    notificationPreferences: input.notificationPreferences,
+    notificationPreferences: normalizeNotificationPreferences(
+      input.notificationPreferences,
+    ),
     timezone: input.timezone,
   });
 

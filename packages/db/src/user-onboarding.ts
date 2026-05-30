@@ -5,9 +5,11 @@ import { and, eq, isNull, or, sql } from "drizzle-orm";
 import { db } from "./client";
 import {
   buildPersonalLeagueName,
+  defaultNotificationPreferences,
   leagueMembers,
   leagues,
   type NotificationPreferences,
+  normalizeNotificationPreferences,
   teamMembers,
   users,
 } from "./schema";
@@ -27,11 +29,6 @@ type UpsertSettingsInput = {
   notificationPreferences?: NotificationPreferences;
 };
 
-const defaultNotificationPreferences: NotificationPreferences = {
-  emailAnnouncements: true,
-  eventReminders: true,
-  weeklyDigest: false,
-};
 const MAX_SLUG_GENERATION_ATTEMPTS = 5;
 
 export function shouldCreatePersonalLeague(invitationToken?: string | null) {
@@ -203,8 +200,9 @@ export async function upsertUserSettings(input: UpsertSettingsInput) {
     .update(users)
     .set({
       displayName,
-      notificationPreferences:
+      notificationPreferences: normalizeNotificationPreferences(
         input.notificationPreferences ?? defaultNotificationPreferences,
+      ),
       timezone,
       updatedAt: new Date(),
     })
@@ -223,7 +221,16 @@ export async function getUserSettingsByAuthUserId(authUserId: string) {
     .where(eq(users.authUserId, authUserId))
     .limit(1);
 
-  return result[0] ?? null;
+  if (!result[0]) {
+    return null;
+  }
+
+  return {
+    ...result[0],
+    notificationPreferences: normalizeNotificationPreferences(
+      result[0].notificationPreferences,
+    ),
+  };
 }
 
 export async function deleteUserAccount(authUserId: string) {

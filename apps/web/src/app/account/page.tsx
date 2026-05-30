@@ -1,5 +1,10 @@
 import { auth } from "@teamsster/auth";
-import { getMinorGuardians, isMinorPlaceholderEmail } from "@teamsster/db";
+import {
+  defaultNotificationPreferences,
+  getMinorGuardians,
+  isMinorPlaceholderEmail,
+  notificationEventTypeValues,
+} from "@teamsster/db";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -11,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import {
   deleteAccountForUser,
   getAccountSettings,
+  notificationChannelLabels,
+  notificationPreferenceLabels,
   parseInvitationToken,
   parseNotificationPreferencesFromFormData,
   runOnboardingForAuthenticatedUser,
@@ -55,10 +62,16 @@ async function saveSettingsAction(formData: FormData) {
     throw new Error("You must be signed in to update settings.");
   }
 
+  const existingSettings = await getAccountSettings(currentSession.user.id);
+  const isMinorAccount = isMinorPlaceholderEmail(currentSession.user.email);
+
   await saveAccountSettings({
     authUserId: currentSession.user.id,
     displayName: getString(formData, "displayName") || currentSession.user.name,
-    notificationPreferences: parseNotificationPreferencesFromFormData(formData),
+    notificationPreferences: isMinorAccount
+      ? (existingSettings?.notificationPreferences ??
+        defaultNotificationPreferences)
+      : parseNotificationPreferencesFromFormData(formData),
     timezone: getString(formData, "timezone") || "UTC",
   });
 
@@ -118,11 +131,8 @@ export default async function AccountPage() {
   const displayName =
     accountSettings?.displayName ?? currentSession?.user?.name ?? "";
   const timezone = accountSettings?.timezone ?? "UTC";
-  const notifications = accountSettings?.notificationPreferences ?? {
-    emailAnnouncements: true,
-    eventReminders: true,
-    weeklyDigest: false,
-  };
+  const notifications =
+    accountSettings?.notificationPreferences ?? defaultNotificationPreferences;
 
   // Detect minor account: placeholder email means this is a username-only minor.
   const userEmail = currentSession?.user?.email ?? "";
@@ -265,7 +275,7 @@ export default async function AccountPage() {
           <p className="text-sm text-slate-600">
             {isMinorUser
               ? "Update your display name and timezone."
-              : "Update your profile name, timezone, and email notification preferences."}
+              : "Update your profile name, timezone, and notification channels."}
           </p>
         </div>
         <form action={saveSettingsAction} className="grid gap-4">
@@ -286,35 +296,84 @@ export default async function AccountPage() {
             />
           </FormField>
           {/* Notification preferences: hidden for minors (routed to guardians) */}
-          {!isMinorUser ? (
-            <fieldset className="grid gap-2">
+          {!isMinorUser && notifications ? (
+            <fieldset className="grid gap-4">
               <legend className="text-sm font-medium text-slate-700">
                 Notification preferences
               </legend>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
-                <input
-                  defaultChecked={notifications.emailAnnouncements}
-                  name="emailAnnouncements"
-                  type="checkbox"
-                />
-                League and team announcements
-              </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
-                <input
-                  defaultChecked={notifications.eventReminders}
-                  name="eventReminders"
-                  type="checkbox"
-                />
-                Event reminders
-              </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
-                <input
-                  defaultChecked={notifications.weeklyDigest}
-                  name="weeklyDigest"
-                  type="checkbox"
-                />
-                Weekly digest
-              </label>
+              <p className="text-sm text-slate-600">
+                Choose which channels Teamsster can use for each notification
+                type.
+              </p>
+              <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                <table className="min-w-full border-collapse text-sm">
+                  <caption className="sr-only">
+                    Notification preference matrix by event type and channel
+                  </caption>
+                  <thead className="bg-slate-50 text-left text-slate-600">
+                    <tr>
+                      <th className="px-4 py-3 font-medium" scope="col">
+                        Notification type
+                      </th>
+                      {Object.entries(notificationChannelLabels).map(
+                        ([channel, label]) => (
+                          <th
+                            className="px-4 py-3 text-center font-medium"
+                            key={channel}
+                            scope="col"
+                          >
+                            {label}
+                          </th>
+                        ),
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {notificationEventTypeValues.map((eventType) => {
+                      const preference = notifications[eventType];
+                      const details = notificationPreferenceLabels[eventType];
+
+                      return (
+                        <tr
+                          className="border-t border-slate-200 align-top"
+                          key={eventType}
+                        >
+                          <th
+                            className="px-4 py-3 text-left font-medium"
+                            scope="row"
+                          >
+                            <div>{details.label}</div>
+                            <p className="mt-1 text-xs font-normal text-slate-500">
+                              {details.description}
+                            </p>
+                          </th>
+                          {Object.entries(notificationChannelLabels).map(
+                            ([channel, label]) => (
+                              <td
+                                className="px-4 py-3 text-center"
+                                key={channel}
+                              >
+                                <label className="inline-flex items-center justify-center">
+                                  <input
+                                    aria-label={`${details.label} via ${label}`}
+                                    defaultChecked={
+                                      preference[
+                                        channel as keyof typeof preference
+                                      ]
+                                    }
+                                    name={`notification-${eventType}-${channel}`}
+                                    type="checkbox"
+                                  />
+                                </label>
+                              </td>
+                            ),
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </fieldset>
           ) : (
             <p className="rounded-xl border border-sky-100 bg-sky-50 px-3 py-2 text-sm text-sky-800">

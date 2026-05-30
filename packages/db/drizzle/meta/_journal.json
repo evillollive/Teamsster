@@ -64,6 +64,13 @@
       "when": 1779053611493,
       "tag": "0008_sparkling_exodus",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1780185600000,
+      "tag": "0009_mellow_bell",
+      "breakpoints": true
     }
   ]
 }

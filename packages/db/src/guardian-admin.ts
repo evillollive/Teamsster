@@ -6,6 +6,7 @@ import { db } from "./client";
 import {
   auditLogs,
   buildMinorPlaceholderEmail,
+  defaultNotificationPreferences,
   guardianMinorLinks,
   users,
 } from "./schema";
@@ -83,11 +84,7 @@ export async function createMinorAccount(input: CreateMinorAccountInput) {
         displayName: input.displayName.trim() || null,
         email: placeholderEmail,
         timezone: "UTC",
-        notificationPreferences: {
-          emailAnnouncements: true,
-          eventReminders: true,
-          weeklyDigest: false,
-        },
+        notificationPreferences: defaultNotificationPreferences,
       })
       .returning({ id: users.id });
 

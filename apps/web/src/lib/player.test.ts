@@ -13,6 +13,7 @@ vi.mock("@teamsster/db", () => ({
   updatePlayer: vi.fn(),
 }));
 
+import type { PlayerContactSummary } from "@teamsster/db";
 import {
   createPlayerContact,
   getPlayerContactsByTeamId,
@@ -263,6 +264,7 @@ describe("createPlayerContactForUser", () => {
       isPrimary: true,
       lastName: "Jordan",
       leagueId,
+      phone: undefined,
       playerId,
       relationshipType: "other",
       teamId,
@@ -287,7 +289,7 @@ describe("createPlayerContactForUser", () => {
 });
 
 describe("applyContactFieldMask", () => {
-  const baseContact = {
+  const baseContact: PlayerContactSummary = {
     id: "c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33",
     playerId: "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
     firstName: "Riley",
@@ -359,7 +361,7 @@ describe("applyContactFieldMask", () => {
 describe("getPlayerContactsForTeamAsUser", () => {
   const leagueId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
   const teamId = "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22";
-  const contacts = [
+  const contacts: PlayerContactSummary[] = [
     {
       id: "c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33",
       playerId: "d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a44",

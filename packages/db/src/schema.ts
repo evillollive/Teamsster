@@ -57,16 +57,26 @@ export const eventRsvpStatusEnum = pgEnum(
   eventRsvpStatusValues,
 );
 
-export const notificationDeliveryChannelValues = ["EMAIL", "PUSH"] as const;
+export const notificationDeliveryChannelValues = [
+  "EMAIL",
+  "IN_APP",
+  "PUSH",
+] as const;
 export const notificationDeliveryChannelEnum = pgEnum(
   "notification_delivery_channel",
   notificationDeliveryChannelValues,
 );
 
-export const notificationDeliveryKindValues = [
-  "WEEKLY_DIGEST",
+export const notificationEventTypeValues = [
+  "ANNOUNCEMENT",
   "EVENT_REMINDER",
+  "WEEKLY_DIGEST",
+  "MESSAGE",
+  "VOLUNTEER_REMINDER",
+  "ASSIGNMENT",
+  "REGISTRATION_DEADLINE",
 ] as const;
+export const notificationDeliveryKindValues = notificationEventTypeValues;
 export const notificationDeliveryKindEnum = pgEnum(
   "notification_delivery_kind",
   notificationDeliveryKindValues,
@@ -105,11 +115,100 @@ export const captainPermissionLevelEnum = pgEnum(
   captainPermissionLevelValues,
 );
 
-export type NotificationPreferences = {
-  emailAnnouncements: boolean;
-  eventReminders: boolean;
-  weeklyDigest: boolean;
+export type NotificationEventType =
+  (typeof notificationEventTypeValues)[number];
+export type NotificationChannelPreference = {
+  email: boolean;
+  inApp: boolean;
+  push: boolean;
 };
+export type NotificationPreferences = Record<
+  NotificationEventType,
+  NotificationChannelPreference
+>;
+
+type LegacyNotificationPreferences = {
+  emailAnnouncements?: boolean;
+  eventReminders?: boolean;
+  weeklyDigest?: boolean;
+};
+
+export const defaultNotificationPreferences: NotificationPreferences = {
+  ANNOUNCEMENT: { email: true, inApp: true, push: false },
+  EVENT_REMINDER: { email: true, inApp: true, push: true },
+  WEEKLY_DIGEST: { email: false, inApp: true, push: false },
+  MESSAGE: { email: true, inApp: true, push: true },
+  VOLUNTEER_REMINDER: { email: true, inApp: true, push: true },
+  ASSIGNMENT: { email: true, inApp: true, push: true },
+  REGISTRATION_DEADLINE: { email: true, inApp: true, push: true },
+};
+
+export function normalizeNotificationPreferences(
+  input?: NotificationPreferences | LegacyNotificationPreferences | null,
+): NotificationPreferences {
+  const cloneDefaults = (): NotificationPreferences => ({
+    ANNOUNCEMENT: { ...defaultNotificationPreferences.ANNOUNCEMENT },
+    EVENT_REMINDER: { ...defaultNotificationPreferences.EVENT_REMINDER },
+    WEEKLY_DIGEST: { ...defaultNotificationPreferences.WEEKLY_DIGEST },
+    MESSAGE: { ...defaultNotificationPreferences.MESSAGE },
+    VOLUNTEER_REMINDER: {
+      ...defaultNotificationPreferences.VOLUNTEER_REMINDER,
+    },
+    ASSIGNMENT: { ...defaultNotificationPreferences.ASSIGNMENT },
+    REGISTRATION_DEADLINE: {
+      ...defaultNotificationPreferences.REGISTRATION_DEADLINE,
+    },
+  });
+
+  if (!input) {
+    return cloneDefaults();
+  }
+
+  if (
+    typeof input === "object" &&
+    input !== null &&
+    "ANNOUNCEMENT" in input &&
+    typeof input.ANNOUNCEMENT === "object"
+  ) {
+    const next = cloneDefaults();
+
+    for (const key of notificationEventTypeValues) {
+      const preference = input[key as keyof NotificationPreferences];
+      if (preference && typeof preference === "object") {
+        next[key] = {
+          email: preference.email ?? defaultNotificationPreferences[key].email,
+          inApp: preference.inApp ?? defaultNotificationPreferences[key].inApp,
+          push: preference.push ?? defaultNotificationPreferences[key].push,
+        };
+      }
+    }
+
+    return next;
+  }
+
+  const legacy = input as LegacyNotificationPreferences;
+  return {
+    ...cloneDefaults(),
+    ANNOUNCEMENT: {
+      ...defaultNotificationPreferences.ANNOUNCEMENT,
+      email:
+        legacy.emailAnnouncements ??
+        defaultNotificationPreferences.ANNOUNCEMENT.email,
+    },
+    EVENT_REMINDER: {
+      ...defaultNotificationPreferences.EVENT_REMINDER,
+      email:
+        legacy.eventReminders ??
+        defaultNotificationPreferences.EVENT_REMINDER.email,
+    },
+    WEEKLY_DIGEST: {
+      ...defaultNotificationPreferences.WEEKLY_DIGEST,
+      email:
+        legacy.weeklyDigest ??
+        defaultNotificationPreferences.WEEKLY_DIGEST.email,
+    },
+  };
+}
 
 export type PlayerProfileMetadata = {
   notes?: string;
@@ -264,7 +363,7 @@ export const users = pgTable(
       .$type<NotificationPreferences>()
       .notNull()
       .default(
-        sql`'{"emailAnnouncements":true,"eventReminders":true,"weeklyDigest":false}'::jsonb`,
+        sql`'{"ANNOUNCEMENT":{"email":true,"inApp":true,"push":false},"EVENT_REMINDER":{"email":true,"inApp":true,"push":true},"WEEKLY_DIGEST":{"email":false,"inApp":true,"push":false},"MESSAGE":{"email":true,"inApp":true,"push":true},"VOLUNTEER_REMINDER":{"email":true,"inApp":true,"push":true},"ASSIGNMENT":{"email":true,"inApp":true,"push":true},"REGISTRATION_DEADLINE":{"email":true,"inApp":true,"push":true}}'::jsonb`,
       ),
     ...timestampColumns,
     ...softDeleteColumns,
@@ -630,8 +729,8 @@ export const announcements = pgTable(
   ],
 );
 
-export const notificationDeliveries = pgTable(
-  "notification_deliveries",
+export const notificationEvents = pgTable(
+  "notification_events",
   {
     id: uuid("id").defaultRandom().primaryKey(),
     leagueId: uuid("league_id")
@@ -639,6 +738,75 @@ export const notificationDeliveries = pgTable(
       .references(() => leagues.id),
     teamId: uuid("team_id").references(() => teams.id),
     actorUserId: uuid("actor_user_id").references(() => users.id),
+    kind: notificationDeliveryKindEnum("kind").notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    dedupeKey: text("dedupe_key"),
+    scheduledFor: timestamp("scheduled_for", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    ...timestampColumns,
+  },
+  (table) => [
+    index("notification_events_league_idx").on(table.leagueId, table.createdAt),
+    index("notification_events_kind_idx").on(table.kind, table.createdAt),
+    uniqueIndex("notification_events_dedupe_key_unique").on(table.dedupeKey),
+  ],
+);
+
+export const notificationFeedItems = pgTable(
+  "notification_feed_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => notificationEvents.id),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    teamId: uuid("team_id").references(() => teams.id),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    deliveredByFallback: boolean("delivered_by_fallback")
+      .notNull()
+      .default(false),
+    readAt: timestamp("read_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    ...timestampColumns,
+  },
+  (table) => [
+    index("notification_feed_items_user_idx").on(
+      table.userId,
+      table.readAt,
+      table.createdAt,
+    ),
+    index("notification_feed_items_event_idx").on(table.eventId),
+    uniqueIndex("notification_feed_items_event_user_unique").on(
+      table.eventId,
+      table.userId,
+    ),
+  ],
+);
+
+export const notificationDeliveries = pgTable(
+  "notification_deliveries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    eventId: uuid("event_id").references(() => notificationEvents.id),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    teamId: uuid("team_id").references(() => teams.id),
+    actorUserId: uuid("actor_user_id").references(() => users.id),
+    recipientUserId: uuid("recipient_user_id").references(() => users.id),
     recipient: text("recipient").notNull(),
     channel: notificationDeliveryChannelEnum("channel")
       .notNull()
@@ -659,6 +827,7 @@ export const notificationDeliveries = pgTable(
       table.leagueId,
       table.createdAt,
     ),
+    index("notification_deliveries_event_idx").on(table.eventId),
     index("notification_deliveries_recipient_idx").on(table.recipient),
     index("notification_deliveries_status_idx").on(table.status),
   ],
