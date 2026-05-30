@@ -1,4 +1,8 @@
-import { db, isMinorPlaceholderEmail, provisionUserOnboarding } from "@teamsster/db";
+import {
+  db,
+  isMinorPlaceholderEmail,
+  provisionUserOnboarding,
+} from "@teamsster/db";
 import { betterAuth } from "better-auth";
 import { toNextJsHandler } from "better-auth/next-js";
 import { magicLink, username } from "better-auth/plugins";

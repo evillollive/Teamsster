@@ -249,8 +249,8 @@ export default function SignInPage() {
       </div>
 
       <p className="text-center text-xs text-slate-500">
-        Minor accounts use a username provided by a parent or guardian.
-        Adults can sign in with either method.
+        Minor accounts use a username provided by a parent or guardian. Adults
+        can sign in with either method.
       </p>
     </div>
   );

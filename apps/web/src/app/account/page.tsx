@@ -1,7 +1,6 @@
 import { auth } from "@teamsster/auth";
 import {
   getMinorGuardians,
-  isMinorAccount,
   isMinorPlaceholderEmail,
 } from "@teamsster/db";
 import { revalidatePath } from "next/cache";
@@ -207,8 +206,8 @@ export default async function AccountPage() {
           <div>
             <h2 className="text-lg font-semibold">Onboarding controls</h2>
             <p className="text-sm text-slate-600">
-              Re-run onboarding to provision profile records and a Personal League
-              for signed-in users.
+              Re-run onboarding to provision profile records and a Personal
+              League for signed-in users.
             </p>
           </div>
           <form action={runOnboardingAction} className="grid gap-4">

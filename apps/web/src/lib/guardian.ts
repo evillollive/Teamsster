@@ -45,11 +45,7 @@ export function validateUsername(username: string) {
 }
 
 export const createMinorAccountSchema = z.object({
-  displayName: z
-    .string()
-    .trim()
-    .min(1, "Display name is required.")
-    .max(120),
+  displayName: z.string().trim().min(1, "Display name is required.").max(120),
   dateOfBirth: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Date of birth must be YYYY-MM-DD.")

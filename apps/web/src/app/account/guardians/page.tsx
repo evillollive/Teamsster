@@ -2,7 +2,6 @@ import { auth } from "@teamsster/auth";
 import {
   createMinorAccount,
   getGuardianMinors,
-  getMinorGuardians,
   isMinorAccount,
   linkGuardianToMinor,
   unlinkGuardianFromMinor,
@@ -128,8 +127,8 @@ export default async function GuardianDashboardPage() {
           Manage minor accounts
         </h1>
         <p className="text-sm text-slate-600">
-          Create and manage accounts for minors in your care. Each minor
-          gets their own username and password for signing in.
+          Create and manage accounts for minors in your care. Each minor gets
+          their own username and password for signing in.
         </p>
       </Card>
 
@@ -169,11 +168,7 @@ export default async function GuardianDashboardPage() {
                     type="hidden"
                     value={minor.minorUserId}
                   />
-                  <input
-                    name="guardianUserId"
-                    type="hidden"
-                    value={userId}
-                  />
+                  <input name="guardianUserId" type="hidden" value={userId} />
                   <Button
                     className="text-xs"
                     size="sm"
@@ -288,11 +283,7 @@ export default async function GuardianDashboardPage() {
             htmlFor="link-relationship"
             label="Relationship"
           >
-            <Input
-              id="link-relationship"
-              maxLength={100}
-              name="relationship"
-            />
+            <Input id="link-relationship" maxLength={100} name="relationship" />
           </FormField>
           <div>
             <Button type="submit" variant="secondary">

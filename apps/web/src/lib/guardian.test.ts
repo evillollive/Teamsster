@@ -91,9 +91,9 @@ describe("minor placeholder email", () => {
   });
 
   it("detects placeholder emails", () => {
-    expect(
-      isMinorPlaceholderEmail(`minor-abc@${MINOR_EMAIL_DOMAIN}`),
-    ).toBe(true);
+    expect(isMinorPlaceholderEmail(`minor-abc@${MINOR_EMAIL_DOMAIN}`)).toBe(
+      true,
+    );
     expect(isMinorPlaceholderEmail("user@example.com")).toBe(false);
     expect(isMinorPlaceholderEmail("")).toBe(false);
   });
@@ -273,15 +273,11 @@ describe("minor account permissions", () => {
   });
 
   it("allows standard accounts to create minor accounts", () => {
-    expect(
-      canCreateMinorAccount({ actorAccountType: "standard" }),
-    ).toBe(true);
+    expect(canCreateMinorAccount({ actorAccountType: "standard" })).toBe(true);
   });
 
   it("blocks minor accounts from creating other minor accounts", () => {
-    expect(
-      canCreateMinorAccount({ actorAccountType: "minor" }),
-    ).toBe(false);
+    expect(canCreateMinorAccount({ actorAccountType: "minor" })).toBe(false);
   });
 });
 
@@ -359,7 +355,7 @@ describe("guardian edge cases", () => {
   it("doesn't flag normal usernames as reserved", () => {
     for (const name of ["administrator2", "superadmin", "mod_player"]) {
       // "administrator" is reserved but "administrator2" is not.
-      expect(isReservedUsername(name)).toBe(name === "administrator2" ? false : false);
+      expect(isReservedUsername(name)).toBe(false);
     }
   });
 });
