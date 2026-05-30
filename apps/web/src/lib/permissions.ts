@@ -232,9 +232,7 @@ export function canCaptainViewContacts(context: {
   isCaptainOnTeam: boolean;
   captainPermissionLevel: CaptainPermissionLevel;
 }) {
-  return (
-    context.isCaptainOnTeam && context.captainPermissionLevel === "full"
-  );
+  return context.isCaptainOnTeam && context.captainPermissionLevel === "full";
 }
 
 /**
@@ -244,9 +242,7 @@ export function canCaptainMessageTeam(context: {
   isCaptainOnTeam: boolean;
   captainPermissionLevel: CaptainPermissionLevel;
 }) {
-  return (
-    context.isCaptainOnTeam && context.captainPermissionLevel === "full"
-  );
+  return context.isCaptainOnTeam && context.captainPermissionLevel === "full";
 }
 
 /**

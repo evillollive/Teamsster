@@ -10,8 +10,7 @@ import {
   users,
 } from "./schema";
 
-type CaptainPermissionLevel =
-  (typeof captainPermissionLevelValues)[number];
+type CaptainPermissionLevel = (typeof captainPermissionLevelValues)[number];
 
 type AssignCaptainInput = {
   teamId: string;
@@ -74,8 +73,7 @@ export async function assignCaptain(input: AssignCaptainInput) {
     }
 
     // Determine permission level. Minors default to restricted.
-    let level: CaptainPermissionLevel =
-      input.permissionLevel ?? "restricted";
+    let level: CaptainPermissionLevel = input.permissionLevel ?? "restricted";
 
     if (!input.permissionLevel) {
       const userRows = await tx
@@ -177,9 +175,7 @@ export async function updateCaptainPermission(
 
     const member = memberRows[0];
     if (!member || !isCaptain(member.roles)) {
-      throw new Error(
-        "Member is not a captain on this team.",
-      );
+      throw new Error("Member is not a captain on this team.");
     }
 
     if (member.captainPermissionLevel === input.permissionLevel) {

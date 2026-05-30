@@ -877,9 +877,9 @@ export async function removeTeamMemberRole(input: RemoveTeamRoleInput) {
     const rolesToRemove =
       input.role === "PLAYER" ? ["PLAYER", "CAPTAIN"] : [input.role];
 
-    let removeExpr = teamMembers.roles;
+    let removeExpr = sql`${teamMembers.roles}`;
     for (const role of rolesToRemove) {
-      removeExpr = sql`array_remove(${removeExpr}, ${role}::membership_role)` as typeof removeExpr;
+      removeExpr = sql`array_remove(${removeExpr}, ${role}::membership_role)`;
     }
 
     // Clear captainPermissionLevel when CAPTAIN is being removed.
@@ -906,8 +906,7 @@ export async function removeTeamMemberRole(input: RemoveTeamRoleInput) {
       throw new Error("Team membership not found.");
     }
 
-    const auditRoles =
-      rolesToRemove.length > 1 ? rolesToRemove : input.role;
+    const auditRoles = rolesToRemove.length > 1 ? rolesToRemove : input.role;
 
     await tx.insert(auditLogs).values({
       action: "team.member.role.remove",

@@ -1,18 +1,15 @@
-import { describe, expect, it } from "vitest";
-
 import {
   isCaptain,
   normalizeRelationship,
   relationshipTypeValues,
   TEAM_ONLY_ROLES,
 } from "@teamsster/db/schema";
+import { describe, expect, it } from "vitest";
 
 import {
   canCaptainMessageTeam,
   canCaptainViewContacts,
-  canCreateMinorAccount,
   canManageCaptains,
-  canManageMinorAccount,
   hasMinimumRole,
 } from "@/lib/permissions";
 

@@ -358,7 +358,9 @@ export const playerContacts = pgTable(
     relationship: text("relationship"),
     relationshipType: relationshipTypeEnum("relationship_type"),
     customRelationship: text("custom_relationship"),
-    isEmergencyContact: boolean("is_emergency_contact").notNull().default(false),
+    isEmergencyContact: boolean("is_emergency_contact")
+      .notNull()
+      .default(false),
     email: text("email"),
     phone: text("phone"),
     isPrimary: boolean("is_primary").notNull().default(false),
@@ -739,7 +741,7 @@ export function normalizeRelationship(freeText: string | null | undefined): {
   relationshipType: RelationshipType;
   customRelationship: string | null;
 } {
-  if (!freeText || !freeText.trim()) {
+  if (!freeText?.trim()) {
     return { relationshipType: "other", customRelationship: null };
   }
 
