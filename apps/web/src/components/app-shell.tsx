@@ -10,7 +10,9 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
+import { NotificationBadge } from "@/components/notification-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -157,10 +159,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <div className="grid h-10 w-10 place-items-center rounded-2xl bg-slate-100 text-slate-700">
                     <Icon aria-hidden="true" className="h-5 w-5" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="font-semibold">{label}</p>
                     <p className="text-sm text-slate-500">{blurb}</p>
                   </div>
+                  {label === "Notifications" ? (
+                    <Suspense fallback={null}>
+                      <NotificationBadge />
+                    </Suspense>
+                  ) : null}
                 </div>
               </Link>
             ))}
@@ -200,12 +207,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center justify-around px-2 py-1">
           {mobileNavItems.map(({ href, icon: Icon, label }) => (
             <Link
-              className="flex flex-col items-center gap-0.5 px-2 py-1.5 text-slate-600 transition-colors hover:text-sky-600"
+              className="relative flex flex-col items-center gap-0.5 px-2 py-1.5 text-slate-600 transition-colors hover:text-sky-600"
               href={href as Route}
               key={href}
             >
               <Icon aria-hidden="true" className="h-5 w-5" />
               <span className="text-[10px] font-medium">{label}</span>
+              {label === "Alerts" ? (
+                <Suspense fallback={null}>
+                  <span className="absolute right-0.5 top-0.5">
+                    <NotificationBadge />
+                  </span>
+                </Suspense>
+              ) : null}
             </Link>
           ))}
         </div>

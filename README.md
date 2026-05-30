@@ -57,7 +57,7 @@ Teamsster isn't just a scaffold. There's real working functionality across sever
 - **League administration.** Create, update, and archive leagues and teams. Role assignment with reusable templates, invitation workflows, audit log persistence, and a dashboard with empty states that guide new users.
 - **Roster management.** Player CRUD with soft deletes, guardian contacts, eligibility tracking, and profile metadata. Structured relationship types (parent, guardian, stepparent, grandparent, sibling, coach, other) with automatic normalization from legacy free-text values. Captain role with full/restricted permission levels and roster badges.
 - **Scheduling.** Team event creation with recurrence, RSVP states, ICS calendar exports, reminder windows, and embedded team/league agenda views.
-- **Communication.** League and team announcements, user-level notification preferences, digest and reminder templates, delivery logs, and permission-gated contact actions.
+- **Communication.** League and team announcements, user-level notification preferences, digest and reminder templates, delivery logs, and permission-gated contact actions. Unified notification platform with per-event/per-channel preferences, in-app feed with unread badges, scheduled delivery helpers, email sanitization, rate-limited token registration, and guardian-aware routing.
 - **Centralized validation.** Zod schemas and permission helpers for all mutations, so business logic stays consistent.
 
 ## The clever bits

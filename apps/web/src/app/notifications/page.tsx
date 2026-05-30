@@ -190,7 +190,12 @@ export default async function NotificationsPage() {
             will appear here.
           </p>
         ) : (
-          <ul aria-label="Notification feed" className="grid gap-3">
+          <ul
+            aria-label="Notification feed"
+            aria-live="polite"
+            aria-relevant="additions"
+            className="grid gap-3 motion-reduce:transition-none"
+          >
             {notificationCenter.feed.map((item) => {
               const details = notificationPreferenceLabels[item.kind];
 

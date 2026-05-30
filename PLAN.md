@@ -229,36 +229,36 @@ A unified notification system that handles routing, preferences, and delivery ac
 - Failed deliveries retry with fallback behavior.
 
 ### Work items
-- [ ] Notification event schema: typed event registry (event_reminder, rsvp_change, announcement, message, volunteer_reminder, assignment, registration_deadline, etc.).
-- [ ] User notification preferences: per-event-type channel selection (email, in-app, push, off). Stored per user with sensible defaults.
-- [ ] Guardian routing: notifications for minor accounts are dispatched to all linked guardian accounts across all channels.
-- [ ] In-app notification feed: persistent notification list with read/unread state, accessible from the header.
+- [x] Notification event schema: typed event registry (event_reminder, rsvp_change, announcement, message, volunteer_reminder, assignment, registration_deadline, etc.).
+- [x] User notification preferences: per-event-type channel selection (email, in-app, push, off). Stored per user with sensible defaults.
+- [x] Guardian routing: notifications for minor accounts are dispatched to all linked guardian accounts across all channels.
+- [x] In-app notification feed: persistent notification list with read/unread state, accessible from the header.
 - [ ] Push notification infrastructure via Capacitor Push Notifications plugin (APNs for iOS, FCM for Android).
-- [ ] Device token registration and storage linked to user accounts.
-- [ ] Scheduled delivery for time-based reminders (configurable lead times: 1 hour, 1 day, etc.).
-- [ ] Badge count management (unread notifications).
-- [ ] Delivery logging: record every dispatch attempt with channel, status, and timestamp. Ties into existing audit patterns.
-- [ ] Retry and fallback: if push fails, fall back to email. If email fails, ensure in-app notification still persists.
+- [x] Device token registration and storage linked to user accounts.
+- [x] Scheduled delivery for time-based reminders (configurable lead times: 1 hour, 1 day, etc.).
+- [x] Badge count management (unread notifications).
+- [x] Delivery logging: record every dispatch attempt with channel, status, and timestamp. Ties into existing audit patterns.
+- [x] Retry and fallback: if push fails, fall back to email. If email fails, ensure in-app notification still persists.
 
 #### Security
 - [ ] Store notification and push tokens with encryption or equivalent protected storage so leaked database reads can't expose active device credentials.
-- [ ] Add rate limiting and abuse detection to push token registration and refresh endpoints so token spam doesn't overwhelm delivery systems.
-- [ ] Sanitize email subject and body content before delivery so template data can't inject unsafe markup or headers.
-- [ ] Audit-log sensitive notification preference changes and guardian-routing overrides so delivery behavior won't drift without traceability.
+- [x] Add rate limiting and abuse detection to push token registration and refresh endpoints so token spam doesn't overwhelm delivery systems.
+- [x] Sanitize email subject and body content before delivery so template data can't inject unsafe markup or headers.
+- [x] Audit-log sensitive notification preference changes and guardian-routing overrides so delivery behavior won't drift without traceability.
 
 #### Accessibility
-- [ ] Add an aria-live region to the in-app notification feed so newly delivered items are announced without stealing focus and users don't miss updates.
-- [ ] Ensure the notification center, read state controls, and preference forms support keyboard navigation and logical focus order so users don't get trapped.
-- [ ] Respect reduced-motion preferences for badges, toasts, and feed transitions, and keep contrast strong for unread indicators so motion doesn't become a barrier.
+- [x] Add an aria-live region to the in-app notification feed so newly delivered items are announced without stealing focus and users don't miss updates.
+- [x] Ensure the notification center, read state controls, and preference forms support keyboard navigation and logical focus order so users don't get trapped.
+- [x] Respect reduced-motion preferences for badges, toasts, and feed transitions, and keep contrast strong for unread indicators so motion doesn't become a barrier.
 
 #### Testing
-- [ ] Unit tests for event-to-channel routing, preference filtering, guardian fan-out, token storage helpers, and retry selection logic.
+- [x] Unit tests for event-to-channel routing, preference filtering, guardian fan-out, token storage helpers, and retry selection logic.
 - [ ] Integration tests for secure token registration, delivery logging, sanitized email rendering, and fallback behavior across channels.
-- [ ] E2E or Playwright tests for reviewing the notification feed, changing preferences, and receiving in-app updates during a live session.
-- [ ] Permission regression tests to prove notification settings and delivery logs don't leak across users, teams, or guardian boundaries.
-- [ ] Automated accessibility tests for the notification feed, preferences UI, and live announcement behavior.
+- [x] E2E or Playwright tests for reviewing the notification feed, changing preferences, and receiving in-app updates during a live session.
+- [x] Permission regression tests to prove notification settings and delivery logs don't leak across users, teams, or guardian boundaries.
+- [x] Automated accessibility tests for the notification feed, preferences UI, and live announcement behavior.
 
-- [ ] Milestone checkpoint: update README and notification documentation.
+- [x] Milestone checkpoint: update README and notification documentation.
 
 ## Milestone 9 — template system
 
