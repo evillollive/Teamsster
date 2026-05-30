@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
   boolean,
+  date,
   index,
   jsonb,
   pgEnum,
@@ -80,6 +81,9 @@ export const notificationDeliveryStatusEnum = pgEnum(
   notificationDeliveryStatusValues,
 );
 
+export const accountTypeValues = ["standard", "minor"] as const;
+export const accountTypeEnum = pgEnum("account_type", accountTypeValues);
+
 export type NotificationPreferences = {
   emailAnnouncements: boolean;
   eventReminders: boolean;
@@ -121,6 +125,8 @@ export const authUsers = pgTable(
     email: text("email").notNull(),
     emailVerified: boolean("email_verified").notNull().default(false),
     image: text("image"),
+    username: text("username"),
+    displayUsername: text("display_username"),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -128,7 +134,10 @@ export const authUsers = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [uniqueIndex("auth_user_email_unique").on(table.email)],
+  (table) => [
+    uniqueIndex("auth_user_email_unique").on(table.email),
+    uniqueIndex("auth_user_username_unique").on(table.username),
+  ],
 );
 
 export const authSessions = pgTable(
@@ -227,6 +236,8 @@ export const users = pgTable(
     authUserId: text("auth_user_id").references(() => authUsers.id),
     email: text("email").notNull(),
     displayName: text("display_name"),
+    accountType: accountTypeEnum("account_type").notNull().default("standard"),
+    dateOfBirth: date("date_of_birth", { mode: "string" }),
     timezone: text("timezone").notNull().default("UTC"),
     notificationPreferences: jsonb("notification_preferences")
       .$type<NotificationPreferences>()
@@ -417,6 +428,36 @@ export const teamMembers = pgTable(
   },
   (table) => [
     uniqueIndex("team_members_unique").on(table.teamId, table.userId),
+  ],
+);
+
+// ── Guardian-minor relationships ─────────────────────────────────────────────
+
+export const guardianMinorLinks = pgTable(
+  "guardian_minor_links",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    guardianUserId: uuid("guardian_user_id")
+      .notNull()
+      .references(() => users.id),
+    minorUserId: uuid("minor_user_id")
+      .notNull()
+      .references(() => users.id),
+    relationship: text("relationship"),
+    isPrimary: boolean("is_primary").notNull().default(false),
+    createdById: uuid("created_by_id").references(() => users.id),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    uniqueIndex("guardian_minor_links_active_unique")
+      .on(table.guardianUserId, table.minorUserId)
+      .where(sql`deleted_at IS NULL`),
+    uniqueIndex("guardian_minor_links_primary_unique")
+      .on(table.minorUserId)
+      .where(sql`is_primary AND deleted_at IS NULL`),
+    index("guardian_minor_links_guardian_idx").on(table.guardianUserId),
+    index("guardian_minor_links_minor_idx").on(table.minorUserId),
   ],
 );
 
@@ -612,6 +653,18 @@ export const auditLogs = pgTable(
 export function buildPersonalLeagueName(displayName?: string | null) {
   const trimmed = displayName?.trim();
   return trimmed ? `${trimmed}'s Personal League` : "Personal League";
+}
+
+// ── Minor account helpers ────────────────────────────────────────────────────
+
+export const MINOR_EMAIL_DOMAIN = "minor.internal.teamsster.local";
+
+export function buildMinorPlaceholderEmail(uniqueId: string) {
+  return `minor-${uniqueId}@${MINOR_EMAIL_DOMAIN}`;
+}
+
+export function isMinorPlaceholderEmail(email: string) {
+  return email.endsWith(`@${MINOR_EMAIL_DOMAIN}`);
 }
 
 // ── Push notification device tokens ──────────────────────────────────────────

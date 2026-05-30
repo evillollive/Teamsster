@@ -1,7 +1,7 @@
-import { db, provisionUserOnboarding } from "@teamsster/db";
+import { db, isMinorPlaceholderEmail, provisionUserOnboarding } from "@teamsster/db";
 import { betterAuth } from "better-auth";
 import { toNextJsHandler } from "better-auth/next-js";
-import { magicLink } from "better-auth/plugins";
+import { magicLink, username } from "better-auth/plugins";
 import nodemailer from "nodemailer";
 import { z } from "zod";
 
@@ -53,6 +53,11 @@ async function sendAuthEmail(
   kind: "magic-link" | "verification" | "reset-password",
   payload: { email: string; url: string },
 ) {
+  // Never send auth emails to minor placeholder addresses.
+  if (isMinorPlaceholderEmail(payload.email)) {
+    return;
+  }
+
   const subject =
     kind === "magic-link"
       ? "Your Teamsster magic link"
@@ -76,6 +81,19 @@ async function sendAuthEmail(
     to: payload.email,
   });
 }
+
+const RESERVED_USERNAMES = new Set([
+  "admin",
+  "administrator",
+  "help",
+  "mod",
+  "moderator",
+  "root",
+  "staff",
+  "support",
+  "system",
+  "teamsster",
+]);
 
 export const auth = betterAuth({
   appName: "Teamsster",
@@ -105,6 +123,12 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
+          // Skip personal league provisioning for minor placeholder accounts.
+          const isMinor = isMinorPlaceholderEmail(user.email);
+          if (isMinor) {
+            return;
+          }
+
           await provisionUserOnboarding({
             authUserId: user.id,
             displayName: user.name,
@@ -115,6 +139,16 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    username({
+      minUsernameLength: 3,
+      maxUsernameLength: 30,
+      usernameValidator: (value) => {
+        if (RESERVED_USERNAMES.has(value.toLowerCase())) {
+          return false;
+        }
+        return true;
+      },
+    }),
     magicLink({
       sendMagicLink: async ({ email, url }) => {
         await sendAuthEmail("magic-link", { email, url });

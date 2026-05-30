@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   assertPermission,
   canAccessAction,
+  canCreateMinorAccount,
+  canManageMinorAccount,
   canAccessFeature,
   canAccessField,
   canEditRoster,
@@ -202,6 +204,48 @@ describe("permissions", () => {
       expect(
         canAccessAction("contact.export", { orgRoles: "BOARD_MEMBER" }),
       ).toBe(false);
+    });
+  });
+
+  describe("canManageMinorAccount", () => {
+    it("allows linked guardians regardless of role", () => {
+      expect(canManageMinorAccount({ isLinkedGuardian: true })).toBe(true);
+      expect(
+        canManageMinorAccount({ isLinkedGuardian: true, orgRoles: "GUEST" }),
+      ).toBe(true);
+    });
+
+    it("allows org admins who aren't linked guardians", () => {
+      expect(
+        canManageMinorAccount({ isLinkedGuardian: false, orgRoles: "ADMIN" }),
+      ).toBe(true);
+    });
+
+    it("allows team coaches who aren't linked guardians", () => {
+      expect(
+        canManageMinorAccount({ isLinkedGuardian: false, teamRoles: "COACH" }),
+      ).toBe(true);
+    });
+
+    it("blocks non-staff non-guardian users", () => {
+      expect(
+        canManageMinorAccount({ isLinkedGuardian: false, orgRoles: "PARENT" }),
+      ).toBe(false);
+      expect(
+        canManageMinorAccount({ isLinkedGuardian: false, orgRoles: "PLAYER" }),
+      ).toBe(false);
+    });
+  });
+
+  describe("canCreateMinorAccount", () => {
+    it("allows standard accounts", () => {
+      expect(canCreateMinorAccount({ actorAccountType: "standard" })).toBe(
+        true,
+      );
+    });
+
+    it("blocks minor accounts from creating minors", () => {
+      expect(canCreateMinorAccount({ actorAccountType: "minor" })).toBe(false);
     });
   });
 });

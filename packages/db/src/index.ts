@@ -9,6 +9,7 @@
  */
 export * from "./client";
 export * from "./event-admin";
+export * from "./guardian-admin";
 export * from "./league-admin";
 export * from "./membership-admin";
 export * from "./message-admin";

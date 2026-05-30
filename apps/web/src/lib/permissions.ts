@@ -183,3 +183,38 @@ export function assertPermission(currentRole: Role, allowedRoles: Role[]) {
 
   throw new Error(`Role ${currentRole} is not allowed to perform this action.`);
 }
+
+/**
+ * Checks whether the actor can manage a minor account. Allowed for:
+ * - Linked guardians of the minor
+ * - League/team admins and coaches (staff-level roles)
+ */
+export function canManageMinorAccount(context: {
+  isLinkedGuardian: boolean;
+  orgRoles?: RoleInput;
+  teamRoles?: RoleInput;
+}) {
+  if (context.isLinkedGuardian) {
+    return true;
+  }
+  return (
+    hasScopedPermission("org", "ADMIN", context) ||
+    hasScopedPermission("team", "COACH", context)
+  );
+}
+
+/**
+ * Checks whether the actor can create a minor account. Allowed for:
+ * - Any standard (non-minor) account holder (they become the guardian)
+ * - League/team admins and coaches creating on behalf of a player
+ */
+export function canCreateMinorAccount(context: {
+  actorAccountType: string;
+  orgRoles?: RoleInput;
+  teamRoles?: RoleInput;
+}) {
+  if (context.actorAccountType === "minor") {
+    return false;
+  }
+  return true;
+}
