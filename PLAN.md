@@ -156,19 +156,33 @@
 - [ ] Tests for username auth, guardian linking (many-to-many), email routing, and edge cases (last guardian removal blocked, duplicate usernames, etc.).
 - [ ] Milestone checkpoint: update README and auth documentation.
 
-## Milestone 7 — structured relationship tags
+## Milestone 7 — structured relationship tags and captain role
 
 ### Goals
 - Replace the free-text guardian relationship field with defined, selectable options.
 - Keep flexibility for situations that don't fit the defaults.
+- Add a CAPTAIN role for team leadership with configurable permission levels.
 
 ### Work items
+
+#### Relationship tags
 - [ ] Define standard relationship types (parent, guardian, grandparent, stepparent, sibling, coach, emergency contact, other).
 - [ ] Migration to convert existing free-text values to the new structured field.
 - [ ] "Other" option with custom text entry for edge cases.
 - [ ] Update player contact forms to use a dropdown with optional custom entry.
 - [ ] Permission implications: relationship type can influence contact visibility rules.
 - [ ] Tests for migration, form validation, and permission interactions.
+
+#### Captain role
+- [ ] Add CAPTAIN to the membership role enum.
+- [ ] CAPTAIN is a dependent role: requires PLAYER on the same team. Assigning CAPTAIN without PLAYER is blocked. Removing PLAYER auto-removes CAPTAIN.
+- [ ] Permission level toggle per captain assignment: full (can message team, view teammate contact info, help coordinate attendance) or restricted (title and roster visibility only, permissions stay close to PLAYER).
+- [ ] Multiple captains per team with no cap.
+- [ ] Cross-team independence: a user can be captain on one team and a regular player on another.
+- [ ] Minor accounts default to restricted when assigned CAPTAIN. Coaches can override.
+- [ ] Captain badge/indicator on roster views so the role is visible to the team.
+- [ ] Tests for dependent role enforcement, permission toggle, minor defaults, and multi-team scenarios.
+
 - [ ] Milestone checkpoint: update roster documentation.
 
 ## Milestone 8 — template system
