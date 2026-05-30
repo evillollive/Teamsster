@@ -230,7 +230,27 @@
 - [ ] Tests for signup flows, hour calculations, and export output.
 - [ ] Milestone checkpoint: update README and admin documentation.
 
-## Milestone 11 — in-app messaging
+## Milestone 11 — officials and game management
+
+### Goals
+- Support referee and official management at the league level.
+- Handle both internal volunteers (parents who also ref) and external officials.
+- Let officials manage their assignments and log game scores.
+
+### Work items
+- [ ] Add REFEREE role to the membership role enum. Refs are league-scoped members, not team-scoped.
+- [ ] Official profiles: external officials can be invited to the system with a lightweight account, or existing users (e.g., a parent) can receive the REFEREE role alongside their other roles.
+- [ ] Game assignment schema: link officials to specific events/games with assignment status (pending, confirmed, declined).
+- [ ] Assignment workflow: league admins assign officials to games. Officials receive a notification and can confirm or decline.
+- [ ] Official assignment calendar: refs see a personal view of their upcoming assignments with game details, venue, and team info.
+- [ ] Permission scoping for officials: read access to game schedules, team rosters (player names, jersey numbers, eligibility), venue details, and coach contact info. No access to parent contacts, insurance/medical data, or team internal communications.
+- [ ] Score logging: officials can submit game scores after a game. Scores are visible to league admins and can be published to teams.
+- [ ] Admin assignment dashboard: league admins see all games, who's assigned, confirmation status, and gaps that need filling.
+- [ ] Availability preferences: officials can set general availability (days/times) to help admins make assignments.
+- [ ] Tests for role permissions, assignment workflows, score submission, and mixed-role scenarios (parent + referee on same account).
+- [ ] Milestone checkpoint: update README and admin documentation.
+
+## Milestone 12 — in-app messaging
 
 ### Goals
 - Replace the need for Slack, Discord, or group texts with built-in messaging.
@@ -250,7 +270,7 @@
 - [ ] Tests for messaging permissions, minor safety rules, and delivery.
 - [ ] Milestone checkpoint: update README and communication documentation.
 
-## Milestone 12 — extensibility and ecosystem
+## Milestone 13 — extensibility and ecosystem
 
 ### Goals
 - Make Teamsster easy to adapt for different sports and organization sizes.
@@ -265,27 +285,27 @@
 - [ ] Milestone checkpoint: refresh README and contributor-facing docs for extension points.
 
 ### Suggested issue-sized breakdown
-- [ ] 12.1 Deployment hardening baseline
+- [ ] 13.1 Deployment hardening baseline
   - [ ] Finalize and maintain deployment runbook.
   - [ ] Keep environment matrix current across local/staging/production.
   - [ ] Keep migration/release/rollback steps current with platform changes.
-- [ ] 12.2 Extension architecture
+- [ ] 13.2 Extension architecture
   - [ ] Define core-vs-optional package boundaries.
   - [ ] Identify stable extension seams for modules and feature toggles.
   - [ ] Document ownership and compatibility expectations for extension points.
-- [ ] 12.3 Integration surface
+- [ ] 13.3 Integration surface
   - [ ] Introduce domain event hooks for announcements, roster, scheduling, and membership changes.
   - [ ] Document supported lifecycle hooks and payload stability guarantees.
   - [ ] Add tests to protect hook contracts from accidental breakage.
-- [ ] 12.4 Developer platform
+- [ ] 13.4 Developer platform
   - [ ] Publish contributor guide for creating add-on modules.
   - [ ] Provide module templates for validation, permissions, and data access patterns.
   - [ ] Add a reference add-on module skeleton in the monorepo.
-- [ ] 12.5 External API contracts
+- [ ] 13.5 External API contracts
   - [ ] Define versioned external contract surface for web/mobile consumers.
   - [ ] Separate internal-only server actions from public API boundaries.
   - [ ] Document authentication and deprecation policy for external clients.
-- [ ] 12.6 Proof modules
+- [ ] 13.6 Proof modules
   - [ ] Deliver one payments prototype module.
   - [ ] Deliver one stats or tournament/bracket prototype module.
   - [ ] Run checkpoint review to confirm extension architecture supports both.
