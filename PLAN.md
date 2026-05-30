@@ -130,22 +130,22 @@ Minors can sign up and use the app with just a username and password. Every mino
 - Email notifications for minor accounts are delivered to linked guardian(s).
 
 ### Work items
-- [ ] Add optional `username` field to user schema (unique, nullable).
-- [ ] Username/password auth flow alongside existing email/password and magic-link flows.
-- [ ] Username validation rules (length, allowed characters, uniqueness).
-- [ ] Account type flag (standard vs. minor) to enable safety guardrails downstream.
-- [ ] Guardian-minor link table: many-to-many relationship between minor accounts and guardian accounts. A minor must have at least one linked guardian at all times.
-- [ ] Enforce guardian requirement: minor account creation requires linking to an existing guardian account. Unlinking the last guardian from a minor is blocked.
-- [ ] Admin/coach ability to create minor accounts on behalf of a player, with guardian linking in the same flow.
-- [ ] Guardian dashboard: parent/guardian users can see and manage all linked minor accounts from their own profile.
-- [ ] Email routing for minors: all email notifications (reminders, announcements, digests) for minor accounts are delivered to their linked guardian(s) instead, with clear labeling of which child the email is about.
+- [x] Add optional `username` field to user schema (unique, nullable).
+- [x] Username/password auth flow alongside existing email/password and magic-link flows.
+- [x] Username validation rules (length, allowed characters, uniqueness).
+- [x] Account type flag (standard vs. minor) to enable safety guardrails downstream.
+- [x] Guardian-minor link table: many-to-many relationship between minor accounts and guardian accounts. A minor must have at least one linked guardian at all times.
+- [x] Enforce guardian requirement: minor account creation requires linking to an existing guardian account. Unlinking the last guardian from a minor is blocked.
+- [x] Admin/coach ability to create minor accounts on behalf of a player, with guardian linking in the same flow.
+- [x] Guardian dashboard: parent/guardian users can see and manage all linked minor accounts from their own profile.
+- [x] Email routing for minors: all email notifications (reminders, announcements, digests) for minor accounts are delivered to their linked guardian(s) instead, with clear labeling of which child the email is about.
 - [ ] Profile settings page works for username-only accounts (no email change section).
 
 #### Security
-- [ ] Add brute-force protection and per-IP plus per-username rate limiting for username login so repeated guesses can't succeed quietly.
-- [ ] Enforce guardian-minor link integrity in the database with foreign keys, uniqueness rules, and a guard that won't allow a minor record to exist without at least one guardian.
-- [ ] Apply stricter authorization for minor profiles, settings, and notification routing so unrelated members can't read or mutate child data.
-- [ ] Audit-log guardian link creation, relinking, and blocked unlink attempts, and ensure username-only auth tokens don't expose guardian-only actions.
+- [x] Add brute-force protection and per-IP plus per-username rate limiting for username login so repeated guesses can't succeed quietly.
+- [x] Enforce guardian-minor link integrity in the database with foreign keys, uniqueness rules, and a guard that won't allow a minor record to exist without at least one guardian.
+- [x] Apply stricter authorization for minor profiles, settings, and notification routing so unrelated members can't read or mutate child data.
+- [x] Audit-log guardian link creation, relinking, and blocked unlink attempts, and ensure username-only auth tokens don't expose guardian-only actions.
 
 #### Accessibility
 - [ ] Make the username login flow fully screen-reader friendly with explicit labels, described errors, and status messaging that doesn't rely on color alone.
@@ -153,10 +153,10 @@ Minors can sign up and use the app with just a username and password. Every mino
 - [ ] Manage focus correctly after login, account switching, and guardian-link actions so users don't lose their place.
 
 #### Testing
-- [ ] Unit tests for username validation, password policy checks, guardian-link invariants, and minor email-routing helpers.
+- [x] Unit tests for username validation, password policy checks, guardian-link invariants, and minor email-routing helpers.
 - [ ] Integration tests for username-only sign-up and sign-in, guardian-linked minor creation, blocked last-guardian removal, and guardian dashboard actions.
 - [ ] E2E or Playwright tests for the login journey, guardian account management flow, and minor notification routing behavior.
-- [ ] Permission regression tests to prove minor account data can't be viewed or edited outside allowed guardian and staff paths.
+- [x] Permission regression tests to prove minor account data can't be viewed or edited outside allowed guardian and staff paths.
 - [ ] Automated accessibility tests for the login flow and guardian dashboard, including keyboard coverage and axe-style assertions.
 
 - [ ] Milestone checkpoint: update README and auth documentation.
