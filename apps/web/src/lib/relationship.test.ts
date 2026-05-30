@@ -226,7 +226,7 @@ describe("captainPermissionLevelSchema", () => {
 });
 
 describe("assignCaptainSchema", () => {
-  const validUuid = "00000000-0000-0000-0000-000000000001";
+  const validUuid = "550e8400-e29b-41d4-a716-446655440000";
 
   it("validates a valid assignment", () => {
     const result = assignCaptainSchema.safeParse({
@@ -259,7 +259,7 @@ describe("assignCaptainSchema", () => {
 });
 
 describe("updateCaptainPermissionSchema", () => {
-  const validUuid = "00000000-0000-0000-0000-000000000001";
+  const validUuid = "550e8400-e29b-41d4-a716-446655440000";
 
   it("requires permissionLevel", () => {
     const result = updateCaptainPermissionSchema.safeParse({
@@ -281,7 +281,7 @@ describe("updateCaptainPermissionSchema", () => {
 });
 
 describe("revokeCaptainSchema", () => {
-  const validUuid = "00000000-0000-0000-0000-000000000001";
+  const validUuid = "550e8400-e29b-41d4-a716-446655440000";
 
   it("validates a revocation", () => {
     expect(
