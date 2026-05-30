@@ -984,3 +984,46 @@ export const uploads = pgTable(
     index("uploads_user_idx").on(table.uploadedById),
   ],
 );
+
+// ── Templates ────────────────────────────────────────────────────────────────
+
+export const templateTypeValues = [
+  "event",
+  "announcement",
+  "registration_form",
+  "volunteer_opportunity",
+] as const;
+
+export const templateTypeEnum = pgEnum("template_type", templateTypeValues);
+
+export type TemplateType = (typeof templateTypeValues)[number];
+
+export type TemplatePayload = {
+  /** Display fields pre-filled when using this template */
+  fields: Record<string, unknown>;
+  /** Optional description shown in template preview */
+  description?: string;
+};
+
+export const templates = pgTable(
+  "templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    teamId: uuid("team_id").references(() => teams.id),
+    type: templateTypeEnum("type").notNull(),
+    name: text("name").notNull(),
+    payload: jsonb("payload").$type<TemplatePayload>().notNull(),
+    isBuiltIn: boolean("is_built_in").notNull().default(false),
+    createdById: uuid("created_by_id").references(() => users.id),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("templates_league_idx").on(table.leagueId),
+    index("templates_league_type_idx").on(table.leagueId, table.type),
+    index("templates_team_idx").on(table.teamId),
+  ],
+);

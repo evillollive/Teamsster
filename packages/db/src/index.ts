@@ -19,5 +19,6 @@ export * from "./player-admin";
 export * from "./push-tokens";
 export * from "./schema";
 export * from "./team-admin";
+export * from "./template-admin";
 export * from "./upload-admin";
 export * from "./user-onboarding";
