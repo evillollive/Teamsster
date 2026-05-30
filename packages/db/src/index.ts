@@ -7,6 +7,7 @@
  *
  * Do NOT import write functions directly in page/route/action code.
  */
+export * from "./calendar-feed-admin";
 export * from "./captain-admin";
 export * from "./client";
 export * from "./event-admin";
@@ -18,6 +19,7 @@ export * from "./notification-admin";
 export * from "./player-admin";
 export * from "./push-tokens";
 export * from "./schema";
+export * from "./season-admin";
 export * from "./team-admin";
 export * from "./template-admin";
 export * from "./upload-admin";

@@ -319,29 +319,29 @@ Leagues can define seasons and families can self-register their players through 
 - Admin dashboard shows registration status (registered, incomplete, missing).
 
 ### Work items
-- [ ] Season schema: leagues can define seasons (name, year, registration open/close dates, active status) so rosters and forms are scoped to a time period.
-- [ ] Registration form builder: admins can configure which fields are required per season (player info, guardian contacts, emergency contacts, address, custom fields).
-- [ ] Self-service registration flow: parents/guardians fill out the form for their player(s), review, and submit. Returning families see pre-filled data from the previous season.
-- [ ] Multi-child registration: guardians can register multiple linked minors in one flow.
-- [ ] Season-based roster management: when a new season opens, rosters start fresh. Players from the previous season can re-register but aren't auto-carried over.
-- [ ] Registration status dashboard: admins see who's registered, who's incomplete, and who's missing required fields.
-- [ ] Email/push notifications for registration deadlines and incomplete submissions (via M8 notification platform).
+- [x] Season schema: leagues can define seasons (name, year, registration open/close dates, active status) so rosters and forms are scoped to a time period.
+- [x] Registration form builder: admins can configure which fields are required per season (player info, guardian contacts, emergency contacts, address, custom fields).
+- [x] Self-service registration flow: parents/guardians fill out the form for their player(s), review, and submit. Returning families see pre-filled data from the previous season.
+- [x] Multi-child registration: guardians can register multiple linked minors in one flow.
+- [x] Season-based roster management: when a new season opens, rosters start fresh. Players from the previous season can re-register but aren't auto-carried over.
+- [x] Registration status dashboard: admins see who's registered, who's incomplete, and who's missing required fields.
+- [x] Email/push notifications for registration deadlines and incomplete submissions (via M8 notification platform).
 
 #### Security
-- [ ] Sanitize and validate every registration field, especially PII and custom field input, so malformed or hostile data doesn't persist.
-- [ ] Enforce season-level authorization and CSRF-safe submission patterns so only permitted admins can publish forms and families can't submit forged changes.
-- [ ] Add submission rate limiting and duplicate-request protection so registration flows won't create accidental duplicate records.
+- [x] Sanitize and validate every registration field, especially PII and custom field input, so malformed or hostile data doesn't persist.
+- [x] Enforce season-level authorization and CSRF-safe submission patterns so only permitted admins can publish forms and families can't submit forged changes.
+- [x] Add submission rate limiting and duplicate-request protection so registration flows won't create accidental duplicate records.
 
 #### Accessibility
-- [ ] Treat the multi-step registration flow as a first-class accessible wizard with progress indication, keyboard support, and headings that screen readers can follow so families don't have to guess progress.
-- [ ] Move focus to the step title or first invalid field after each transition so families don't get stranded during multi-child registration.
-- [ ] Present validation errors, required state, and save progress messaging in ways that don't rely on color and work on mobile touch targets.
+- [x] Treat the multi-step registration flow as a first-class accessible wizard with progress indication, keyboard support, and headings that screen readers can follow so families don't have to guess progress.
+- [x] Move focus to the step title or first invalid field after each transition so families don't get stranded during multi-child registration.
+- [x] Present validation errors, required state, and save progress messaging in ways that don't rely on color and work on mobile touch targets.
 
 #### Testing
-- [ ] Unit tests for registration field validation, season state rules, multi-child form state management, and prefill merge behavior.
+- [x] Unit tests for registration field validation, season state rules, multi-child form state management, and prefill merge behavior.
 - [ ] Integration tests for season creation, configurable form publishing, family submissions, incomplete-state recovery, and deadline reminders.
 - [ ] E2E or Playwright tests for single-child and multi-child registration journeys, including resume and review steps.
-- [ ] Permission regression tests to prove only allowed admins can configure forms and only linked guardians can submit or edit minor registrations.
+- [x] Permission regression tests to prove only allowed admins can configure forms and only linked guardians can submit or edit minor registrations.
 - [ ] Automated accessibility tests for the registration wizard, progress UI, validation messaging, and submission confirmation screens.
 
 - [ ] Milestone checkpoint: update README and admin documentation.
@@ -405,30 +405,30 @@ Users can subscribe to team and league calendars from Apple Calendar, Google Cal
 - Each subscription URL is unique per user for privacy.
 
 ### Work items
-- [ ] Subscribable iCal feed URLs for team and league calendars (read-only `.ics` endpoint that Apple Calendar, Google Calendar, Outlook, etc. can poll).
-- [ ] Per-team and per-league feed URLs with token-based authentication (no login required to subscribe, but URL is unique per user to respect privacy).
-- [ ] Feed includes all events the user has access to, with RSVP status embedded as attendee metadata.
-- [ ] Auto-updates: external calendars pick up new/changed/cancelled events on their next sync cycle.
-- [ ] UI for copying the subscription URL from team and league settings pages.
+- [x] Subscribable iCal feed URLs for team and league calendars (read-only `.ics` endpoint that Apple Calendar, Google Calendar, Outlook, etc. can poll).
+- [x] Per-team and per-league feed URLs with token-based authentication (no login required to subscribe, but URL is unique per user to respect privacy).
+- [x] Feed includes all events the user has access to, with RSVP status embedded as attendee metadata.
+- [x] Auto-updates: external calendars pick up new/changed/cancelled events on their next sync cycle.
+- [x] UI for copying the subscription URL from team and league settings pages.
 
 #### Security
-- [ ] Generate feed tokens with cryptographically secure randomness, store only what the app needs, and support revocation and rotation so feed URLs can't be guessed or reused forever.
-- [ ] Add rate limiting and abuse monitoring on calendar feed endpoints so scraping or token guessing doesn't become an easy denial-of-service path.
-- [ ] Audit-log feed issuance, revocation, and copy actions so privacy-sensitive subscription links won't change hands without traceability.
+- [x] Generate feed tokens with cryptographically secure randomness, store only what the app needs, and support revocation and rotation so feed URLs can't be guessed or reused forever.
+- [x] Add rate limiting and abuse monitoring on calendar feed endpoints so scraping or token guessing doesn't become an easy denial-of-service path.
+- [x] Audit-log feed issuance, revocation, and copy actions so privacy-sensitive subscription links won't change hands without traceability.
 
 #### Accessibility
-- [ ] Make the subscription URL copy flow keyboard friendly and announce copy success or failure with screen-reader feedback so users don't wonder whether it worked.
-- [ ] Provide accessible helper text that explains how read-only feeds work, how to revoke them, and what data each URL exposes so people don't have to infer privacy rules.
-- [ ] Keep copy buttons, token management controls, and settings layouts compliant with contrast and touch target guidance.
+- [x] Make the subscription URL copy flow keyboard friendly and announce copy success or failure with screen-reader feedback so users don't wonder whether it worked.
+- [x] Provide accessible helper text that explains how read-only feeds work, how to revoke them, and what data each URL exposes so people don't have to infer privacy rules.
+- [x] Keep copy buttons, token management controls, and settings layouts compliant with contrast and touch target guidance.
 
 #### Testing
-- [ ] Unit tests for token generation, hashing or storage helpers, revocation logic, and feed visibility filtering.
+- [x] Unit tests for token generation, hashing or storage helpers, revocation logic, and feed visibility filtering.
 - [ ] Integration tests for authenticated feed generation, revoked-token failures, rate limiting, and event update propagation.
 - [ ] E2E or Playwright tests for copying a subscription URL, revoking it, and confirming the regenerated feed still works.
-- [ ] Permission regression tests to prove feeds only include events the requesting user is allowed to see.
+- [x] Permission regression tests to prove feeds only include events the requesting user is allowed to see.
 - [ ] Automated accessibility tests for the copy flow, subscription settings UI, and success feedback states.
 
-- [ ] Milestone checkpoint: update scheduling documentation.
+- [x] Milestone checkpoint: update scheduling documentation.
 
 ## Milestone 13 — volunteer tracking
 

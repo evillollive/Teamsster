@@ -1027,3 +1027,130 @@ export const templates = pgTable(
     index("templates_team_idx").on(table.teamId),
   ],
 );
+
+// ── Seasons and registration ─────────────────────────────────────────────────
+
+export const seasonStatusValues = [
+  "draft",
+  "open",
+  "closed",
+  "archived",
+] as const;
+export const seasonStatusEnum = pgEnum("season_status", seasonStatusValues);
+export type SeasonStatus = (typeof seasonStatusValues)[number];
+
+export const registrationStatusValues = [
+  "not_started",
+  "incomplete",
+  "submitted",
+  "approved",
+  "rejected",
+] as const;
+export const registrationStatusEnum = pgEnum(
+  "registration_status",
+  registrationStatusValues,
+);
+export type RegistrationStatus = (typeof registrationStatusValues)[number];
+
+export type RegistrationFormConfig = {
+  requiredFields: string[];
+  optionalFields: string[];
+  customFields: Array<{
+    key: string;
+    label: string;
+    type: "text" | "boolean" | "select";
+    options?: string[];
+    required: boolean;
+  }>;
+};
+
+export const seasons = pgTable(
+  "seasons",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    name: text("name").notNull(),
+    year: text("year").notNull(),
+    status: seasonStatusEnum("status").notNull().default("draft"),
+    registrationOpensAt: timestamp("registration_opens_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    registrationClosesAt: timestamp("registration_closes_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    formConfig: jsonb("form_config")
+      .$type<RegistrationFormConfig>()
+      .notNull()
+      .default(
+        sql`'{"requiredFields":["firstName","lastName","guardianContact","emergencyContact"],"optionalFields":["address","medicalNotes"],"customFields":[]}'::jsonb`,
+      ),
+    createdById: uuid("created_by_id").references(() => users.id),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("seasons_league_idx").on(table.leagueId),
+    index("seasons_league_status_idx").on(table.leagueId, table.status),
+  ],
+);
+
+export const registrations = pgTable(
+  "registrations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    seasonId: uuid("season_id")
+      .notNull()
+      .references(() => seasons.id),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    playerId: uuid("player_id").references(() => players.id),
+    guardianUserId: uuid("guardian_user_id")
+      .notNull()
+      .references(() => users.id),
+    status: registrationStatusEnum("status").notNull().default("not_started"),
+    formData: jsonb("form_data")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    submittedAt: timestamp("submitted_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    reviewedById: uuid("reviewed_by_id").references(() => users.id),
+    reviewNotes: text("review_notes"),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("registrations_season_idx").on(table.seasonId),
+    index("registrations_league_idx").on(table.leagueId),
+    index("registrations_guardian_idx").on(table.guardianUserId),
+    index("registrations_status_idx").on(table.seasonId, table.status),
+  ],
+);
+
+// ── Calendar subscriptions ───────────────────────────────────────────────────
+
+export const calendarFeedTokens = pgTable(
+  "calendar_feed_tokens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    leagueId: uuid("league_id").references(() => leagues.id),
+    teamId: uuid("team_id").references(() => teams.id),
+    token: text("token").notNull(),
+    revokedAt: timestamp("revoked_at", { mode: "date", withTimezone: true }),
+    ...timestampColumns,
+  },
+  (table) => [
+    uniqueIndex("calendar_feed_tokens_token_unique").on(table.token),
+    index("calendar_feed_tokens_user_idx").on(table.userId),
+  ],
+);
