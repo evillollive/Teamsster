@@ -7,6 +7,7 @@ vi.mock("@teamsster/db", () => ({
   createPlayerContact: vi.fn(),
   getPlayerContactsByTeamId: vi.fn(),
   getPlayersByTeamId: vi.fn(),
+  getTeamCaptains: vi.fn().mockResolvedValue([]),
   getUserIdByAuthUserId: vi.fn(),
   getUserLeagueMembership: vi.fn(),
   getUserTeamMembership: vi.fn(),

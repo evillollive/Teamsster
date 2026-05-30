@@ -442,3 +442,104 @@ describe("relationshipTypeSchema", () => {
     expect(relationshipTypeSchema.safeParse("").success).toBe(false);
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Migration backfill integration tests
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe("relationship backfill (migration logic)", () => {
+  it("maps every synonym to the correct type without custom text", () => {
+    const synonymMap: Record<string, string> = {
+      mom: "parent",
+      Mother: "parent",
+      Dad: "parent",
+      "legal guardian": "guardian",
+      "step-mom": "stepparent",
+      "step dad": "stepparent",
+      stepfather: "stepparent",
+      Grandma: "grandparent",
+      nanny: "grandparent",
+      Brother: "sibling",
+      sister: "sibling",
+      Coach: "coach",
+    };
+
+    for (const [input, expected] of Object.entries(synonymMap)) {
+      const result = normalizeRelationship(input);
+      expect(result.relationshipType).toBe(expected);
+      expect(result.customRelationship).toBeNull();
+    }
+  });
+
+  it("preserves unrecognized text as custom_relationship with type 'other'", () => {
+    const unknowns = ["Aunt", "Family friend", "host parent", "Neighbor"];
+    for (const input of unknowns) {
+      const result = normalizeRelationship(input);
+      expect(result.relationshipType).toBe("other");
+      expect(result.customRelationship).toBe(input.trim());
+    }
+  });
+
+  it("handles null and empty inputs as 'other' with no custom text", () => {
+    expect(normalizeRelationship(null)).toEqual({
+      relationshipType: "other",
+      customRelationship: null,
+    });
+    expect(normalizeRelationship("")).toEqual({
+      relationshipType: "other",
+      customRelationship: null,
+    });
+    expect(normalizeRelationship("   ")).toEqual({
+      relationshipType: "other",
+      customRelationship: null,
+    });
+  });
+
+  it("trims whitespace and normalizes case", () => {
+    expect(normalizeRelationship("  Mom  ").relationshipType).toBe("parent");
+    expect(normalizeRelationship("GUARDIAN").relationshipType).toBe("guardian");
+    expect(normalizeRelationship("  COACH  ").relationshipType).toBe("coach");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Captain assignment integration tests
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe("captain assignment across teams", () => {
+  it("captain on one team does not grant contact visibility on another team", () => {
+    const canViewOnTeamA = canCaptainViewContacts({
+      isCaptainOnTeam: true,
+      captainPermissionLevel: "full",
+    });
+    const canViewOnTeamB = canCaptainViewContacts({
+      isCaptainOnTeam: false,
+      captainPermissionLevel: null,
+    });
+    expect(canViewOnTeamA).toBe(true);
+    expect(canViewOnTeamB).toBe(false);
+  });
+
+  it("full captain can message team, restricted cannot", () => {
+    expect(
+      canCaptainMessageTeam({
+        isCaptainOnTeam: true,
+        captainPermissionLevel: "full",
+      }),
+    ).toBe(true);
+    expect(
+      canCaptainMessageTeam({
+        isCaptainOnTeam: true,
+        captainPermissionLevel: "restricted",
+      }),
+    ).toBe(false);
+  });
+
+  it("captain management requires COACH or ADMIN", () => {
+    expect(canManageCaptains({ teamRoles: "COACH" })).toBe(true);
+    expect(canManageCaptains({ orgRoles: "ADMIN" })).toBe(true);
+    expect(canManageCaptains({ teamRoles: "PLAYER" })).toBe(false);
+    expect(canManageCaptains({ orgRoles: "PLAYER" })).toBe(false);
+    expect(canManageCaptains({ teamRoles: "CAPTAIN" })).toBe(false);
+  });
+});

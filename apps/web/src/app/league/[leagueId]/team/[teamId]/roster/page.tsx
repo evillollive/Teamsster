@@ -1,4 +1,5 @@
 import { auth } from "@teamsster/auth";
+import { getTeamCaptains } from "@teamsster/db";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import Link from "next/link";
@@ -99,13 +100,14 @@ export default async function TeamRosterPage({
   }
   const activeTeam = team;
 
-  const [contacts, contactActionPermissions] = await Promise.all([
+  const [contacts, contactActionPermissions, captains] = await Promise.all([
     getPlayerContactsForTeamAsUser(session?.user?.id, leagueId, teamId),
     getContactActionPermissionsForTeamAsUser(
       session?.user?.id,
       leagueId,
       teamId,
     ),
+    getTeamCaptains(teamId),
   ]);
   const contactsByPlayerId = contacts.reduce<
     Record<
@@ -426,6 +428,48 @@ export default async function TeamRosterPage({
           </div>
         </form>
       </Card>
+
+      {captains.length > 0 ? (
+        <Card className="grid gap-3">
+          <h2 className="text-lg font-semibold">Team captains</h2>
+          <ul className="grid gap-2" aria-label="Team captains">
+            {captains.map((captain) => (
+              <li
+                className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2"
+                key={captain.userId}
+              >
+                <span
+                  aria-label="Captain"
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 text-amber-700"
+                  role="img"
+                  title="Captain"
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                </span>
+                <span className="text-sm font-medium text-slate-700">
+                  {captain.displayName ?? captain.email}
+                </span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                  {captain.captainPermissionLevel === "full"
+                    ? "Full permissions"
+                    : "Restricted"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
 
       <Card className="grid gap-4">
         <h2 className="text-lg font-semibold">Active players</h2>

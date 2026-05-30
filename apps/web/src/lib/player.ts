@@ -6,6 +6,7 @@ import {
   createPlayerContact,
   getPlayerContactsByTeamId,
   getPlayersByTeamId,
+  getTeamCaptains,
   getUserIdByAuthUserId,
   getUserLeagueMembership,
   getUserTeamMembership,
@@ -14,7 +15,10 @@ import {
 import { z } from "zod";
 
 import { timezoneSchema } from "@/lib/account";
-import type { PermissionContext } from "@/lib/permissions";
+import type {
+  ContactVisibilityContext,
+  PermissionContext,
+} from "@/lib/permissions";
 import {
   canAccessAction,
   canAccessFeature,
@@ -342,7 +346,7 @@ export async function getPlayerContactsForTeam(
 
 export function applyContactFieldMask(
   contact: PlayerContactSummary,
-  context: PermissionContext,
+  context: ContactVisibilityContext,
 ): PlayerContactSummary {
   return {
     ...contact,
@@ -382,14 +386,18 @@ export async function getPlayerContactsForTeamAsUser(
     );
   }
 
-  const [leagueMembership, teamMembership] = await Promise.all([
+  const [leagueMembership, teamMembership, captains] = await Promise.all([
     getUserLeagueMembership(leagueId, userId),
     getUserTeamMembership(teamId, userId),
+    getTeamCaptains(teamId),
   ]);
 
-  const context: PermissionContext = {
+  const captainEntry = captains.find((c) => c.userId === userId);
+  const context: ContactVisibilityContext = {
     orgRoles: leagueMembership?.roles ?? [],
     teamRoles: teamMembership?.roles ?? [],
+    isCaptainOnTeam: Boolean(captainEntry),
+    captainPermissionLevel: captainEntry?.captainPermissionLevel ?? null,
   };
 
   return contacts.map((c) => applyContactFieldMask(c, context));

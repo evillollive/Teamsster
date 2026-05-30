@@ -180,10 +180,10 @@ Guardian relationships use structured, selectable types instead of free text. Te
 
 #### Relationship tags
 - [x] Define standard relationship types (parent, guardian, grandparent, stepparent, sibling, coach, emergency contact, other).
-- [ ] Migration to convert existing free-text values to the new structured field.
+- [x] Migration to convert existing free-text values to the new structured field.
 - [x] "Other" option with custom text entry for edge cases.
-- [ ] Update player contact forms to use a dropdown with optional custom entry.
-- [ ] Permission implications: relationship type can influence contact visibility rules.
+- [x] Update player contact forms to use a dropdown with optional custom entry.
+- [x] Permission implications: relationship type can influence contact visibility rules.
 
 #### Captain role
 - [x] Add CAPTAIN to the membership role enum.
@@ -192,7 +192,7 @@ Guardian relationships use structured, selectable types instead of free text. Te
 - [x] Multiple captains per team with no cap.
 - [x] Cross-team independence: a user can be captain on one team and a regular player on another.
 - [x] Minor accounts default to restricted when assigned CAPTAIN. Coaches can override.
-- [ ] Captain badge/indicator on roster views so the role is visible to the team.
+- [x] Captain badge/indicator on roster views so the role is visible to the team.
 
 #### Security
 - [x] Audit-log every relationship type change, custom relationship edit, and captain permission toggle so privilege changes can't happen silently.
@@ -200,18 +200,18 @@ Guardian relationships use structured, selectable types instead of free text. Te
 - [x] Harden the captain permission toggle against privilege escalation by validating allowed transitions and actor permissions on every update.
 
 #### Accessibility
-- [ ] Make the relationship dropdown and custom entry flow screen-reader friendly with clear labels, roles, and help text that doesn't disappear on focus changes.
-- [ ] Ensure captain assignment controls work from the keyboard, announce permission toggle state changes, and keep focus stable after saves so users don't lose context.
-- [ ] Validate color contrast and touch target sizing for captain badges, dropdown options, and inline validation states so nobody has to fight the UI.
+- [x] Make the relationship dropdown and custom entry flow screen-reader friendly with clear labels, roles, and help text that doesn't disappear on focus changes.
+- [x] Ensure captain assignment controls work from the keyboard, announce permission toggle state changes, and keep focus stable after saves so users don't lose context.
+- [x] Validate color contrast and touch target sizing for captain badges, dropdown options, and inline validation states so nobody has to fight the UI.
 
 #### Testing
 - [x] Unit tests for relationship normalization, custom relationship validation, captain dependency rules, and restricted-vs-full captain permission resolution.
-- [ ] Integration tests for free-text migration, relationship form submission, audit logging, and captain assignment updates across multiple teams.
+- [x] Integration tests for free-text migration, relationship form submission, audit logging, and captain assignment updates across multiple teams.
 - [ ] E2E or Playwright tests for selecting a structured relationship, entering an "other" value, and toggling captain permissions from roster management.
 - [x] Permission regression tests to prove restricted captains don't inherit full captain capabilities and minors default correctly.
 - [ ] Automated accessibility tests for the relationship selector, custom entry field, and captain management controls.
 
-- [ ] Milestone checkpoint: update roster documentation.
+- [x] Milestone checkpoint: update roster documentation.
 
 ## Milestone 8 — notification platform
 

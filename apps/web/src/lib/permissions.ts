@@ -15,6 +15,10 @@ export type FeaturePermission =
   | "roster.edit"
   | "team.manage";
 export type FieldPermission = "contact.viewEmail" | "contact.viewPhone";
+export type ContactVisibilityContext = PermissionContext & {
+  isCaptainOnTeam?: boolean;
+  captainPermissionLevel?: CaptainPermissionLevel;
+};
 export type ActionPermission =
   | "contact.call"
   | "contact.email"
@@ -141,14 +145,18 @@ export function canViewAuditLog(roleInput: RoleInput) {
 
 export function canAccessField(
   field: FieldPermission,
-  context: PermissionContext,
+  context: ContactVisibilityContext,
 ) {
   switch (field) {
     case "contact.viewEmail":
     case "contact.viewPhone":
       return (
         hasScopedPermission("org", "BOARD_MEMBER", context) ||
-        hasScopedPermission("team", "COACH", context)
+        hasScopedPermission("team", "COACH", context) ||
+        canCaptainViewContacts({
+          isCaptainOnTeam: context.isCaptainOnTeam ?? false,
+          captainPermissionLevel: context.captainPermissionLevel ?? null,
+        })
       );
     default:
       return false;

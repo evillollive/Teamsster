@@ -248,4 +248,61 @@ describe("permissions", () => {
       expect(canCreateMinorAccount({ actorAccountType: "minor" })).toBe(false);
     });
   });
+
+  describe("captain contact visibility", () => {
+    it("grants contact field access to full captains on the team", () => {
+      expect(
+        canAccessField("contact.viewEmail", {
+          teamRoles: "PLAYER",
+          isCaptainOnTeam: true,
+          captainPermissionLevel: "full",
+        }),
+      ).toBe(true);
+      expect(
+        canAccessField("contact.viewPhone", {
+          teamRoles: "PLAYER",
+          isCaptainOnTeam: true,
+          captainPermissionLevel: "full",
+        }),
+      ).toBe(true);
+    });
+
+    it("denies contact field access to restricted captains", () => {
+      expect(
+        canAccessField("contact.viewEmail", {
+          teamRoles: "PLAYER",
+          isCaptainOnTeam: true,
+          captainPermissionLevel: "restricted",
+        }),
+      ).toBe(false);
+      expect(
+        canAccessField("contact.viewPhone", {
+          teamRoles: "PLAYER",
+          isCaptainOnTeam: true,
+          captainPermissionLevel: "restricted",
+        }),
+      ).toBe(false);
+    });
+
+    it("denies contact field access when not a captain", () => {
+      expect(
+        canAccessField("contact.viewEmail", {
+          teamRoles: "PLAYER",
+          isCaptainOnTeam: false,
+          captainPermissionLevel: null,
+        }),
+      ).toBe(false);
+    });
+
+    it("grants access via captain even when org/team roles are insufficient", () => {
+      expect(
+        canAccessField("contact.viewEmail", {
+          orgRoles: "PLAYER",
+          teamRoles: "PLAYER",
+          isCaptainOnTeam: true,
+          captainPermissionLevel: "full",
+        }),
+      ).toBe(true);
+    });
+  });
 });
