@@ -171,7 +171,30 @@
 - [ ] Tests for migration, form validation, and permission interactions.
 - [ ] Milestone checkpoint: update roster documentation.
 
-## Milestone 8 — volunteer tracking
+## Milestone 8 — seasonal registration and forms
+
+### Goals
+- Give leagues a self-service registration flow that families complete each season.
+- Collect all required information (player details, emergency contacts, insurance, medical info, addresses) in one guided form.
+- Support digital liability waiver signatures so paperwork doesn't live in binders.
+- Leave a clean seam for future payment integration without building a payment system now.
+
+### Work items
+- [ ] Season schema: leagues can define seasons (name, year, registration open/close dates, active status) so rosters and forms are scoped to a time period.
+- [ ] Registration form builder: admins can configure which fields are required per season (player info, guardian contacts, emergency contacts, insurance, medical notes, address, custom fields).
+- [ ] Self-service registration flow: parents/guardians fill out the form for their player(s), review, and submit. Returning families see pre-filled data from the previous season.
+- [ ] Insurance information fields: carrier, policy number, group number, insured name. Stored securely with role-gated visibility (admin/coach only).
+- [ ] Medical/allergy notes field: free-text for conditions coaches need to know about, with appropriate visibility controls.
+- [ ] Digital waiver signatures: click-through liability/participation agreements with timestamp, IP, and signer identity recorded. Waiver text is configurable per league.
+- [ ] Waiver storage and retrieval: admins can view and export signed waivers for compliance.
+- [ ] Season-based roster management: when a new season opens, rosters start fresh. Players from the previous season can re-register but aren't auto-carried over.
+- [ ] Registration status dashboard: admins see who's registered, who's incomplete, and who's missing waivers or required fields.
+- [ ] Payment integration hook: registration form includes a "payment" step placeholder that can link to an external processor (Stripe, PayPal, etc.) in a future milestone. For now, admins can mark payment as received/pending manually.
+- [ ] Email/push notifications for registration deadlines and incomplete submissions.
+- [ ] Tests for form validation, waiver recording, season transitions, and permission-gated field visibility.
+- [ ] Milestone checkpoint: update README and admin documentation.
+
+## Milestone 9 — volunteer tracking
 
 ### Goals
 - Give leagues a simple, reliable way to track volunteer signups and hours.
@@ -189,7 +212,7 @@
 - [ ] Tests for signup flows, hour calculations, and export output.
 - [ ] Milestone checkpoint: update README and admin documentation.
 
-## Milestone 9 — in-app messaging
+## Milestone 10 — in-app messaging
 
 ### Goals
 - Replace the need for Slack, Discord, or group texts with built-in messaging.
@@ -209,7 +232,7 @@
 - [ ] Tests for messaging permissions, minor safety rules, and delivery.
 - [ ] Milestone checkpoint: update README and communication documentation.
 
-## Milestone 10 — extensibility and ecosystem
+## Milestone 11 — extensibility and ecosystem
 
 ### Goals
 - Make Teamsster easy to adapt for different sports and organization sizes.
@@ -224,27 +247,27 @@
 - [ ] Milestone checkpoint: refresh README and contributor-facing docs for extension points.
 
 ### Suggested issue-sized breakdown
-- [ ] 10.1 Deployment hardening baseline
+- [ ] 11.1 Deployment hardening baseline
   - [ ] Finalize and maintain deployment runbook.
   - [ ] Keep environment matrix current across local/staging/production.
   - [ ] Keep migration/release/rollback steps current with platform changes.
-- [ ] 10.2 Extension architecture
+- [ ] 11.2 Extension architecture
   - [ ] Define core-vs-optional package boundaries.
   - [ ] Identify stable extension seams for modules and feature toggles.
   - [ ] Document ownership and compatibility expectations for extension points.
-- [ ] 10.3 Integration surface
+- [ ] 11.3 Integration surface
   - [ ] Introduce domain event hooks for announcements, roster, scheduling, and membership changes.
   - [ ] Document supported lifecycle hooks and payload stability guarantees.
   - [ ] Add tests to protect hook contracts from accidental breakage.
-- [ ] 10.4 Developer platform
+- [ ] 11.4 Developer platform
   - [ ] Publish contributor guide for creating add-on modules.
   - [ ] Provide module templates for validation, permissions, and data access patterns.
   - [ ] Add a reference add-on module skeleton in the monorepo.
-- [ ] 10.5 External API contracts
+- [ ] 11.5 External API contracts
   - [ ] Define versioned external contract surface for web/mobile consumers.
   - [ ] Separate internal-only server actions from public API boundaries.
   - [ ] Document authentication and deprecation policy for external clients.
-- [ ] 10.6 Proof modules
+- [ ] 11.6 Proof modules
   - [ ] Deliver one payments prototype module.
   - [ ] Deliver one stats or tournament/bracket prototype module.
   - [ ] Run checkpoint review to confirm extension architecture supports both.
