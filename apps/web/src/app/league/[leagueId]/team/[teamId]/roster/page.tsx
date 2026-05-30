@@ -257,9 +257,8 @@ export default async function TeamRosterPage({
       leagueId,
       phone: (formData.get("phone") as string | null) ?? undefined,
       playerId: (formData.get("playerId") as string | null) ?? "",
-      relationshipType:
-        ((formData.get("relationshipType") as string | null) ?? "parent") as
-          keyof typeof RELATIONSHIP_TYPE_LABELS,
+      relationshipType: ((formData.get("relationshipType") as string | null) ??
+        "parent") as keyof typeof RELATIONSHIP_TYPE_LABELS,
       teamId,
     });
 
@@ -730,8 +729,8 @@ export default async function TeamRosterPage({
                             className="text-xs text-slate-500"
                             id={`contact-relationship-help-${player.id}`}
                           >
-                            Choose the closest relationship. If you choose Other,
-                            fill in the custom relationship field below.
+                            Choose the closest relationship. If you choose
+                            Other, fill in the custom relationship field below.
                           </p>
                         </div>
                       </FormField>

@@ -27,7 +27,7 @@ export type PlayerSummary = {
 };
 
 type PlayerContactRelationshipType =
-  (typeof playerContacts.$inferInsert)["relationshipType"];
+  (typeof playerContacts.$inferSelect)["relationshipType"];
 
 export type PlayerContactSummary = {
   id: string;
@@ -112,7 +112,10 @@ type ArchivePlayerContactInput = {
   actorUserId: string;
 };
 
-const relationshipTypeLabels: Record<NonNullable<PlayerContactRelationshipType>, string> = {
+const relationshipTypeLabels: Record<
+  NonNullable<PlayerContactRelationshipType>,
+  string
+> = {
   parent: "Parent",
   guardian: "Guardian",
   stepparent: "Stepparent",
@@ -347,7 +350,9 @@ export async function createPlayerContact(input: CreatePlayerContactInput) {
   const normalizedStructuredRelationship = relationshipType
     ? {
         customRelationship:
-          relationshipType === "other" ? customRelationship?.trim() || null : null,
+          relationshipType === "other"
+            ? customRelationship?.trim() || null
+            : null,
         relationshipType,
       }
     : normalizeRelationship(relationship);
