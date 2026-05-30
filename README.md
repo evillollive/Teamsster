@@ -52,7 +52,8 @@ pnpm db:migrate
 
 Teamsster isn't just a scaffold. There's real working functionality across several domains:
 
-- **Auth and onboarding.** Email/password and magic-link sign-in via Better Auth, plus onboarding flows and account settings.
+- **Auth and onboarding.** Email/password, magic-link, and username/password sign-in via Better Auth. Minor accounts can sign in with just a username (no email needed). Onboarding flows, account settings, and guardian management for linked minor accounts.
+- **Minor accounts and guardian links.** Kids don't need an email address. A parent or guardian creates a minor account with a username and password, and all notifications route to the guardian(s) instead. Many-to-many guardian links with primary designation, and the system won't let you remove the last guardian from a minor.
 - **League administration.** Create, update, and archive leagues and teams. Role assignment with reusable templates, invitation workflows, audit log persistence, and a dashboard with empty states that guide new users.
 - **Roster management.** Player CRUD with soft deletes, guardian contacts, eligibility tracking, and profile metadata.
 - **Scheduling.** Team event creation with recurrence, RSVP states, ICS calendar exports, reminder windows, and embedded team/league agenda views.
@@ -67,6 +68,7 @@ A few design decisions that shape how the whole thing fits together:
 - **No database calls in components.** All data access goes through server actions and service layers. Components stay focused on rendering.
 - **Soft deletes and audit trails everywhere.** Nothing actually disappears. Every mutation is traceable, which matters when volunteers rotate and context gets lost.
 - **Players aren't users.** Player records are decoupled from user accounts, so a coach can manage a roster without every 8-year-old needing a login.
+- **Minor-safe by design.** Minor accounts use system-generated placeholder emails that never receive real mail. All notifications route through guardians, auth email senders block placeholder addresses, and personal league provisioning is skipped for minors.
 - **Mobile-first, accessible by default.** The UI is built on shadcn/ui-compatible components with Radix primitives, so keyboard navigation and screen readers work out of the box.
 
 ## Workspace layout
