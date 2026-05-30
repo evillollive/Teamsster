@@ -1,8 +1,5 @@
 import { auth } from "@teamsster/auth";
-import {
-  getMinorGuardians,
-  isMinorPlaceholderEmail,
-} from "@teamsster/db";
+import { getMinorGuardians, isMinorPlaceholderEmail } from "@teamsster/db";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
