@@ -140,7 +140,25 @@ Minors can sign up and use the app with just a username and password. Every mino
 - [ ] Guardian dashboard: parent/guardian users can see and manage all linked minor accounts from their own profile.
 - [ ] Email routing for minors: all email notifications (reminders, announcements, digests) for minor accounts are delivered to their linked guardian(s) instead, with clear labeling of which child the email is about.
 - [ ] Profile settings page works for username-only accounts (no email change section).
-- [ ] Tests for username auth, guardian linking (many-to-many), email routing, and edge cases (last guardian removal blocked, duplicate usernames, etc.).
+
+#### Security
+- [ ] Add brute-force protection and per-IP plus per-username rate limiting for username login so repeated guesses can't succeed quietly.
+- [ ] Enforce guardian-minor link integrity in the database with foreign keys, uniqueness rules, and a guard that won't allow a minor record to exist without at least one guardian.
+- [ ] Apply stricter authorization for minor profiles, settings, and notification routing so unrelated members can't read or mutate child data.
+- [ ] Audit-log guardian link creation, relinking, and blocked unlink attempts, and ensure username-only auth tokens don't expose guardian-only actions.
+
+#### Accessibility
+- [ ] Make the username login flow fully screen-reader friendly with explicit labels, described errors, and status messaging that doesn't rely on color alone.
+- [ ] Ensure the guardian dashboard supports complete keyboard navigation, visible focus states, and touch targets that won't frustrate mobile caregivers.
+- [ ] Manage focus correctly after login, account switching, and guardian-link actions so users don't lose their place.
+
+#### Testing
+- [ ] Unit tests for username validation, password policy checks, guardian-link invariants, and minor email-routing helpers.
+- [ ] Integration tests for username-only sign-up and sign-in, guardian-linked minor creation, blocked last-guardian removal, and guardian dashboard actions.
+- [ ] E2E or Playwright tests for the login journey, guardian account management flow, and minor notification routing behavior.
+- [ ] Permission regression tests to prove minor account data can't be viewed or edited outside allowed guardian and staff paths.
+- [ ] Automated accessibility tests for the login flow and guardian dashboard, including keyboard coverage and axe-style assertions.
+
 - [ ] Milestone checkpoint: update README and auth documentation.
 
 ## Milestone 7 — structured relationship tags and captain role
@@ -166,7 +184,6 @@ Guardian relationships use structured, selectable types instead of free text. Te
 - [ ] "Other" option with custom text entry for edge cases.
 - [ ] Update player contact forms to use a dropdown with optional custom entry.
 - [ ] Permission implications: relationship type can influence contact visibility rules.
-- [ ] Tests for migration, form validation, and permission interactions.
 
 #### Captain role
 - [ ] Add CAPTAIN to the membership role enum.
@@ -176,7 +193,23 @@ Guardian relationships use structured, selectable types instead of free text. Te
 - [ ] Cross-team independence: a user can be captain on one team and a regular player on another.
 - [ ] Minor accounts default to restricted when assigned CAPTAIN. Coaches can override.
 - [ ] Captain badge/indicator on roster views so the role is visible to the team.
-- [ ] Tests for dependent role enforcement, permission toggle, minor defaults, and multi-team scenarios.
+
+#### Security
+- [ ] Audit-log every relationship type change, custom relationship edit, and captain permission toggle so privilege changes can't happen silently.
+- [ ] Enforce captain dependency rules in both service and database layers so CAPTAIN can't exist without PLAYER on the same team.
+- [ ] Harden the captain permission toggle against privilege escalation by validating allowed transitions and actor permissions on every update.
+
+#### Accessibility
+- [ ] Make the relationship dropdown and custom entry flow screen-reader friendly with clear labels, roles, and help text that doesn't disappear on focus changes.
+- [ ] Ensure captain assignment controls work from the keyboard, announce permission toggle state changes, and keep focus stable after saves so users don't lose context.
+- [ ] Validate color contrast and touch target sizing for captain badges, dropdown options, and inline validation states so nobody has to fight the UI.
+
+#### Testing
+- [ ] Unit tests for relationship normalization, custom relationship validation, captain dependency rules, and restricted-vs-full captain permission resolution.
+- [ ] Integration tests for free-text migration, relationship form submission, audit logging, and captain assignment updates across multiple teams.
+- [ ] E2E or Playwright tests for selecting a structured relationship, entering an "other" value, and toggling captain permissions from roster management.
+- [ ] Permission regression tests to prove restricted captains don't inherit full captain capabilities and minors default correctly.
+- [ ] Automated accessibility tests for the relationship selector, custom entry field, and captain management controls.
 
 - [ ] Milestone checkpoint: update roster documentation.
 
@@ -206,7 +239,25 @@ A unified notification system that handles routing, preferences, and delivery ac
 - [ ] Badge count management (unread notifications).
 - [ ] Delivery logging: record every dispatch attempt with channel, status, and timestamp. Ties into existing audit patterns.
 - [ ] Retry and fallback: if push fails, fall back to email. If email fails, ensure in-app notification still persists.
-- [ ] Tests for event dispatching, preference filtering, guardian routing, delivery logging, and fallback behavior.
+
+#### Security
+- [ ] Store notification and push tokens with encryption or equivalent protected storage so leaked database reads can't expose active device credentials.
+- [ ] Add rate limiting and abuse detection to push token registration and refresh endpoints so token spam doesn't overwhelm delivery systems.
+- [ ] Sanitize email subject and body content before delivery so template data can't inject unsafe markup or headers.
+- [ ] Audit-log sensitive notification preference changes and guardian-routing overrides so delivery behavior won't drift without traceability.
+
+#### Accessibility
+- [ ] Add an aria-live region to the in-app notification feed so newly delivered items are announced without stealing focus and users don't miss updates.
+- [ ] Ensure the notification center, read state controls, and preference forms support keyboard navigation and logical focus order so users don't get trapped.
+- [ ] Respect reduced-motion preferences for badges, toasts, and feed transitions, and keep contrast strong for unread indicators so motion doesn't become a barrier.
+
+#### Testing
+- [ ] Unit tests for event-to-channel routing, preference filtering, guardian fan-out, token storage helpers, and retry selection logic.
+- [ ] Integration tests for secure token registration, delivery logging, sanitized email rendering, and fallback behavior across channels.
+- [ ] E2E or Playwright tests for reviewing the notification feed, changing preferences, and receiving in-app updates during a live session.
+- [ ] Permission regression tests to prove notification settings and delivery logs don't leak across users, teams, or guardian boundaries.
+- [ ] Automated accessibility tests for the notification feed, preferences UI, and live announcement behavior.
+
 - [ ] Milestone checkpoint: update README and notification documentation.
 
 ## Milestone 9 — template system
@@ -232,7 +283,24 @@ Admins can create and reuse templates for events, registration forms, announceme
 - [ ] Starter templates: ship built-in defaults per type (e.g., "Weekly Practice", "Game Day", "Tournament" for events; "Rain Cancellation", "Field Change" for announcements; "Standard Season Registration" for forms; "Concession Stand Shift", "Field Setup" for volunteer slots). Leagues can delete or replace these.
 - [ ] Template management UI: admin page to browse, edit, and organize templates by type. Shows which are league-level vs. team-level.
 - [ ] Template preview: admins can preview what a template will look like before using it.
-- [ ] Tests for template CRUD, clone/override behavior, starter template seeding, and permission gating.
+
+#### Security
+- [ ] Validate and sanitize template JSON payloads on create, update, duplicate, and use-template actions so injected fields can't reach downstream forms.
+- [ ] Enforce role-based access control on every template CRUD path, including league-to-team cloning, so template management doesn't bypass admin scopes.
+- [ ] Audit-log template creation, edits, deletions, and template application events so high-impact content changes are traceable.
+
+#### Accessibility
+- [ ] Make the template management UI, preview states, and use-template chooser fully keyboard operable with predictable focus movement so admins don't need a mouse.
+- [ ] Provide screen-reader labels and contextual help for template type, scope, and preview content so admins don't lose meaning in dense forms.
+- [ ] Ensure preview dialogs and empty states meet contrast requirements and respect reduced-motion preferences so low-vision users don't lose cues.
+
+#### Testing
+- [ ] Unit tests for payload validation, template sanitization, scope resolution, and starter-template seeding rules.
+- [ ] Integration tests for template CRUD, clone and override behavior, audit logging, and role-based permission enforcement.
+- [ ] E2E or Playwright tests for creating a template, previewing it, and using it to prefill a downstream form or event.
+- [ ] Permission regression tests to prove non-admin roles can't manage templates or consume team-only overrides outside their scope.
+- [ ] Automated accessibility tests for template lists, preview dialogs, and the use-template flow.
+
 - [ ] Milestone checkpoint: update README and admin documentation.
 
 ## Milestone 10 — seasonal registration: schema and forms
@@ -258,7 +326,24 @@ Leagues can define seasons and families can self-register their players through 
 - [ ] Season-based roster management: when a new season opens, rosters start fresh. Players from the previous season can re-register but aren't auto-carried over.
 - [ ] Registration status dashboard: admins see who's registered, who's incomplete, and who's missing required fields.
 - [ ] Email/push notifications for registration deadlines and incomplete submissions (via M8 notification platform).
-- [ ] Tests for form validation, season transitions, multi-child flow, and pre-fill behavior.
+
+#### Security
+- [ ] Sanitize and validate every registration field, especially PII and custom field input, so malformed or hostile data doesn't persist.
+- [ ] Enforce season-level authorization and CSRF-safe submission patterns so only permitted admins can publish forms and families can't submit forged changes.
+- [ ] Add submission rate limiting and duplicate-request protection so registration flows won't create accidental duplicate records.
+
+#### Accessibility
+- [ ] Treat the multi-step registration flow as a first-class accessible wizard with progress indication, keyboard support, and headings that screen readers can follow so families don't have to guess progress.
+- [ ] Move focus to the step title or first invalid field after each transition so families don't get stranded during multi-child registration.
+- [ ] Present validation errors, required state, and save progress messaging in ways that don't rely on color and work on mobile touch targets.
+
+#### Testing
+- [ ] Unit tests for registration field validation, season state rules, multi-child form state management, and prefill merge behavior.
+- [ ] Integration tests for season creation, configurable form publishing, family submissions, incomplete-state recovery, and deadline reminders.
+- [ ] E2E or Playwright tests for single-child and multi-child registration journeys, including resume and review steps.
+- [ ] Permission regression tests to prove only allowed admins can configure forms and only linked guardians can submit or edit minor registrations.
+- [ ] Automated accessibility tests for the registration wizard, progress UI, validation messaging, and submission confirmation screens.
+
 - [ ] Milestone checkpoint: update README and admin documentation.
 
 ## Milestone 11 — registration: waivers, medical info, and compliance
@@ -284,7 +369,25 @@ Registration collects sensitive information (insurance, medical, waivers) with p
 - [ ] Payment integration hook: registration form includes a "payment" step placeholder that can link to an external processor (Stripe, PayPal, etc.) in a future milestone. For now, admins can mark payment as received/pending/comped/scholarship manually.
 - [ ] Payment status visibility on registration dashboard (ties into M10 dashboard).
 - [ ] Audit logging for all access to medical and insurance data.
-- [ ] Tests for waiver recording, role-gated field visibility, payment status, and audit logging.
+
+#### Security
+- [ ] Encrypt medical and insurance fields at rest and keep decryption tightly scoped so raw sensitive values can't be read outside approved service paths.
+- [ ] Store waiver signatures with tamper-evident metadata, immutable revision references, and signer context so legal records won't be silently altered.
+- [ ] Audit-log every read, export, and update of medical, insurance, waiver, and payment-status fields with actor and target context.
+- [ ] Re-validate role-gated visibility on every access path, including exports, so sensitive registration data can't leak through convenience tooling.
+
+#### Accessibility
+- [ ] Make the waiver review and signature flow fully accessible from keyboard and screen readers so users with disabilities aren't blocked from completing legal steps.
+- [ ] Use clear headings, readable summary text, and focus management for waiver confirmation, payment placeholder, and sensitive field disclosures so users don't lose context.
+- [ ] Ensure error messaging, required acknowledgements, and signature confirmation states meet contrast and touch target expectations so nobody has to hunt for next steps.
+
+#### Testing
+- [ ] Unit tests for field encryption helpers, waiver integrity metadata, access control guards, and payment-status visibility rules.
+- [ ] Integration tests for waiver capture, sensitive field storage and retrieval, audit logging, admin export paths, and manual payment updates.
+- [ ] E2E or Playwright tests for completing registration with waiver signing, reviewing stored records, and exporting signed waivers as an admin.
+- [ ] Permission regression tests to prove coaches, admins, guardians, and unrelated users only see the sensitive fields they're allowed to access.
+- [ ] Automated accessibility tests for the waiver flow, signature step, sensitive-field review UI, and export controls.
+
 - [ ] Milestone checkpoint: update README and admin documentation.
 
 ## Milestone 12 — live calendar subscriptions
@@ -307,7 +410,24 @@ Users can subscribe to team and league calendars from Apple Calendar, Google Cal
 - [ ] Feed includes all events the user has access to, with RSVP status embedded as attendee metadata.
 - [ ] Auto-updates: external calendars pick up new/changed/cancelled events on their next sync cycle.
 - [ ] UI for copying the subscription URL from team and league settings pages.
-- [ ] Tests for feed generation, token auth, and event update propagation.
+
+#### Security
+- [ ] Generate feed tokens with cryptographically secure randomness, store only what the app needs, and support revocation and rotation so feed URLs can't be guessed or reused forever.
+- [ ] Add rate limiting and abuse monitoring on calendar feed endpoints so scraping or token guessing doesn't become an easy denial-of-service path.
+- [ ] Audit-log feed issuance, revocation, and copy actions so privacy-sensitive subscription links won't change hands without traceability.
+
+#### Accessibility
+- [ ] Make the subscription URL copy flow keyboard friendly and announce copy success or failure with screen-reader feedback so users don't wonder whether it worked.
+- [ ] Provide accessible helper text that explains how read-only feeds work, how to revoke them, and what data each URL exposes so people don't have to infer privacy rules.
+- [ ] Keep copy buttons, token management controls, and settings layouts compliant with contrast and touch target guidance.
+
+#### Testing
+- [ ] Unit tests for token generation, hashing or storage helpers, revocation logic, and feed visibility filtering.
+- [ ] Integration tests for authenticated feed generation, revoked-token failures, rate limiting, and event update propagation.
+- [ ] E2E or Playwright tests for copying a subscription URL, revoking it, and confirming the regenerated feed still works.
+- [ ] Permission regression tests to prove feeds only include events the requesting user is allowed to see.
+- [ ] Automated accessibility tests for the copy flow, subscription settings UI, and success feedback states.
+
 - [ ] Milestone checkpoint: update scheduling documentation.
 
 ## Milestone 13 — volunteer tracking
@@ -333,7 +453,24 @@ Leagues can post volunteer opportunities, volunteers can sign up, and admins can
 - [ ] Spreadsheet export (CSV) of volunteer hours and signups, admin-only, filterable by date range, team, and volunteer.
 - [ ] Volunteer role integration: link volunteer status to existing role/membership system.
 - [ ] Notifications for upcoming volunteer slots (opt-in, via M8 notification platform).
-- [ ] Tests for signup flows, hour calculations, and export output.
+
+#### Security
+- [ ] Sanitize CSV export values to prevent formula injection so exported volunteer reports can't execute when opened in spreadsheet tools.
+- [ ] Validate manual hour edits, check-in updates, and opportunity capacity changes so volunteers or admins can't tamper with totals unnoticed.
+- [ ] Enforce admin-only export access and audit-log hour overrides, bulk edits, and report downloads so sensitive volunteer history stays accountable.
+
+#### Accessibility
+- [ ] Ensure volunteer signup lists, dashboard summaries, and export controls are keyboard operable and announced clearly to screen readers so volunteers don't miss key actions.
+- [ ] Use accessible status messaging for claimed slots, wait states, and check-in confirmation so volunteers don't rely on visual cues alone.
+- [ ] Keep mobile signup actions and filters large enough for touch use and compliant with contrast guidance so volunteers don't mistap critical actions.
+
+#### Testing
+- [ ] Unit tests for slot availability rules, hour calculations, manual override validation, and CSV export sanitization.
+- [ ] Integration tests for volunteer signup, check-in, dashboard aggregation, admin reporting, and protected export endpoints.
+- [ ] E2E or Playwright tests for claiming a slot, reviewing logged hours, and exporting filtered volunteer reports as an admin.
+- [ ] Permission regression tests to prove volunteers can see only their own hours while admins can manage league-wide reporting.
+- [ ] Automated accessibility tests for the signup flow, dashboard, filters, and export UI.
+
 - [ ] Milestone checkpoint: update README and admin documentation.
 
 ## Milestone 14 — officials and game management
@@ -361,7 +498,24 @@ Leagues can manage referees and officials, assign them to games, and officials c
 - [ ] Score logging: officials can submit game scores after a game. Scores are visible to league admins and can be published to teams.
 - [ ] Admin assignment dashboard: league admins see all games, who's assigned, confirmation status, and gaps that need filling.
 - [ ] Availability preferences: officials can set general availability (days/times) to help admins make assignments.
-- [ ] Tests for role permissions, assignment workflows, score submission, and mixed-role scenarios (parent + referee on same account).
+
+#### Security
+- [ ] Validate score submissions, assignment state changes, and availability updates so malformed or tampered game data doesn't persist.
+- [ ] Audit-log official assignments, confirmations, declines, score edits, and score publication so competitive outcomes won't change without traceability.
+- [ ] Enforce permission boundaries on assignment notifications and official data views so referee tools can't expose parent contacts or restricted records.
+
+#### Accessibility
+- [ ] Make the assignment calendar, confirm or decline actions, and score entry forms work fully from the keyboard with stable focus behavior so officials don't lose their place.
+- [ ] Provide screen-reader labels and status announcements for assignment changes, schedule filters, and score submission outcomes so officials don't miss updates.
+- [ ] Ensure score-entry controls, availability toggles, and calendar affordances meet contrast and touch target guidance.
+
+#### Testing
+- [ ] Unit tests for score validation, assignment transitions, official availability rules, and referee permission resolution.
+- [ ] Integration tests for assignment notifications, confirm or decline flows, audit logging, score publishing, and mixed-role account behavior.
+- [ ] E2E or Playwright tests for accepting an assignment, viewing the personal official calendar, and submitting a post-game score.
+- [ ] Permission regression tests to prove officials only receive the roster, venue, and contact data they're explicitly allowed to access.
+- [ ] Automated accessibility tests for the assignment calendar, response actions, and score-entry experience.
+
 - [ ] Milestone checkpoint: update README and admin documentation.
 
 ## Milestone 15 — in-app messaging: threads and delivery
@@ -386,7 +540,25 @@ Users can send direct messages and participate in team/league group threads, rep
 - [ ] Unread counts and notification badges.
 - [ ] Message composition with basic formatting (text, links).
 - [ ] Push notification integration for new messages (via M8 notification platform).
-- [ ] Tests for thread creation, message delivery, and unread tracking.
+
+#### Security
+- [ ] Sanitize message content, link previews, and rendered formatting so thread views can't become an XSS delivery surface.
+- [ ] Require authenticated WebSocket or real-time connections with secure token handling and reconnect checks so stale sessions don't keep receiving messages.
+- [ ] Enforce thread membership and same-league permission boundaries on every send, read, and notification path so messages won't leak across scopes.
+- [ ] Add rate limiting for message send bursts and thread creation so abuse doesn't degrade delivery or notification systems.
+
+#### Accessibility
+- [ ] Make the chat interface keyboard navigable, including thread switching, composer actions, and unread-jump controls so users don't depend on pointer-only actions.
+- [ ] Announce new messages with aria-live without yanking focus away from the active composer or message list.
+- [ ] Support reduced motion for incoming-message effects and keep message status, timestamps, and unread indicators readable with strong contrast so animation doesn't block comprehension.
+
+#### Testing
+- [ ] Unit tests for message sanitization, formatting helpers, unread-count logic, and real-time auth token lifecycle helpers.
+- [ ] Integration tests for thread creation, secure real-time delivery, membership enforcement, notification fan-out, and message persistence.
+- [ ] E2E or Playwright tests for sending a DM, participating in a group thread, and seeing unread counts update across sessions.
+- [ ] Permission regression tests to prove users can't open or post into threads outside their league or membership scope.
+- [ ] Automated accessibility tests for thread lists, message announcements, composer controls, and keyboard navigation paths.
+
 - [ ] Milestone checkpoint: update README and communication documentation.
 
 ## Milestone 16 — messaging: safety, moderation, and retention
@@ -409,7 +581,25 @@ Messaging is safe for organizations with minor participants, with admin controls
 - [ ] Message flagging: users can flag messages for admin review.
 - [ ] Message retention and audit logging consistent with existing audit patterns.
 - [ ] Configurable retention policies: leagues can set how long messages are kept before auto-archiving.
-- [ ] Tests for messaging permissions, minor safety rules, moderation actions, and retention behavior.
+
+#### Security
+- [ ] Audit-log moderation actions, policy changes, message review decisions, and retention updates so safety enforcement won't happen without an accountable trail.
+- [ ] Rate limit message flagging and moderation-trigger endpoints so abuse reports can't be spammed into uselessness.
+- [ ] Validate every minor messaging restriction against actor, target, and thread context so policy gaps don't allow unsafe contact paths.
+- [ ] Enforce moderator permission checks on review, mute, and policy controls so safety tooling can't become its own escalation vector.
+
+#### Accessibility
+- [ ] Make moderation queues, review drawers, and mute dialogs fully keyboard accessible with clear focus management so moderators don't lose the active item.
+- [ ] Provide screen-reader labels and live status updates for flag counts, policy changes, and review outcomes.
+- [ ] Keep warning states, muted indicators, and retention settings understandable without color dependence and usable on mobile touch targets.
+
+#### Testing
+- [ ] Unit tests for flagging thresholds, minor messaging rule evaluation, mute duration logic, and retention policy calculations.
+- [ ] Integration tests for abuse-rate limiting, moderation review flows, audit logging, and league policy enforcement.
+- [ ] E2E or Playwright tests for flagging a message, reviewing it as an admin, muting a user, and exercising minor restriction scenarios.
+- [ ] Permission regression tests to prove minor safety rules and moderator tools behave correctly across guardians, coaches, admins, and peers.
+- [ ] Automated accessibility tests for moderation dashboards, review forms, and policy-management controls.
+
 - [ ] Milestone checkpoint: update communication and safety documentation.
 
 ## Milestone 17 — privacy and compliance hardening
@@ -436,7 +626,25 @@ Cross-cutting privacy, safety, and data governance review to ensure the app hand
 - [ ] Guardian access boundaries: document what guardians can and can't see/do on behalf of linked minors.
 - [ ] Permission regression test suite: comprehensive tests covering all sensitive data paths across the full permission model.
 - [ ] Data retention policy documentation: what's kept, how long, and how it's purged.
-- [ ] Tests for export, deletion, anonymization, and access control regression.
+
+#### Security
+- [ ] Make account deletion thorough across primary records, linked minors, messages, exports, and audit references so personal data doesn't linger unintentionally.
+- [ ] Sanitize exported data so generated files can't inject formulas, unsafe markup, or hidden fields the requester shouldn't receive.
+- [ ] Verify guardian-boundary rules, sensitive-field logging, and purge or anonymization jobs across all privacy-sensitive domains so compliance work won't stop at the happy path.
+- [ ] Add explicit operational checklists for deletion failures, retry handling, and support escalations so privacy incidents can't be hand-waved.
+
+#### Accessibility
+- [ ] Make export and deletion flows keyboard friendly, screen-reader understandable, and clear about irreversible actions so users don't trigger high-stakes actions blindly.
+- [ ] Manage focus carefully through confirmation dialogs, progress states, and success or failure messaging so users don't lose context during high-stakes actions.
+- [ ] Ensure privacy notices, consent explanations, and retention summaries meet contrast and readability expectations.
+
+#### Testing
+- [ ] Unit tests for export serializers, deletion planners, anonymization helpers, and consent-boundary evaluators.
+- [ ] Integration tests for account export, account deletion, guardian reassignment, message anonymization, and sensitive-audit verification.
+- [ ] E2E or Playwright tests for requesting an export, completing account deletion, and verifying post-delete user experience.
+- [ ] Permission regression tests to prove sensitive data exports and guardian access paths stay within documented boundaries.
+- [ ] Automated accessibility tests for export requests, deletion confirmations, privacy notices, and completion states.
+
 - [ ] Milestone checkpoint: update SECURITY.md and privacy documentation.
 
 ## Milestone 18 — extensibility and ecosystem
@@ -459,6 +667,25 @@ Make Teamsster easy to extend with optional modules and external integrations, n
 - [ ] Developer docs for new feature modules.
 - [ ] Example advanced modules (payments, stats, brackets) as optional add-ons.
 - [ ] API contracts for external consumers and mobile clients.
+
+#### Security
+- [ ] Require authentication, rate limiting, and strict input validation on public API contracts so extension consumers can't bypass core safeguards.
+- [ ] Ensure extension hooks run through centralized permission checks and typed contracts so add-ons won't escalate privileges or read hidden data.
+- [ ] Define secure token handling, secret rotation expectations, and audit logging for external integrations so ecosystem access stays accountable.
+- [ ] Add threat-model reviews for proof modules and extension examples so convenience scaffolds don't normalize unsafe patterns.
+
+#### Accessibility
+- [ ] Publish developer docs and extension guides with accessible structure, link text, code samples, and heading hierarchy so extension authors don't miss critical guidance.
+- [ ] Ensure example add-on UIs, config panels, and integration setup flows are keyboard operable and screen-reader understandable so add-on authors don't copy inaccessible patterns.
+- [ ] Document accessibility expectations for third-party modules so extension authors don't treat inclusive UX as optional.
+
+#### Testing
+- [ ] Unit tests for public contract validators, hook registration guards, permission wrappers, and auth token validation helpers.
+- [ ] Integration tests for authenticated API access, rate limiting, extension hook execution, and proof-module permission boundaries.
+- [ ] E2E or Playwright tests for a sample add-on setup flow and a representative external-client API journey.
+- [ ] Permission regression tests to prove extension points and public APIs can't bypass league, team, field, or minor-data restrictions.
+- [ ] Automated accessibility tests for developer docs examples, extension setup screens, and sample module interfaces.
+
 - [ ] Milestone checkpoint: refresh README and contributor-facing docs for extension points.
 
 ### Suggested issue-sized breakdown
@@ -503,12 +730,13 @@ The following areas aren't in the current roadmap but may influence schema desig
 
 ## Continuous best practices
 
-- Every form validated with Zod.
-- Every permission check routed through centralized helpers.
-- No direct database access from UI components.
-- Prefer small composable server-side modules over route-specific duplication.
-- Every milestone should add or update test coverage for newly introduced behavior.
+- Every form and API payload must be validated and sanitized with shared Zod schemas before persistence.
+- Every permission decision must go through centralized helpers, and new sensitive fields can't ship without explicit read and write rules.
+- Every milestone should add audit logging for sensitive mutations, rate limiting for abuse-prone endpoints, and secure token or secret handling where applicable.
+- Every new UI flow should ship with keyboard navigation, visible focus states, screen-reader labels, contrast checks, and reduced-motion support where motion is introduced.
+- Every critical journey should include layered tests: focused unit coverage, integration coverage for cross-system behavior, and E2E or Playwright coverage for the highest-risk user paths.
+- Every milestone should add permission regression coverage and automated accessibility checks for the new screens and workflows it introduces.
 - Keep CI green with lint, typecheck, unit tests, integration tests, build, and E2E coverage where appropriate.
-- Review and update the README and contributor-facing docs at milestone checkpoints when user-facing capabilities, setup, architecture, or workflow expectations change.
-- Review security, observability, and accessibility as first-class concerns at every milestone.
-- Validation (data integrity and permission integrity) is a non-negotiable acceptance criterion for volunteer-organization, role, and contact features.
+- No direct database access from UI components, and prefer small composable server-side modules over route-specific duplication.
+- Review and update the README, SECURITY.md, and contributor-facing docs at milestone checkpoints when capabilities, setup, architecture, or safety expectations change.
+- Validation, permission integrity, accessibility, and observability aren't optional for volunteer-organization, role, contact, messaging, and registration features.
