@@ -99,6 +99,14 @@
 - [x] Playwright coverage for critical event journeys.
 - [x] Milestone checkpoint: refresh README and contributor-facing docs for scheduling workflows.
 
+### Follow-up: live calendar subscriptions
+- [ ] Subscribable iCal feed URLs for team and league calendars (read-only `.ics` endpoint that Apple Calendar, Google Calendar, Outlook, etc. can poll).
+- [ ] Per-team and per-league feed URLs with token-based authentication (no login required to subscribe, but URL is unique per user to respect privacy).
+- [ ] Feed includes all events the user has access to, with RSVP status embedded as attendee metadata.
+- [ ] Auto-updates: external calendars pick up new/changed/cancelled events on their next sync cycle.
+- [ ] UI for copying the subscription URL from team and league settings pages.
+- [ ] Tests for feed generation, token auth, and event update propagation.
+
 ## Milestone 5 — communications and notifications
 
 ### Goals
@@ -113,6 +121,17 @@
 - [x] Contact actions (click-to-call, click-to-email, SMS composition, and contact export) governed by action permissions distinct from view permissions.
 - [x] Accessibility review for message composition flows.
 - [x] Milestone checkpoint: refresh README and contributor-facing docs for communication workflows.
+
+### Follow-up: mobile push notifications
+- [ ] Push notification infrastructure via Capacitor Push Notifications plugin (APNs for iOS, FCM for Android).
+- [ ] Device token registration and storage linked to user accounts.
+- [ ] Opt-in notification preferences: users choose which event types trigger push (upcoming events, RSVP reminders, announcements, messages, volunteer slot reminders).
+- [ ] Scheduled push delivery for upcoming event reminders (configurable lead time: 1 hour, 1 day, etc.).
+- [ ] Real-time push for new announcements, messages, and RSVP changes.
+- [ ] Minor account push routing: push notifications for minors also go to linked guardian devices.
+- [ ] Badge count management (unread messages, pending RSVPs).
+- [ ] Graceful fallback: if push isn't available (web-only user, permissions denied), email notifications continue as the delivery channel.
+- [ ] Tests for token registration, delivery routing, preference filtering, and minor-to-guardian forwarding.
 
 ## Milestone 6 — username-only auth and minor accounts
 
