@@ -1,37 +1,17 @@
-# Teamsster
+# 🏆 Teamsster
 
-Teamsster is a playful, friendly, **AGPL-3.0-licensed** team and league management app for small organizations and youth sports. The project is intentionally **sport-agnostic**, **mobile-first**, and designed from the start for **extensibility, inclusive collaboration, and a great contributor experience**.
+**Team and league management that doesn't make volunteers want to quit.**
 
-## Vision
+Teamsster is an open-source, sport-agnostic app for the people who actually keep youth sports and small leagues running: coaches, board members, parents, and the one person who somehow ended up managing everything in a group chat. It handles rosters, schedules, communication, and permissions so all that admin work lives in one place instead of scattered across texts and spreadsheets.
 
-Teamsster aims to give leagues, clubs, volunteer boards, coaches, and families a shared home for the everyday logistics that keep sports joyful: rosters, schedules, permissions, communication, and the little admin details that usually end up scattered across chats and spreadsheets.
+It's built with Next.js 15, TypeScript, and Postgres, designed mobile-first, and licensed under AGPL-3.0 so it stays open.
 
-## Current scaffold highlights
+![Next.js](https://img.shields.io/badge/Next.js-15-000000?logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)
 
-- **Next.js 15** App Router scaffold with strict TypeScript
-- **pnpm monorepo** with `apps/web`, `packages/db`, and `packages/auth`
-- **Tailwind CSS v4** with **shadcn/ui-compatible** component setup and **Radix Slot** integration
-- **Drizzle ORM + Neon Postgres** database package with league-first schema and migrations
-- **Better Auth** with email/password and magic-link sign-in, onboarding, and account settings
-- **League administration** — create, update, and archive leagues and teams; role assignment, reusable role templates, and invitation workflows; audit log persistence and read views; league dashboard with empty states and onboarding guidance
-- **Roster workflows** — player CRUD with soft deletes, guardian contacts, and player eligibility/profile metadata fields
-- **Scheduling workflows** — team event create/update/archive flows with recurrence metadata, RSVP states, ICS calendar exports, reminder windows, and embedded team/league agenda views
-- **Communication workflows** — league/team announcements, user-level notification preferences, digest/reminder templates, delivery logs, and permission-gated contact actions
-- **Centralized Zod validation** and permission helpers for all mutations
-- **Biome** formatting and linting, plus Husky, lint-staged, and commitlint
-- **Vitest + Testing Library + Playwright** testing stack
-- **GitHub workflows** for CI, E2E, CodeQL, and Renovate automation
-
-## Project principles
-
-- League-first multi-tenancy
-- No direct database calls in React components
-- Soft deletes and audit trails from the beginning
-- Player records decoupled from user accounts
-- Mobile-first, friendly UI with accessible building blocks
-- Centralized permission and validation helpers before business features
-
-## Quick start
+## Quick Start
 
 ### Prerequisites
 
@@ -49,24 +29,45 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Open `http://localhost:3000` to view the app shell.
+Open `http://localhost:3000` and you're in.
 
 ### Quality commands
 
 ```bash
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
-pnpm e2e
+pnpm lint        # Biome formatting and linting
+pnpm typecheck   # strict TypeScript checks
+pnpm test        # Vitest unit/component tests
+pnpm build       # production build
+pnpm e2e         # Playwright end-to-end tests
 ```
 
-### Database migration commands
+### Database migrations
 
 ```bash
 pnpm db:generate
 pnpm db:migrate
 ```
+
+## What's already here
+
+Teamsster isn't just a scaffold. There's real working functionality across several domains:
+
+- **Auth and onboarding.** Email/password and magic-link sign-in via Better Auth, plus onboarding flows and account settings.
+- **League administration.** Create, update, and archive leagues and teams. Role assignment with reusable templates, invitation workflows, audit log persistence, and a dashboard with empty states that guide new users.
+- **Roster management.** Player CRUD with soft deletes, guardian contacts, eligibility tracking, and profile metadata.
+- **Scheduling.** Team event creation with recurrence, RSVP states, ICS calendar exports, reminder windows, and embedded team/league agenda views.
+- **Communication.** League and team announcements, user-level notification preferences, digest and reminder templates, delivery logs, and permission-gated contact actions.
+- **Centralized validation.** Zod schemas and permission helpers for all mutations, so business logic stays consistent.
+
+## The clever bits
+
+A few design decisions that shape how the whole thing fits together:
+
+- **League-first multi-tenancy.** Everything is scoped to a league. Teams, players, events, and permissions all live under that umbrella, which keeps data isolation clean from the start.
+- **No database calls in components.** All data access goes through server actions and service layers. Components stay focused on rendering.
+- **Soft deletes and audit trails everywhere.** Nothing actually disappears. Every mutation is traceable, which matters when volunteers rotate and context gets lost.
+- **Players aren't users.** Player records are decoupled from user accounts, so a coach can manage a roster without every 8-year-old needing a login.
+- **Mobile-first, accessible by default.** The UI is built on shadcn/ui-compatible components with Radix primitives, so keyboard navigation and screen readers work out of the box.
 
 ## Workspace layout
 
@@ -82,64 +83,51 @@ See `.env.example` for local development defaults.
 
 ### Auth
 
-- `BETTER_AUTH_URL`
-- `BETTER_AUTH_SECRET`
-- `AUTH_EMAIL_FROM`
-- `AUTH_SMTP_URL` (reserved for future email transport wiring)
+| Variable | Purpose |
+| --- | --- |
+| `BETTER_AUTH_URL` | Base URL for auth callbacks |
+| `BETTER_AUTH_SECRET` | Session signing secret |
+| `AUTH_EMAIL_FROM` | Sender address for auth emails |
+| `AUTH_SMTP_URL` | SMTP transport (reserved for future wiring) |
 
 ### Database
 
-- `DATABASE_URL`
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | Postgres connection string |
 
 ### Observability (off by default)
 
-- `NEXT_PUBLIC_ENABLE_PLAUSIBLE=false`
-- `NEXT_PUBLIC_PLAUSIBLE_DOMAIN=`
-- `NEXT_PUBLIC_ENABLE_SENTRY=false`
-- `SENTRY_DSN=`
-- `SENTRY_AUTH_TOKEN=`
-- `SENTRY_ORG=`
-- `SENTRY_PROJECT=`
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_ENABLE_PLAUSIBLE` | Enable Plausible analytics (`false`) |
+| `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Plausible domain |
+| `NEXT_PUBLIC_ENABLE_SENTRY` | Enable Sentry error tracking (`false`) |
+| `SENTRY_DSN` | Sentry data source name |
+| `SENTRY_AUTH_TOKEN` | Sentry auth token |
+| `SENTRY_ORG` | Sentry organization |
+| `SENTRY_PROJECT` | Sentry project |
 
-Plausible is scaffolded as an optional script include and only loads when explicitly enabled. Sentry is currently wired as a no-op capture scaffold so the project can add the official SDK later without reworking route-level error boundaries.
-
-## AGPL-3.0 notes
-
-Teamsster is distributed under the **GNU Affero General Public License v3.0 or later**. In short:
-
-- You may use, study, modify, and redistribute the software.
-- If you run a modified version over a network, you must also offer the corresponding source code to users of that service.
-- Contributions remain part of an AGPL ecosystem focused on keeping improvements available to the community.
-
-For the full terms, see [`LICENSE`](./LICENSE).
+Plausible is scaffolded as an optional script include and only loads when explicitly enabled. Sentry is wired as a no-op capture scaffold so the project can add the official SDK later without reworking route-level error boundaries.
 
 ## Documentation
 
-- [`PLAN.md`](./PLAN.md) — detailed roadmap and milestone plan
-- [`DEPLOYMENT.md`](./DEPLOYMENT.md) — deployment runbook, env matrix, and release/rollback steps
-- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — local workflow, branch expectations, and review notes
-- [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md) — community participation standards
-- [`SECURITY.md`](./SECURITY.md) — how to report vulnerabilities
-- [`NOTICE`](./NOTICE) — licensing and project notice
+| Document | What it covers |
+| --- | --- |
+| [`DEPLOYMENT.md`](./DEPLOYMENT.md) | Deployment runbook, env matrix, and release/rollback steps |
+| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Local workflow, branch expectations, and review notes |
+| [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md) | Community participation standards |
+| [`SECURITY.md`](./SECURITY.md) | How to report vulnerabilities |
+| [`NOTICE`](./NOTICE) | Licensing and project notice |
 
-## Feature roadmap snapshot
+## Contributing
 
-Milestones 0 (repository foundation), 1 (auth and onboarding), 2 (league administration), 3 (roster), 4 (scheduling and attendance), and 5 (communications and notifications) are complete. Near-term milestones focus on:
+We want Teamsster to feel approachable for first-time contributors and sustainable for maintainers. Please read [`CONTRIBUTING.md`](./CONTRIBUTING.md) before opening a pull request, follow the standards in [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md), and use [`SECURITY.md`](./SECURITY.md) for responsible disclosure.
 
-1. ~~Auth and onboarding flows~~ ✓
-2. ~~League and team CRUD foundations~~ ✓
-3. ~~Roster workflows and invitations~~ ✓
-4. ~~Scheduling and attendance~~ ✓ (event CRUD, recurrence, RSVPs, reminders, ICS export, and embedded agendas)
-5. ~~Messaging and notifications~~ ✓
-6. Extensibility and ecosystem foundations (Milestone 6)
+Keep discussions constructive, curious, and welcoming, especially for volunteers and newcomers building sports tooling for their communities.
 
-See [`PLAN.md`](./PLAN.md) for the full milestone breakdown.
+## License
 
-## Community and contributions
+AGPL-3.0 © Alex Perrault
 
-We want Teamsster to feel approachable for first-time contributors and sustainable for maintainers.
-
-- Please read [`CONTRIBUTING.md`](./CONTRIBUTING.md) before opening a pull request.
-- Follow the standards in [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md).
-- Use [`SECURITY.md`](./SECURITY.md) for responsible disclosure.
-- Keep discussions constructive, curious, and welcoming—especially for volunteers and newcomers building sports tooling for their communities.
+Teamsster is distributed under the **GNU Affero General Public License v3.0 or later**. You're free to use, study, modify, and redistribute the software. If you run a modified version over a network, you must also offer the corresponding source code to users of that service. See [`LICENSE`](./LICENSE) for the full terms.
