@@ -114,47 +114,7 @@
 - [x] Accessibility review for message composition flows.
 - [x] Milestone checkpoint: refresh README and contributor-facing docs for communication workflows.
 
-## Milestone 6 — extensibility and ecosystem
-
-### Goals
-- Make Teamsster easy to adapt for different sports and organization sizes.
-- Create stable seams for future modules like payments, stats, and tournaments.
-
-### Work items
-- [ ] Extension strategy and package boundaries.
-- [ ] Public hooks for integrations.
-- [ ] Developer docs for new feature modules.
-- [ ] Example advanced modules (payments, stats, brackets) as optional add-ons.
-- [ ] API contracts for external consumers and mobile clients.
-- [ ] Milestone checkpoint: refresh README and contributor-facing docs for extension points.
-
-### Suggested issue-sized breakdown
-- [ ] 6.1 Deployment hardening baseline
-  - [ ] Finalize and maintain deployment runbook.
-  - [ ] Keep environment matrix current across local/staging/production.
-  - [ ] Keep migration/release/rollback steps current with platform changes.
-- [ ] 6.2 Extension architecture
-  - [ ] Define core-vs-optional package boundaries.
-  - [ ] Identify stable extension seams for modules and feature toggles.
-  - [ ] Document ownership and compatibility expectations for extension points.
-- [ ] 6.3 Integration surface
-  - [ ] Introduce domain event hooks for announcements, roster, scheduling, and membership changes.
-  - [ ] Document supported lifecycle hooks and payload stability guarantees.
-  - [ ] Add tests to protect hook contracts from accidental breakage.
-- [ ] 6.4 Developer platform
-  - [ ] Publish contributor guide for creating add-on modules.
-  - [ ] Provide module templates for validation, permissions, and data access patterns.
-  - [ ] Add a reference add-on module skeleton in the monorepo.
-- [ ] 6.5 External API contracts
-  - [ ] Define versioned external contract surface for web/mobile consumers.
-  - [ ] Separate internal-only server actions from public API boundaries.
-  - [ ] Document authentication and deprecation policy for external clients.
-- [ ] 6.6 Proof modules
-  - [ ] Deliver one payments prototype module.
-  - [ ] Deliver one stats or tournament/bracket prototype module.
-  - [ ] Run checkpoint review to confirm extension architecture supports both.
-
-## Milestone 7 — username-only auth and minor accounts
+## Milestone 6 — username-only auth and minor accounts
 
 ### Goals
 - Let kids sign up and log in with just a username and password, no email required.
@@ -172,7 +132,7 @@
 - [ ] Tests for username auth edge cases (duplicate usernames, recovery without email, etc.).
 - [ ] Milestone checkpoint: update README and auth documentation.
 
-## Milestone 8 — structured relationship tags
+## Milestone 7 — structured relationship tags
 
 ### Goals
 - Replace the free-text guardian relationship field with defined, selectable options.
@@ -187,7 +147,7 @@
 - [ ] Tests for migration, form validation, and permission interactions.
 - [ ] Milestone checkpoint: update roster documentation.
 
-## Milestone 9 — volunteer tracking
+## Milestone 8 — volunteer tracking
 
 ### Goals
 - Give leagues a simple, reliable way to track volunteer signups and hours.
@@ -205,7 +165,7 @@
 - [ ] Tests for signup flows, hour calculations, and export output.
 - [ ] Milestone checkpoint: update README and admin documentation.
 
-## Milestone 10 — in-app messaging
+## Milestone 9 — in-app messaging
 
 ### Goals
 - Replace the need for Slack, Discord, or group texts with built-in messaging.
@@ -224,6 +184,46 @@
 - [ ] Push notification integration for new messages (ties into existing notification preferences).
 - [ ] Tests for messaging permissions, minor safety rules, and delivery.
 - [ ] Milestone checkpoint: update README and communication documentation.
+
+## Milestone 10 — extensibility and ecosystem
+
+### Goals
+- Make Teamsster easy to adapt for different sports and organization sizes.
+- Create stable seams for future modules like payments, stats, and tournaments.
+
+### Work items
+- [ ] Extension strategy and package boundaries.
+- [ ] Public hooks for integrations.
+- [ ] Developer docs for new feature modules.
+- [ ] Example advanced modules (payments, stats, brackets) as optional add-ons.
+- [ ] API contracts for external consumers and mobile clients.
+- [ ] Milestone checkpoint: refresh README and contributor-facing docs for extension points.
+
+### Suggested issue-sized breakdown
+- [ ] 10.1 Deployment hardening baseline
+  - [ ] Finalize and maintain deployment runbook.
+  - [ ] Keep environment matrix current across local/staging/production.
+  - [ ] Keep migration/release/rollback steps current with platform changes.
+- [ ] 10.2 Extension architecture
+  - [ ] Define core-vs-optional package boundaries.
+  - [ ] Identify stable extension seams for modules and feature toggles.
+  - [ ] Document ownership and compatibility expectations for extension points.
+- [ ] 10.3 Integration surface
+  - [ ] Introduce domain event hooks for announcements, roster, scheduling, and membership changes.
+  - [ ] Document supported lifecycle hooks and payload stability guarantees.
+  - [ ] Add tests to protect hook contracts from accidental breakage.
+- [ ] 10.4 Developer platform
+  - [ ] Publish contributor guide for creating add-on modules.
+  - [ ] Provide module templates for validation, permissions, and data access patterns.
+  - [ ] Add a reference add-on module skeleton in the monorepo.
+- [ ] 10.5 External API contracts
+  - [ ] Define versioned external contract surface for web/mobile consumers.
+  - [ ] Separate internal-only server actions from public API boundaries.
+  - [ ] Document authentication and deprecation policy for external clients.
+- [ ] 10.6 Proof modules
+  - [ ] Deliver one payments prototype module.
+  - [ ] Deliver one stats or tournament/bracket prototype module.
+  - [ ] Run checkpoint review to confirm extension architecture supports both.
 
 ## Continuous best practices
 
