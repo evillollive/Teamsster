@@ -179,25 +179,25 @@ Guardian relationships use structured, selectable types instead of free text. Te
 ### Work items
 
 #### Relationship tags
-- [ ] Define standard relationship types (parent, guardian, grandparent, stepparent, sibling, coach, emergency contact, other).
+- [x] Define standard relationship types (parent, guardian, grandparent, stepparent, sibling, coach, emergency contact, other).
 - [ ] Migration to convert existing free-text values to the new structured field.
-- [ ] "Other" option with custom text entry for edge cases.
+- [x] "Other" option with custom text entry for edge cases.
 - [ ] Update player contact forms to use a dropdown with optional custom entry.
 - [ ] Permission implications: relationship type can influence contact visibility rules.
 
 #### Captain role
-- [ ] Add CAPTAIN to the membership role enum.
-- [ ] CAPTAIN is a dependent role: requires PLAYER on the same team. Assigning CAPTAIN without PLAYER is blocked. Removing PLAYER auto-removes CAPTAIN.
-- [ ] Permission level toggle per captain assignment: full (can message team, view teammate contact info, help coordinate attendance) or restricted (title and roster visibility only, permissions stay close to PLAYER).
-- [ ] Multiple captains per team with no cap.
-- [ ] Cross-team independence: a user can be captain on one team and a regular player on another.
-- [ ] Minor accounts default to restricted when assigned CAPTAIN. Coaches can override.
+- [x] Add CAPTAIN to the membership role enum.
+- [x] CAPTAIN is a dependent role: requires PLAYER on the same team. Assigning CAPTAIN without PLAYER is blocked. Removing PLAYER auto-removes CAPTAIN.
+- [x] Permission level toggle per captain assignment: full (can message team, view teammate contact info, help coordinate attendance) or restricted (title and roster visibility only, permissions stay close to PLAYER).
+- [x] Multiple captains per team with no cap.
+- [x] Cross-team independence: a user can be captain on one team and a regular player on another.
+- [x] Minor accounts default to restricted when assigned CAPTAIN. Coaches can override.
 - [ ] Captain badge/indicator on roster views so the role is visible to the team.
 
 #### Security
-- [ ] Audit-log every relationship type change, custom relationship edit, and captain permission toggle so privilege changes can't happen silently.
-- [ ] Enforce captain dependency rules in both service and database layers so CAPTAIN can't exist without PLAYER on the same team.
-- [ ] Harden the captain permission toggle against privilege escalation by validating allowed transitions and actor permissions on every update.
+- [x] Audit-log every relationship type change, custom relationship edit, and captain permission toggle so privilege changes can't happen silently.
+- [x] Enforce captain dependency rules in both service and database layers so CAPTAIN can't exist without PLAYER on the same team.
+- [x] Harden the captain permission toggle against privilege escalation by validating allowed transitions and actor permissions on every update.
 
 #### Accessibility
 - [ ] Make the relationship dropdown and custom entry flow screen-reader friendly with clear labels, roles, and help text that doesn't disappear on focus changes.
@@ -205,10 +205,10 @@ Guardian relationships use structured, selectable types instead of free text. Te
 - [ ] Validate color contrast and touch target sizing for captain badges, dropdown options, and inline validation states so nobody has to fight the UI.
 
 #### Testing
-- [ ] Unit tests for relationship normalization, custom relationship validation, captain dependency rules, and restricted-vs-full captain permission resolution.
+- [x] Unit tests for relationship normalization, custom relationship validation, captain dependency rules, and restricted-vs-full captain permission resolution.
 - [ ] Integration tests for free-text migration, relationship form submission, audit logging, and captain assignment updates across multiple teams.
 - [ ] E2E or Playwright tests for selecting a structured relationship, entering an "other" value, and toggling captain permissions from roster management.
-- [ ] Permission regression tests to prove restricted captains don't inherit full captain capabilities and minors default correctly.
+- [x] Permission regression tests to prove restricted captains don't inherit full captain capabilities and minors default correctly.
 - [ ] Automated accessibility tests for the relationship selector, custom entry field, and captain management controls.
 
 - [ ] Milestone checkpoint: update roster documentation.
