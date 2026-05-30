@@ -14,6 +14,7 @@ vi.mock("@teamsster/db", () => ({
 }));
 
 import {
+  createPlayerContact,
   getPlayerContactsByTeamId,
   getUserIdByAuthUserId,
   getUserLeagueMembership,
@@ -22,6 +23,7 @@ import {
 
 import {
   applyContactFieldMask,
+  createPlayerContactForUser,
   createPlayerContactSchema,
   createPlayerSchema,
   getContactActionPermissions,
@@ -165,14 +167,15 @@ describe("createPlayerContactSchema", () => {
       lastName: "Jordan",
       leagueId,
       playerId,
-      relationship: " Parent ",
+      relationshipType: "parent",
       teamId,
     });
 
     expect(parsed.firstName).toBe("Riley");
-    expect(parsed.relationship).toBe("Parent");
+    expect(parsed.relationshipType).toBe("parent");
     expect(parsed.email).toBe("guardian@example.com");
     expect(parsed.isPrimary).toBe(true);
+    expect(parsed.isEmergencyContact).toBe(false);
   });
 
   it("requires at least one contact method", () => {
@@ -182,7 +185,7 @@ describe("createPlayerContactSchema", () => {
         lastName: "Jordan",
         leagueId,
         playerId,
-        relationship: "Parent",
+        relationshipType: "parent",
         teamId,
       }),
     ).toThrow("Provide at least one contact method.");
@@ -201,6 +204,7 @@ describe("createPlayerContactSchema", () => {
         leagueId,
         phone,
         playerId,
+        relationshipType: "parent",
         teamId,
       });
       expect(parsed.phone).toBe(phone);
@@ -215,6 +219,7 @@ describe("createPlayerContactSchema", () => {
         leagueId,
         phone: "555-CALL-ME",
         playerId,
+        relationshipType: "parent",
         teamId,
       }),
     ).toThrow();
@@ -226,9 +231,58 @@ describe("createPlayerContactSchema", () => {
         leagueId,
         phone: "<script>alert(1)</script>",
         playerId,
+        relationshipType: "parent",
         teamId,
       }),
     ).toThrow();
+  });
+});
+
+describe("createPlayerContactForUser", () => {
+  const leagueId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
+  const teamId = "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22";
+  const playerId = "c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33";
+  const mockedCreatePlayerContact = vi.mocked(createPlayerContact);
+  const mockedGetUserIdByAuthUserId = vi.mocked(getUserIdByAuthUserId);
+  const mockedGetUserLeagueMembership = vi.mocked(getUserLeagueMembership);
+  const mockedGetUserTeamMembership = vi.mocked(getUserTeamMembership);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedGetUserIdByAuthUserId.mockResolvedValue("user-1");
+    mockedGetUserLeagueMembership.mockResolvedValue({ roles: ["PLAYER"] });
+    mockedGetUserTeamMembership.mockResolvedValue({ roles: ["COACH"] });
+  });
+
+  it("forwards structured relationship fields to the database layer", async () => {
+    await createPlayerContactForUser("auth-user-1", {
+      customRelationship: " Host parent ",
+      email: "host@example.com",
+      firstName: "Riley",
+      isEmergencyContact: true,
+      isPrimary: true,
+      lastName: "Jordan",
+      leagueId,
+      playerId,
+      relationshipType: "other",
+      teamId,
+    });
+
+    expect(mockedCreatePlayerContact).toHaveBeenCalledWith({
+      customRelationship: "Host parent",
+      email: "host@example.com",
+      firstName: "Riley",
+      isEmergencyContact: true,
+      isPrimary: true,
+      lastName: "Jordan",
+      leagueId,
+      phone: undefined,
+      playerId,
+      relationship: "Host parent",
+      relationshipType: "other",
+      teamId,
+      userId: "user-1",
+    });
   });
 });
 
@@ -239,6 +293,9 @@ describe("applyContactFieldMask", () => {
     firstName: "Riley",
     lastName: "Jordan",
     relationship: "Parent",
+    relationshipType: "parent",
+    customRelationship: null,
+    isEmergencyContact: false,
     email: "riley@example.com",
     phone: "555-0100",
     isPrimary: true,
@@ -309,6 +366,9 @@ describe("getPlayerContactsForTeamAsUser", () => {
       firstName: "Riley",
       lastName: "Jordan",
       relationship: "Parent",
+      relationshipType: "parent",
+      customRelationship: null,
+      isEmergencyContact: false,
       email: "riley@example.com",
       phone: "555-0100",
       isPrimary: true,

@@ -1,7 +1,13 @@
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
 
 import { db } from "./client";
-import { auditLogs, playerContacts, players, teams } from "./schema";
+import {
+  auditLogs,
+  normalizeRelationship,
+  playerContacts,
+  players,
+  teams,
+} from "./schema";
 
 type PlayerEligibilityStatus =
   (typeof players.$inferSelect)["eligibilityStatus"];
@@ -20,12 +26,18 @@ export type PlayerSummary = {
   createdAt: Date;
 };
 
+type PlayerContactRelationshipType =
+  (typeof playerContacts.$inferInsert)["relationshipType"];
+
 export type PlayerContactSummary = {
   id: string;
   playerId: string;
   firstName: string;
   lastName: string;
   relationship: string | null;
+  relationshipType: PlayerContactRelationshipType;
+  customRelationship: string | null;
+  isEmergencyContact: boolean;
   email: string | null;
   phone: string | null;
   isPrimary: boolean;
@@ -83,6 +95,9 @@ type CreatePlayerContactInput = {
   firstName: string;
   lastName: string;
   relationship?: string;
+  relationshipType?: PlayerContactRelationshipType;
+  customRelationship?: string;
+  isEmergencyContact?: boolean;
   email?: string;
   phone?: string;
   isPrimary?: boolean;
@@ -95,6 +110,16 @@ type ArchivePlayerContactInput = {
   playerId: string;
   contactId: string;
   actorUserId: string;
+};
+
+const relationshipTypeLabels: Record<NonNullable<PlayerContactRelationshipType>, string> = {
+  parent: "Parent",
+  guardian: "Guardian",
+  stepparent: "Stepparent",
+  grandparent: "Grandparent",
+  sibling: "Sibling",
+  coach: "Coach",
+  other: "Other",
 };
 
 export async function createPlayer(input: CreatePlayerInput) {
@@ -305,17 +330,32 @@ export async function getPlayersByTeamId(
 
 export async function createPlayerContact(input: CreatePlayerContactInput) {
   const {
+    customRelationship,
     email,
     firstName,
+    isEmergencyContact,
     isPrimary,
     lastName,
     leagueId,
     phone,
     playerId,
     relationship,
+    relationshipType,
     teamId,
     userId,
   } = input;
+  const normalizedStructuredRelationship = relationshipType
+    ? {
+        customRelationship:
+          relationshipType === "other" ? customRelationship?.trim() || null : null,
+        relationshipType,
+      }
+    : normalizeRelationship(relationship);
+  const normalizedRelationship =
+    relationship?.trim() ||
+    normalizedStructuredRelationship.customRelationship ||
+    relationshipTypeLabels[normalizedStructuredRelationship.relationshipType] ||
+    null;
 
   return db.transaction(async (tx) => {
     const activePlayer = await tx
@@ -339,14 +379,17 @@ export async function createPlayerContact(input: CreatePlayerContactInput) {
       .insert(playerContacts)
       .values({
         createdById: userId,
+        customRelationship: normalizedStructuredRelationship.customRelationship,
         email: email?.trim() || null,
         firstName: firstName.trim(),
+        isEmergencyContact: isEmergencyContact ?? false,
         isPrimary: isPrimary ?? false,
         lastName: lastName.trim(),
         leagueId,
         phone: phone?.trim() || null,
         playerId,
-        relationship: relationship?.trim() || null,
+        relationship: normalizedRelationship,
+        relationshipType: normalizedStructuredRelationship.relationshipType,
         teamId,
       })
       .returning({ id: playerContacts.id });
@@ -358,13 +401,16 @@ export async function createPlayerContact(input: CreatePlayerContactInput) {
       entityType: "player_contact",
       leagueId,
       metadata: {
+        customRelationship: normalizedStructuredRelationship.customRelationship,
         email: email?.trim() || null,
         firstName: firstName.trim(),
+        isEmergencyContact: isEmergencyContact ?? false,
         isPrimary: isPrimary ?? false,
         lastName: lastName.trim(),
         phone: phone?.trim() || null,
         playerId,
-        relationship: relationship?.trim() || null,
+        relationship: normalizedRelationship,
+        relationshipType: normalizedStructuredRelationship.relationshipType,
         teamId,
       },
     });
@@ -420,6 +466,9 @@ export async function getPlayerContactsByTeamId(
       firstName: playerContacts.firstName,
       lastName: playerContacts.lastName,
       relationship: playerContacts.relationship,
+      relationshipType: playerContacts.relationshipType,
+      customRelationship: playerContacts.customRelationship,
+      isEmergencyContact: playerContacts.isEmergencyContact,
       email: playerContacts.email,
       phone: playerContacts.phone,
       isPrimary: playerContacts.isPrimary,

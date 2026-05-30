@@ -19,6 +19,10 @@ import {
   getPlayersForTeam,
   updatePlayerForUser,
 } from "@/lib/player";
+import {
+  formatRelationshipLabel,
+  RELATIONSHIP_TYPE_LABELS,
+} from "@/lib/relationship";
 import { getTeamDetail } from "@/lib/team";
 
 function buildContactExportHref(
@@ -26,6 +30,8 @@ function buildContactExportHref(
     firstName: string;
     lastName: string;
     relationship: string | null;
+    relationshipType: keyof typeof RELATIONSHIP_TYPE_LABELS | null;
+    customRelationship: string | null;
     email: string | null;
     phone: string | null;
     isPrimary: boolean;
@@ -38,7 +44,7 @@ function buildContactExportHref(
     [
       contact.firstName,
       contact.lastName,
-      contact.relationship ?? "",
+      formatRelationshipLabel(contact),
       contact.email ?? "",
       contact.phone ?? "",
       contact.isPrimary ? "Yes" : "No",
@@ -109,6 +115,9 @@ export default async function TeamRosterPage({
         firstName: string;
         lastName: string;
         relationship: string | null;
+        relationshipType: keyof typeof RELATIONSHIP_TYPE_LABELS | null;
+        customRelationship: string | null;
+        isEmergencyContact: boolean;
         email: string | null;
         phone: string | null;
         isPrimary: boolean;
@@ -238,15 +247,19 @@ export default async function TeamRosterPage({
     }
 
     await createPlayerContactForUser(currentSession.user.id, {
+      customRelationship:
+        (formData.get("customRelationship") as string | null) ?? undefined,
       email: (formData.get("email") as string | null) ?? undefined,
       firstName: (formData.get("firstName") as string | null) ?? "",
+      isEmergencyContact: Boolean(formData.get("isEmergencyContact")),
       isPrimary: Boolean(formData.get("isPrimary")),
       lastName: (formData.get("lastName") as string | null) ?? "",
       leagueId,
       phone: (formData.get("phone") as string | null) ?? undefined,
       playerId: (formData.get("playerId") as string | null) ?? "",
-      relationship:
-        (formData.get("relationship") as string | null) ?? undefined,
+      relationshipType:
+        ((formData.get("relationshipType") as string | null) ?? "parent") as
+          keyof typeof RELATIONSHIP_TYPE_LABELS,
       teamId,
     });
 
@@ -601,7 +614,10 @@ export default async function TeamRosterPage({
                                   {contact.isPrimary ? " · Primary" : ""}
                                 </p>
                                 <p className="text-xs text-slate-500">
-                                  {contact.relationship ?? "Contact"}
+                                  {formatRelationshipLabel(contact)}
+                                  {contact.isEmergencyContact
+                                    ? " · Emergency contact"
+                                    : ""}
                                   {contact.email ? ` · ${contact.email}` : ""}
                                   {contact.phone ? ` · ${contact.phone}` : ""}
                                 </p>
@@ -671,6 +687,7 @@ export default async function TeamRosterPage({
                         label="First name"
                       >
                         <Input
+                          autoComplete="given-name"
                           id={`contact-first-name-${player.id}`}
                           maxLength={120}
                           name="firstName"
@@ -682,6 +699,7 @@ export default async function TeamRosterPage({
                         label="Last name"
                       >
                         <Input
+                          autoComplete="family-name"
                           id={`contact-last-name-${player.id}`}
                           maxLength={120}
                           name="lastName"
@@ -689,21 +707,60 @@ export default async function TeamRosterPage({
                         />
                       </FormField>
                       <FormField
-                        htmlFor={`contact-relationship-${player.id}`}
-                        label="Relationship"
+                        htmlFor={`contact-relationship-type-${player.id}`}
+                        label="Relationship type"
                       >
-                        <Input
-                          id={`contact-relationship-${player.id}`}
-                          maxLength={120}
-                          name="relationship"
-                          placeholder="Parent, guardian, emergency contact"
-                        />
+                        <div className="grid gap-2">
+                          <select
+                            className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+                            defaultValue="parent"
+                            id={`contact-relationship-type-${player.id}`}
+                            name="relationshipType"
+                            aria-describedby={`contact-relationship-help-${player.id}`}
+                          >
+                            {Object.entries(RELATIONSHIP_TYPE_LABELS).map(
+                              ([value, label]) => (
+                                <option key={value} value={value}>
+                                  {label}
+                                </option>
+                              ),
+                            )}
+                          </select>
+                          <p
+                            className="text-xs text-slate-500"
+                            id={`contact-relationship-help-${player.id}`}
+                          >
+                            Choose the closest relationship. If you choose Other,
+                            fill in the custom relationship field below.
+                          </p>
+                        </div>
+                      </FormField>
+                      <FormField
+                        htmlFor={`contact-custom-relationship-${player.id}`}
+                        label="Custom relationship"
+                      >
+                        <div className="grid gap-2">
+                          <Input
+                            id={`contact-custom-relationship-${player.id}`}
+                            maxLength={120}
+                            name="customRelationship"
+                            placeholder="Only needed when Relationship type is Other"
+                            aria-describedby={`contact-custom-relationship-help-${player.id}`}
+                          />
+                          <p
+                            className="text-xs text-slate-500"
+                            id={`contact-custom-relationship-help-${player.id}`}
+                          >
+                            Examples: Aunt, host parent, family friend.
+                          </p>
+                        </div>
                       </FormField>
                       <FormField
                         htmlFor={`contact-email-${player.id}`}
                         label="Email"
                       >
                         <Input
+                          autoComplete="email"
                           id={`contact-email-${player.id}`}
                           maxLength={320}
                           name="email"
@@ -716,21 +773,33 @@ export default async function TeamRosterPage({
                         label="Phone"
                       >
                         <Input
+                          autoComplete="tel"
                           id={`contact-phone-${player.id}`}
                           maxLength={32}
                           name="phone"
                           placeholder="Optional"
                         />
                       </FormField>
-                      <label className="flex items-center gap-2 self-end pb-2 text-sm text-slate-600">
-                        <input
-                          className="h-4 w-4 rounded border-slate-300"
-                          name="isPrimary"
-                          type="checkbox"
-                          value="true"
-                        />
-                        Primary contact
-                      </label>
+                      <div className="grid gap-2 self-end pb-2 text-sm text-slate-600">
+                        <label className="flex items-center gap-2">
+                          <input
+                            className="h-4 w-4 rounded border-slate-300"
+                            name="isPrimary"
+                            type="checkbox"
+                            value="true"
+                          />
+                          Primary contact
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input
+                            className="h-4 w-4 rounded border-slate-300"
+                            name="isEmergencyContact"
+                            type="checkbox"
+                            value="true"
+                          />
+                          Emergency contact
+                        </label>
+                      </div>
                       <div className="sm:col-span-2">
                         {contactActionPermissions.canExport &&
                         (contactsByPlayerId[player.id] ?? []).length > 0 ? (

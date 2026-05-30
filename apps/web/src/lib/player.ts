@@ -20,6 +20,10 @@ import {
   canAccessFeature,
   canAccessField,
 } from "@/lib/permissions";
+import {
+  formatRelationshipLabel,
+  structuredRelationshipSchema,
+} from "@/lib/relationship";
 import { getTeamDetail } from "@/lib/team";
 
 const playerNameSchema = z.string().trim().min(1).max(120);
@@ -90,7 +94,6 @@ export const createPlayerContactSchema = z
     teamId: z.string().uuid(),
     firstName: playerNameSchema,
     lastName: playerNameSchema,
-    relationship: optionalTextSchema(120),
     email: z
       .string()
       .trim()
@@ -108,6 +111,7 @@ export const createPlayerContactSchema = z
       .transform((value) => value || undefined),
     isPrimary: z.boolean().default(false),
   })
+  .merge(structuredRelationshipSchema)
   .refine(
     (value) => Boolean(value.email?.trim()) || Boolean(value.phone?.trim()),
     {
@@ -279,15 +283,26 @@ export async function createPlayerContactForUser(
   const userId = await resolveUserId(authUserId);
   await assertRosterEditor(parsed.leagueId, parsed.teamId, userId);
 
+  const customRelationship =
+    parsed.relationshipType === "other"
+      ? parsed.customRelationship?.trim() || undefined
+      : undefined;
+
   await createPlayerContact({
+    customRelationship,
     email: parsed.email,
     firstName: parsed.firstName,
+    isEmergencyContact: parsed.isEmergencyContact,
     isPrimary: parsed.isPrimary,
     lastName: parsed.lastName,
     leagueId: parsed.leagueId,
     phone: parsed.phone,
     playerId: parsed.playerId,
-    relationship: parsed.relationship,
+    relationship: formatRelationshipLabel({
+      customRelationship,
+      relationshipType: parsed.relationshipType,
+    }),
+    relationshipType: parsed.relationshipType,
     teamId: parsed.teamId,
     userId,
   });

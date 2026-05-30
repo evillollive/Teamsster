@@ -41,6 +41,23 @@ export const RELATIONSHIP_TYPE_LABELS: Record<
   other: "Other",
 };
 
+export function formatRelationshipLabel(input: {
+  relationship?: string | null;
+  relationshipType?: (typeof relationshipTypeValues)[number] | null;
+  customRelationship?: string | null;
+}) {
+  const customRelationship = input.customRelationship?.trim();
+  if (customRelationship) {
+    return customRelationship;
+  }
+
+  if (input.relationshipType) {
+    return RELATIONSHIP_TYPE_LABELS[input.relationshipType];
+  }
+
+  return input.relationship?.trim() || "Contact";
+}
+
 // ── Captain validation ───────────────────────────────────────────────────────
 
 export const captainPermissionLevelSchema = z.enum(["full", "restricted"]);
