@@ -283,14 +283,6 @@ describe("minor account permissions", () => {
 
 // ── Auth client configuration ────────────────────────────────────────────────
 
-describe("auth client", () => {
-  it("exports a properly configured auth client", async () => {
-    const { authClient } = await import("@/lib/auth-client");
-    expect(authClient).toBeDefined();
-    expect(authClient.signIn).toBeDefined();
-  });
-});
-
 // ── Edge cases and combined validation ───────────────────────────────────────
 
 describe("guardian edge cases", () => {

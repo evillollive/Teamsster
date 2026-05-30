@@ -19,6 +19,7 @@ export const roleValues = [
   "HEAD_COACH",
   "COACH",
   "BOARD_MEMBER",
+  "CAPTAIN",
   "PLAYER",
   "PARENT",
   "GUEST",
@@ -83,6 +84,26 @@ export const notificationDeliveryStatusEnum = pgEnum(
 
 export const accountTypeValues = ["standard", "minor"] as const;
 export const accountTypeEnum = pgEnum("account_type", accountTypeValues);
+
+export const relationshipTypeValues = [
+  "parent",
+  "guardian",
+  "stepparent",
+  "grandparent",
+  "sibling",
+  "coach",
+  "other",
+] as const;
+export const relationshipTypeEnum = pgEnum(
+  "relationship_type",
+  relationshipTypeValues,
+);
+
+export const captainPermissionLevelValues = ["full", "restricted"] as const;
+export const captainPermissionLevelEnum = pgEnum(
+  "captain_permission_level",
+  captainPermissionLevelValues,
+);
 
 export type NotificationPreferences = {
   emailAnnouncements: boolean;
@@ -335,6 +356,9 @@ export const playerContacts = pgTable(
     firstName: text("first_name").notNull(),
     lastName: text("last_name").notNull(),
     relationship: text("relationship"),
+    relationshipType: relationshipTypeEnum("relationship_type"),
+    customRelationship: text("custom_relationship"),
+    isEmergencyContact: boolean("is_emergency_contact").notNull().default(false),
     email: text("email"),
     phone: text("phone"),
     isPrimary: boolean("is_primary").notNull().default(false),
@@ -423,6 +447,9 @@ export const teamMembers = pgTable(
       .array()
       .notNull()
       .default(sql`ARRAY['GUEST']::membership_role[]`),
+    captainPermissionLevel: captainPermissionLevelEnum(
+      "captain_permission_level",
+    ),
     ...timestampColumns,
     ...softDeleteColumns,
   },
@@ -444,6 +471,8 @@ export const guardianMinorLinks = pgTable(
       .notNull()
       .references(() => users.id),
     relationship: text("relationship"),
+    relationshipType: relationshipTypeEnum("relationship_type"),
+    customRelationship: text("custom_relationship"),
     isPrimary: boolean("is_primary").notNull().default(false),
     createdById: uuid("created_by_id").references(() => users.id),
     ...timestampColumns,
@@ -665,6 +694,73 @@ export function buildMinorPlaceholderEmail(uniqueId: string) {
 
 export function isMinorPlaceholderEmail(email: string) {
   return email.endsWith(`@${MINOR_EMAIL_DOMAIN}`);
+}
+
+// ── Relationship normalization ───────────────────────────────────────────────
+
+type RelationshipType = (typeof relationshipTypeValues)[number];
+
+const RELATIONSHIP_SYNONYMS: Record<string, RelationshipType> = {
+  mom: "parent",
+  mother: "parent",
+  dad: "parent",
+  father: "parent",
+  parent: "parent",
+  guardian: "guardian",
+  "legal guardian": "guardian",
+  stepparent: "stepparent",
+  "step-parent": "stepparent",
+  stepmom: "stepparent",
+  "step-mom": "stepparent",
+  "step mom": "stepparent",
+  stepdad: "stepparent",
+  "step-dad": "stepparent",
+  "step dad": "stepparent",
+  stepmother: "stepparent",
+  stepfather: "stepparent",
+  grandparent: "grandparent",
+  grandma: "grandparent",
+  grandmother: "grandparent",
+  grandpa: "grandparent",
+  grandfather: "grandparent",
+  nana: "grandparent",
+  nanny: "grandparent",
+  sibling: "sibling",
+  brother: "sibling",
+  sister: "sibling",
+  coach: "coach",
+};
+
+/**
+ * Maps free-text relationship values to a structured type.
+ * Returns the enum value and optional custom text for "other" results.
+ */
+export function normalizeRelationship(freeText: string | null | undefined): {
+  relationshipType: RelationshipType;
+  customRelationship: string | null;
+} {
+  if (!freeText || !freeText.trim()) {
+    return { relationshipType: "other", customRelationship: null };
+  }
+
+  const normalized = freeText.trim().toLowerCase().replace(/\s+/g, " ");
+  const mapped = RELATIONSHIP_SYNONYMS[normalized];
+
+  if (mapped) {
+    return { relationshipType: mapped, customRelationship: null };
+  }
+
+  return { relationshipType: "other", customRelationship: freeText.trim() };
+}
+
+// ── Captain role helpers ─────────────────────────────────────────────────────
+
+/** Roles that are only valid on team memberships, not league memberships. */
+export const TEAM_ONLY_ROLES: ReadonlySet<string> = new Set(["CAPTAIN"]);
+
+/** Checks if a roles array includes the CAPTAIN role. */
+export function isCaptain(roles: readonly string[]): boolean {
+  return roles.includes("CAPTAIN");
 }
 
 // ── Push notification device tokens ──────────────────────────────────────────

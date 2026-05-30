@@ -7,6 +7,7 @@
  *
  * Do NOT import write functions directly in page/route/action code.
  */
+export * from "./captain-admin";
 export * from "./client";
 export * from "./event-admin";
 export * from "./guardian-admin";

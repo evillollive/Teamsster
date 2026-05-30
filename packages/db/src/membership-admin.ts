@@ -10,6 +10,7 @@ import {
   leagueRoleTemplates,
   leagues,
   type roleValues,
+  TEAM_ONLY_ROLES,
   teamInvitations,
   teamMembers,
   teams,
@@ -136,6 +137,12 @@ function assertInvitationIsPending(status: InvitationStatus) {
 }
 
 export async function assignLeagueMemberRole(input: AssignLeagueRoleInput) {
+  if (TEAM_ONLY_ROLES.has(input.role)) {
+    throw new Error(
+      `${input.role} is a team-only role and can't be assigned at the league level.`,
+    );
+  }
+
   const email = normalizeEmail(input.email);
 
   return db.transaction(async (tx) => {
@@ -866,10 +873,24 @@ export async function removeLeagueMemberRole(input: RemoveLeagueRoleInput) {
 
 export async function removeTeamMemberRole(input: RemoveTeamRoleInput) {
   return db.transaction(async (tx) => {
+    // When removing PLAYER, also remove CAPTAIN (it depends on PLAYER).
+    const rolesToRemove =
+      input.role === "PLAYER" ? ["PLAYER", "CAPTAIN"] : [input.role];
+
+    let removeExpr = teamMembers.roles;
+    for (const role of rolesToRemove) {
+      removeExpr = sql`array_remove(${removeExpr}, ${role}::membership_role)` as typeof removeExpr;
+    }
+
+    // Clear captainPermissionLevel when CAPTAIN is being removed.
+    const clearCaptainLevel =
+      input.role === "CAPTAIN" || input.role === "PLAYER";
+
     const updated = await tx
       .update(teamMembers)
       .set({
-        roles: sql`array_remove(${teamMembers.roles}, ${input.role}::membership_role)`,
+        roles: removeExpr,
+        ...(clearCaptainLevel ? { captainPermissionLevel: null } : {}),
         updatedAt: new Date(),
       })
       .where(
@@ -885,13 +906,16 @@ export async function removeTeamMemberRole(input: RemoveTeamRoleInput) {
       throw new Error("Team membership not found.");
     }
 
+    const auditRoles =
+      rolesToRemove.length > 1 ? rolesToRemove : input.role;
+
     await tx.insert(auditLogs).values({
       action: "team.member.role.remove",
       actorUserId: input.actorUserId,
       entityId: input.teamId,
       entityType: "team",
       leagueId: input.leagueId,
-      metadata: { role: input.role, userId: input.userId },
+      metadata: { role: auditRoles, userId: input.userId },
     });
   });
 }

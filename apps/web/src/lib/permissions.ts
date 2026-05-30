@@ -31,6 +31,7 @@ const roleRank: Record<Role, number> = {
   HEAD_COACH: 60,
   COACH: 50,
   BOARD_MEMBER: 40,
+  CAPTAIN: 30,
   PLAYER: 30,
   PARENT: 20,
   GUEST: 10,
@@ -217,4 +218,44 @@ export function canCreateMinorAccount(context: {
     return false;
   }
   return true;
+}
+
+// ── Captain capability checks ────────────────────────────────────────────────
+
+export type CaptainPermissionLevel = "full" | "restricted" | null;
+
+/**
+ * Checks if a full captain on the team can view teammate contact info.
+ * Full captains get the same contact visibility as COACH-level for their team.
+ */
+export function canCaptainViewContacts(context: {
+  isCaptainOnTeam: boolean;
+  captainPermissionLevel: CaptainPermissionLevel;
+}) {
+  return (
+    context.isCaptainOnTeam && context.captainPermissionLevel === "full"
+  );
+}
+
+/**
+ * Checks if a full captain on the team can message the team.
+ */
+export function canCaptainMessageTeam(context: {
+  isCaptainOnTeam: boolean;
+  captainPermissionLevel: CaptainPermissionLevel;
+}) {
+  return (
+    context.isCaptainOnTeam && context.captainPermissionLevel === "full"
+  );
+}
+
+/**
+ * Checks if a user can assign or revoke the captain role.
+ * Requires COACH or above on the team, or ADMIN at the league level.
+ */
+export function canManageCaptains(context: PermissionContext) {
+  return (
+    hasScopedPermission("org", "ADMIN", context) ||
+    hasScopedPermission("team", "COACH", context)
+  );
 }
