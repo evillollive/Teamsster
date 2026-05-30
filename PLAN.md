@@ -437,39 +437,55 @@ Users can subscribe to team and league calendars from Apple Calendar, Google Cal
 > **Out of scope:** background check tracking (future consideration)
 
 ### Goal
-Leagues can post volunteer opportunities, volunteers can sign up, and admins can track hours and export reports.
+Leagues can post volunteer opportunities, volunteers can sign up, and admins can track hours and export reports. Standing organizational roles (Travel Coordinator, Social Coordinator, etc.) can be defined, assigned, and displayed in team and league directories.
 
 ### Acceptance criteria
 - A volunteer can sign up for an open slot and see their own hours.
 - An admin can see all volunteer activity across the league and export it as CSV.
 - Hours are auto-calculated from slot times with optional manual entry.
+- Admins can define standing volunteer roles at team or league scope with custom labels.
+- Assigned volunteer roles (name, title, contact info) are visible to all team/league members in a directory view.
 
 ### Work items
+
+#### Event-based volunteer opportunities
 - [ ] Volunteer opportunity schema (title, description, date/time, location, slots available, associated event/team/league).
 - [ ] Signup flow: volunteers can claim open slots from a list of opportunities.
 - [ ] Check-in and hours tracking: auto-calculated from slot times, with optional manual hour entry for off-app work.
 - [ ] Volunteer dashboard for users to see their own signups and logged hours.
 - [ ] Admin volunteer management view: see all volunteers, hours, and signups across the league.
 - [ ] Spreadsheet export (CSV) of volunteer hours and signups, admin-only, filterable by date range, team, and volunteer.
-- [ ] Volunteer role integration: link volunteer status to existing role/membership system.
 - [ ] Notifications for upcoming volunteer slots (opt-in, via M8 notification platform).
+
+#### Standing volunteer roles
+- [ ] Volunteer role definition schema: title (text), description (optional), scope (team or league), and a `scopeId` FK to the team or league. Admins can create, rename, and archive role definitions.
+- [ ] Starter role list shipped by default: Travel Coordinator, Social Coordinator, Communications Manager, Fundraising Chair, Equipment Manager, Team Parent, Snack Coordinator. Leagues can delete or rename these and add custom ones.
+- [ ] Role assignment: admins assign one or more users to a volunteer role. Multiple holders per role are supported (e.g., two Snack Coordinators). A user can hold multiple roles.
+- [ ] Directory view: team and league pages display a "Volunteer roles" section showing each active role, the assigned holder(s), and their contact info (name, email, phone). Visible to all members of the team/league.
+- [ ] Volunteer role integration: link volunteer role assignments to existing membership and role system so permission checks work naturally.
+- [ ] Season lifecycle: volunteer role assignments can optionally carry over to the next season or be cleared at season boundary.
 
 #### Security
 - [ ] Sanitize CSV export values to prevent formula injection so exported volunteer reports can't execute when opened in spreadsheet tools.
 - [ ] Validate manual hour edits, check-in updates, and opportunity capacity changes so volunteers or admins can't tamper with totals unnoticed.
 - [ ] Enforce admin-only export access and audit-log hour overrides, bulk edits, and report downloads so sensitive volunteer history stays accountable.
+- [ ] Restrict volunteer role definition creation, renaming, and assignment to league/team admins. Audit-log all role assignment changes.
+- [ ] Contact info shown in the volunteer directory must respect existing field-level permission rules (e.g., don't expose phone numbers to non-members).
 
 #### Accessibility
 - [ ] Ensure volunteer signup lists, dashboard summaries, and export controls are keyboard operable and announced clearly to screen readers so volunteers don't miss key actions.
 - [ ] Use accessible status messaging for claimed slots, wait states, and check-in confirmation so volunteers don't rely on visual cues alone.
 - [ ] Keep mobile signup actions and filters large enough for touch use and compliant with contrast guidance so volunteers don't mistap critical actions.
+- [ ] Make the volunteer role directory section keyboard navigable with clear heading hierarchy and role-holder grouping.
 
 #### Testing
 - [ ] Unit tests for slot availability rules, hour calculations, manual override validation, and CSV export sanitization.
 - [ ] Integration tests for volunteer signup, check-in, dashboard aggregation, admin reporting, and protected export endpoints.
+- [ ] Unit tests for volunteer role definition CRUD, assignment logic, multi-holder constraints, and starter role seeding.
+- [ ] Integration tests for directory view rendering with assigned roles, contact info visibility, and season carryover/clear behavior.
 - [ ] E2E or Playwright tests for claiming a slot, reviewing logged hours, and exporting filtered volunteer reports as an admin.
 - [ ] Permission regression tests to prove volunteers can see only their own hours while admins can manage league-wide reporting.
-- [ ] Automated accessibility tests for the signup flow, dashboard, filters, and export UI.
+- [ ] Automated accessibility tests for the signup flow, dashboard, filters, export UI, and volunteer role directory.
 
 - [ ] Milestone checkpoint: update README and admin documentation.
 
