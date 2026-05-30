@@ -99,14 +99,6 @@
 - [x] Playwright coverage for critical event journeys.
 - [x] Milestone checkpoint: refresh README and contributor-facing docs for scheduling workflows.
 
-### Follow-up: live calendar subscriptions
-- [ ] Subscribable iCal feed URLs for team and league calendars (read-only `.ics` endpoint that Apple Calendar, Google Calendar, Outlook, etc. can poll).
-- [ ] Per-team and per-league feed URLs with token-based authentication (no login required to subscribe, but URL is unique per user to respect privacy).
-- [ ] Feed includes all events the user has access to, with RSVP status embedded as attendee metadata.
-- [ ] Auto-updates: external calendars pick up new/changed/cancelled events on their next sync cycle.
-- [ ] UI for copying the subscription URL from team and league settings pages.
-- [ ] Tests for feed generation, token auth, and event update propagation.
-
 ## Milestone 5 — communications and notifications
 
 ### Goals
@@ -122,25 +114,20 @@
 - [x] Accessibility review for message composition flows.
 - [x] Milestone checkpoint: refresh README and contributor-facing docs for communication workflows.
 
-### Follow-up: mobile push notifications
-- [ ] Push notification infrastructure via Capacitor Push Notifications plugin (APNs for iOS, FCM for Android).
-- [ ] Device token registration and storage linked to user accounts.
-- [ ] Opt-in notification preferences: users choose which event types trigger push (upcoming events, RSVP reminders, announcements, messages, volunteer slot reminders).
-- [ ] Scheduled push delivery for upcoming event reminders (configurable lead time: 1 hour, 1 day, etc.).
-- [ ] Real-time push for new announcements, messages, and RSVP changes.
-- [ ] Minor account push routing: push notifications for minors also go to linked guardian devices.
-- [ ] Badge count management (unread messages, pending RSVPs).
-- [ ] Graceful fallback: if push isn't available (web-only user, permissions denied), email notifications continue as the delivery channel.
-- [ ] Tests for token registration, delivery routing, preference filtering, and minor-to-guardian forwarding.
-
 ## Milestone 6 — username-only auth and minor accounts
 
-### Goals
-- Let kids sign up and log in with just a username and password, no email required.
-- Keep existing email-based auth for adults.
-- Every minor account must be linked to at least one parent/guardian account.
-- Support many-to-many relationships: multiple guardians per minor, multiple minors per guardian.
-- Emails meant for minor accounts (notifications, reminders, etc.) should route to their attached parent/guardian(s) instead.
+> **Depends on:** M1 auth infrastructure
+> **Enables:** M7 relationship tags, M10/M11 registration (guardian-aware forms), M15/M16 messaging safety
+> **Out of scope:** waiver signing (M11), payment collection
+
+### Goal
+Minors can sign up and use the app with just a username and password. Every minor account is linked to at least one guardian. Notifications meant for minors route to their guardians.
+
+### Acceptance criteria
+- A minor can log in with username/password, no email.
+- A guardian can manage multiple linked minor accounts from their profile.
+- Removing the last guardian from a minor is blocked.
+- Email notifications for minor accounts are delivered to linked guardian(s).
 
 ### Work items
 - [ ] Add optional `username` field to user schema (unique, nullable).
@@ -158,10 +145,18 @@
 
 ## Milestone 7 — structured relationship tags and captain role
 
-### Goals
-- Replace the free-text guardian relationship field with defined, selectable options.
-- Keep flexibility for situations that don't fit the defaults.
-- Add a CAPTAIN role for team leadership with configurable permission levels.
+> **Depends on:** M6 minor accounts, M3 roster/contact schema
+> **Enables:** M10/M11 registration (relationship-aware forms), M14 officials (role model patterns)
+> **Out of scope:** volunteer roles (M13), referee role (M14)
+
+### Goal
+Guardian relationships use structured, selectable types instead of free text. Teams can designate captains with configurable permission levels.
+
+### Acceptance criteria
+- Contact forms use a dropdown with standard relationship options plus a custom "other" entry.
+- Existing free-text values are migrated to the new structured field.
+- A coach can assign CAPTAIN to a player with a full or restricted permission toggle.
+- Removing PLAYER from a user auto-removes CAPTAIN.
 
 ### Work items
 
@@ -185,11 +180,48 @@
 
 - [ ] Milestone checkpoint: update roster documentation.
 
-## Milestone 8 — template system
+## Milestone 8 — notification platform
 
-### Goals
-- Give admins a reusable template engine so they don't rebuild the same events, forms, announcements, and volunteer slots from scratch every time.
-- Ship sensible starter templates out of the box so leagues can get going fast, but make them easy to delete or replace.
+> **Depends on:** M6 minor accounts (guardian routing)
+> **Enables:** M10/M11 registration reminders, M12 calendar alerts, M13 volunteer reminders, M14 game assignments, M15/M16 message notifications
+> **Out of scope:** message content delivery (M15), moderation alerts (M16)
+
+### Goal
+A unified notification system that handles routing, preferences, and delivery across all channels so downstream milestones can fire notifications without reinventing the plumbing.
+
+### Acceptance criteria
+- A notification event dispatches to the correct channels (email, in-app, push) based on user preferences.
+- Minor notifications route to guardian devices and email.
+- Users can configure preferences per event type.
+- Failed deliveries retry with fallback behavior.
+
+### Work items
+- [ ] Notification event schema: typed event registry (event_reminder, rsvp_change, announcement, message, volunteer_reminder, assignment, registration_deadline, etc.).
+- [ ] User notification preferences: per-event-type channel selection (email, in-app, push, off). Stored per user with sensible defaults.
+- [ ] Guardian routing: notifications for minor accounts are dispatched to all linked guardian accounts across all channels.
+- [ ] In-app notification feed: persistent notification list with read/unread state, accessible from the header.
+- [ ] Push notification infrastructure via Capacitor Push Notifications plugin (APNs for iOS, FCM for Android).
+- [ ] Device token registration and storage linked to user accounts.
+- [ ] Scheduled delivery for time-based reminders (configurable lead times: 1 hour, 1 day, etc.).
+- [ ] Badge count management (unread notifications).
+- [ ] Delivery logging: record every dispatch attempt with channel, status, and timestamp. Ties into existing audit patterns.
+- [ ] Retry and fallback: if push fails, fall back to email. If email fails, ensure in-app notification still persists.
+- [ ] Tests for event dispatching, preference filtering, guardian routing, delivery logging, and fallback behavior.
+- [ ] Milestone checkpoint: update README and notification documentation.
+
+## Milestone 9 — template system
+
+> **Depends on:** M2 league/team admin, M4 event schema
+> **Enables:** M10 registration (form templates), M13 volunteer (opportunity templates)
+> **Out of scope:** template versioning, template marketplace
+
+### Goal
+Admins can create and reuse templates for events, registration forms, announcements, and volunteer opportunities so they don't rebuild common items from scratch.
+
+### Acceptance criteria
+- An admin can create a template, and another admin can use it to pre-fill a new item.
+- Starter templates ship out of the box and can be deleted or replaced.
+- Team-level templates override league-level templates.
 
 ### Work items
 - [ ] Template schema: unified template table with a `type` discriminator (event, registration_form, announcement, volunteer_opportunity) and a JSON `payload` column for type-specific field data.
@@ -203,34 +235,94 @@
 - [ ] Tests for template CRUD, clone/override behavior, starter template seeding, and permission gating.
 - [ ] Milestone checkpoint: update README and admin documentation.
 
-## Milestone 9 — seasonal registration and forms
+## Milestone 10 — seasonal registration: schema and forms
 
-### Goals
-- Give leagues a self-service registration flow that families complete each season.
-- Collect all required information (player details, emergency contacts, insurance, medical info, addresses) in one guided form.
-- Support digital liability waiver signatures so paperwork doesn't live in binders.
-- Leave a clean seam for future payment integration without building a payment system now.
+> **Depends on:** M6 minor accounts, M7 relationship tags, M9 templates (form templates)
+> **Enables:** M11 waivers/medical/compliance, M13 volunteer intake
+> **Out of scope:** waiver e-signatures (M11), payment processing, medical data collection (M11)
+
+### Goal
+Leagues can define seasons and families can self-register their players through a configurable form flow.
+
+### Acceptance criteria
+- An admin can create a season with open/close dates and configure a registration form.
+- A guardian can register one or more minors through the self-service flow.
+- Returning families see pre-filled data from the previous season.
+- Admin dashboard shows registration status (registered, incomplete, missing).
 
 ### Work items
 - [ ] Season schema: leagues can define seasons (name, year, registration open/close dates, active status) so rosters and forms are scoped to a time period.
-- [ ] Registration form builder: admins can configure which fields are required per season (player info, guardian contacts, emergency contacts, insurance, medical notes, address, custom fields).
+- [ ] Registration form builder: admins can configure which fields are required per season (player info, guardian contacts, emergency contacts, address, custom fields).
 - [ ] Self-service registration flow: parents/guardians fill out the form for their player(s), review, and submit. Returning families see pre-filled data from the previous season.
+- [ ] Multi-child registration: guardians can register multiple linked minors in one flow.
+- [ ] Season-based roster management: when a new season opens, rosters start fresh. Players from the previous season can re-register but aren't auto-carried over.
+- [ ] Registration status dashboard: admins see who's registered, who's incomplete, and who's missing required fields.
+- [ ] Email/push notifications for registration deadlines and incomplete submissions (via M8 notification platform).
+- [ ] Tests for form validation, season transitions, multi-child flow, and pre-fill behavior.
+- [ ] Milestone checkpoint: update README and admin documentation.
+
+## Milestone 11 — registration: waivers, medical info, and compliance
+
+> **Depends on:** M10 registration schema, M6 guardian accounts
+> **Enables:** M14 officials (medical visibility scoping), M17 privacy hardening
+> **Out of scope:** payment processing (placeholder only)
+
+### Goal
+Registration collects sensitive information (insurance, medical, waivers) with proper access controls, and includes a payment status placeholder.
+
+### Acceptance criteria
+- A guardian can sign a digital waiver during registration with audit trail.
+- Insurance and medical info is stored with role-gated visibility (admin/coach only).
+- Admins can view and export signed waivers.
+- Payment status can be manually marked as received/pending.
+
+### Work items
 - [ ] Insurance information fields: carrier, policy number, group number, insured name. Stored securely with role-gated visibility (admin/coach only).
 - [ ] Medical/allergy notes field: free-text for conditions coaches need to know about, with appropriate visibility controls.
 - [ ] Digital waiver signatures: click-through liability/participation agreements with timestamp, IP, and signer identity recorded. Waiver text is configurable per league.
 - [ ] Waiver storage and retrieval: admins can view and export signed waivers for compliance.
-- [ ] Season-based roster management: when a new season opens, rosters start fresh. Players from the previous season can re-register but aren't auto-carried over.
-- [ ] Registration status dashboard: admins see who's registered, who's incomplete, and who's missing waivers or required fields.
-- [ ] Payment integration hook: registration form includes a "payment" step placeholder that can link to an external processor (Stripe, PayPal, etc.) in a future milestone. For now, admins can mark payment as received/pending manually.
-- [ ] Email/push notifications for registration deadlines and incomplete submissions.
-- [ ] Tests for form validation, waiver recording, season transitions, and permission-gated field visibility.
+- [ ] Payment integration hook: registration form includes a "payment" step placeholder that can link to an external processor (Stripe, PayPal, etc.) in a future milestone. For now, admins can mark payment as received/pending/comped/scholarship manually.
+- [ ] Payment status visibility on registration dashboard (ties into M10 dashboard).
+- [ ] Audit logging for all access to medical and insurance data.
+- [ ] Tests for waiver recording, role-gated field visibility, payment status, and audit logging.
 - [ ] Milestone checkpoint: update README and admin documentation.
 
-## Milestone 10 — volunteer tracking
+## Milestone 12 — live calendar subscriptions
 
-### Goals
-- Give leagues a simple, reliable way to track volunteer signups and hours.
-- Make it easy for admins to see who's contributing and export the data when they need it.
+> **Depends on:** M4 scheduling, M8 notification platform
+> **Enables:** M14 officials (assignment calendar sync)
+> **Out of scope:** two-way calendar sync (read-only feeds only)
+
+### Goal
+Users can subscribe to team and league calendars from Apple Calendar, Google Calendar, Outlook, or any iCal-compatible app, and see updates automatically.
+
+### Acceptance criteria
+- A user can copy a subscription URL from team/league settings.
+- External calendars show events with RSVP status and auto-update on changes.
+- Each subscription URL is unique per user for privacy.
+
+### Work items
+- [ ] Subscribable iCal feed URLs for team and league calendars (read-only `.ics` endpoint that Apple Calendar, Google Calendar, Outlook, etc. can poll).
+- [ ] Per-team and per-league feed URLs with token-based authentication (no login required to subscribe, but URL is unique per user to respect privacy).
+- [ ] Feed includes all events the user has access to, with RSVP status embedded as attendee metadata.
+- [ ] Auto-updates: external calendars pick up new/changed/cancelled events on their next sync cycle.
+- [ ] UI for copying the subscription URL from team and league settings pages.
+- [ ] Tests for feed generation, token auth, and event update propagation.
+- [ ] Milestone checkpoint: update scheduling documentation.
+
+## Milestone 13 — volunteer tracking
+
+> **Depends on:** M8 notification platform, M9 templates (opportunity templates), M10 seasons (seasonal volunteer needs)
+> **Enables:** M14 officials (availability pattern reuse)
+> **Out of scope:** background check tracking (future consideration)
+
+### Goal
+Leagues can post volunteer opportunities, volunteers can sign up, and admins can track hours and export reports.
+
+### Acceptance criteria
+- A volunteer can sign up for an open slot and see their own hours.
+- An admin can see all volunteer activity across the league and export it as CSV.
+- Hours are auto-calculated from slot times with optional manual entry.
 
 ### Work items
 - [ ] Volunteer opportunity schema (title, description, date/time, location, slots available, associated event/team/league).
@@ -240,16 +332,24 @@
 - [ ] Admin volunteer management view: see all volunteers, hours, and signups across the league.
 - [ ] Spreadsheet export (CSV) of volunteer hours and signups, admin-only, filterable by date range, team, and volunteer.
 - [ ] Volunteer role integration: link volunteer status to existing role/membership system.
-- [ ] Notifications for upcoming volunteer slots (opt-in).
+- [ ] Notifications for upcoming volunteer slots (opt-in, via M8 notification platform).
 - [ ] Tests for signup flows, hour calculations, and export output.
 - [ ] Milestone checkpoint: update README and admin documentation.
 
-## Milestone 11 — officials and game management
+## Milestone 14 — officials and game management
 
-### Goals
-- Support referee and official management at the league level.
-- Handle both internal volunteers (parents who also ref) and external officials.
-- Let officials manage their assignments and log game scores.
+> **Depends on:** M4 scheduling (game events), M8 notification platform, M12 calendar subscriptions
+> **Enables:** M15 messaging (official group threads)
+> **Out of scope:** incident/injury reports (future consideration), tournament brackets (M18)
+
+### Goal
+Leagues can manage referees and officials, assign them to games, and officials can log scores.
+
+### Acceptance criteria
+- An admin can assign an official to a game and the official can confirm or decline.
+- Officials see their assignments in a personal calendar view.
+- An official can submit a game score after a game.
+- A parent who also refs can hold REFEREE alongside their other roles.
 
 ### Work items
 - [ ] Add REFEREE role to the membership role enum. Refs are league-scoped members, not team-scoped.
@@ -264,11 +364,19 @@
 - [ ] Tests for role permissions, assignment workflows, score submission, and mixed-role scenarios (parent + referee on same account).
 - [ ] Milestone checkpoint: update README and admin documentation.
 
-## Milestone 12 — in-app messaging
+## Milestone 15 — in-app messaging: threads and delivery
 
-### Goals
-- Replace the need for Slack, Discord, or group texts with built-in messaging.
-- Keep it safe for organizations with minor participants.
+> **Depends on:** M8 notification platform, M6 minor accounts
+> **Enables:** M16 messaging safety and moderation
+> **Out of scope:** moderation tools (M16), minor safety restrictions (M16), message retention policies (M16)
+
+### Goal
+Users can send direct messages and participate in team/league group threads, replacing the need for external chat apps.
+
+### Acceptance criteria
+- A user can send a DM to another member within the same league.
+- Team and league group threads are auto-created and usable.
+- Messages deliver in near-real-time with unread counts.
 
 ### Work items
 - [ ] Conversations schema: support both one-on-one DMs and group threads.
@@ -277,18 +385,73 @@
 - [ ] Real-time or near-real-time message delivery (polling or WebSocket).
 - [ ] Unread counts and notification badges.
 - [ ] Message composition with basic formatting (text, links).
-- [ ] Minor safety controls: admins/coaches can restrict who minor accounts can message (e.g., no unsupervised DMs, team threads only, or specific contact lists).
-- [ ] Admin moderation tools: ability to review flagged messages, mute users, and set messaging policies per league.
-- [ ] Message retention and audit logging consistent with existing audit patterns.
-- [ ] Push notification integration for new messages (ties into existing notification preferences).
-- [ ] Tests for messaging permissions, minor safety rules, and delivery.
+- [ ] Push notification integration for new messages (via M8 notification platform).
+- [ ] Tests for thread creation, message delivery, and unread tracking.
 - [ ] Milestone checkpoint: update README and communication documentation.
 
-## Milestone 13 — extensibility and ecosystem
+## Milestone 16 — messaging: safety, moderation, and retention
 
-### Goals
-- Make Teamsster easy to adapt for different sports and organization sizes.
-- Create stable seams for future modules like payments, stats, and tournaments.
+> **Depends on:** M15 messaging threads, M6 minor accounts
+> **Enables:** M17 privacy hardening (messaging data policies)
+> **Out of scope:** message encryption, file/media attachments
+
+### Goal
+Messaging is safe for organizations with minor participants, with admin controls for moderation and retention.
+
+### Acceptance criteria
+- An admin can restrict which users a minor account can message.
+- An admin can review flagged messages and mute users.
+- Message retention policies are configurable per league.
+
+### Work items
+- [ ] Minor safety controls: admins/coaches can restrict who minor accounts can message (e.g., no unsupervised DMs, team threads only, or specific contact lists).
+- [ ] Admin moderation tools: ability to review flagged messages, mute users, and set messaging policies per league.
+- [ ] Message flagging: users can flag messages for admin review.
+- [ ] Message retention and audit logging consistent with existing audit patterns.
+- [ ] Configurable retention policies: leagues can set how long messages are kept before auto-archiving.
+- [ ] Tests for messaging permissions, minor safety rules, moderation actions, and retention behavior.
+- [ ] Milestone checkpoint: update communication and safety documentation.
+
+## Milestone 17 — privacy and compliance hardening
+
+> **Depends on:** M6 minor accounts, M11 medical/waiver data, M15/M16 messaging
+> **Enables:** M18 extensibility (privacy-aware extension contracts)
+> **Out of scope:** GDPR/COPPA legal certification (requires legal review, not just engineering)
+
+### Goal
+Cross-cutting privacy, safety, and data governance review to ensure the app handles minors, medical data, and messaging responsibly.
+
+### Acceptance criteria
+- A user can export or delete their account data.
+- All access to sensitive data (medical, insurance, waivers) is audit-logged.
+- Minor consent and guardian access rules are documented and enforced.
+- Permission regression tests cover all sensitive data paths.
+
+### Work items
+- [ ] Account data export: users can download all their personal data (profile, memberships, messages, volunteer history).
+- [ ] Account deletion flow: users can request account deletion with proper cascade handling (minor guardian reassignment, message anonymization).
+- [ ] Consent documentation: document and enforce minor consent rules, guardian access boundaries, and data retention periods.
+- [ ] Medical and insurance data audit: verify all access paths are logged and role-gated. Add regression tests.
+- [ ] Message data minimization: ensure deleted accounts have messages anonymized, not orphaned.
+- [ ] Guardian access boundaries: document what guardians can and can't see/do on behalf of linked minors.
+- [ ] Permission regression test suite: comprehensive tests covering all sensitive data paths across the full permission model.
+- [ ] Data retention policy documentation: what's kept, how long, and how it's purged.
+- [ ] Tests for export, deletion, anonymization, and access control regression.
+- [ ] Milestone checkpoint: update SECURITY.md and privacy documentation.
+
+## Milestone 18 — extensibility and ecosystem
+
+> **Depends on:** M6-M17 (core domains stabilized)
+> **Enables:** payment integrations, stats modules, tournament brackets, third-party tools
+> **Out of scope:** building full payment/stats/bracket products (proof-of-concept only)
+
+### Goal
+Make Teamsster easy to extend with optional modules and external integrations, now that the core domains are stable.
+
+### Acceptance criteria
+- A developer can build and register an add-on module following documented patterns.
+- External clients can consume a versioned API.
+- At least one proof-of-concept module (payments or stats) is delivered.
 
 ### Work items
 - [ ] Extension strategy and package boundaries.
@@ -299,30 +462,44 @@
 - [ ] Milestone checkpoint: refresh README and contributor-facing docs for extension points.
 
 ### Suggested issue-sized breakdown
-- [ ] 13.1 Deployment hardening baseline
+- [ ] 18.1 Deployment hardening baseline
   - [ ] Finalize and maintain deployment runbook.
   - [ ] Keep environment matrix current across local/staging/production.
   - [ ] Keep migration/release/rollback steps current with platform changes.
-- [ ] 13.2 Extension architecture
+- [ ] 18.2 Extension architecture
   - [ ] Define core-vs-optional package boundaries.
   - [ ] Identify stable extension seams for modules and feature toggles.
   - [ ] Document ownership and compatibility expectations for extension points.
-- [ ] 13.3 Integration surface
+- [ ] 18.3 Integration surface
   - [ ] Introduce domain event hooks for announcements, roster, scheduling, and membership changes.
   - [ ] Document supported lifecycle hooks and payload stability guarantees.
   - [ ] Add tests to protect hook contracts from accidental breakage.
-- [ ] 13.4 Developer platform
+- [ ] 18.4 Developer platform
   - [ ] Publish contributor guide for creating add-on modules.
   - [ ] Provide module templates for validation, permissions, and data access patterns.
   - [ ] Add a reference add-on module skeleton in the monorepo.
-- [ ] 13.5 External API contracts
+- [ ] 18.5 External API contracts
   - [ ] Define versioned external contract surface for web/mobile consumers.
   - [ ] Separate internal-only server actions from public API boundaries.
   - [ ] Document authentication and deprecation policy for external clients.
-- [ ] 13.6 Proof modules
+- [ ] 18.6 Proof modules
   - [ ] Deliver one payments prototype module.
   - [ ] Deliver one stats or tournament/bracket prototype module.
   - [ ] Run checkpoint review to confirm extension architecture supports both.
+
+## Future considerations
+
+The following areas aren't in the current roadmap but may influence schema design or become milestones as the product matures:
+
+- **Divisions, age groups, and competitive levels** for leagues with multiple tiers.
+- **Tryouts, evaluations, drafts, and team placement** workflows.
+- **Waitlists** for full teams or leagues.
+- **Equipment and uniform sizing** tracking and distribution.
+- **Field and venue management** with availability calendars and weather-aware scheduling.
+- **Weather cancellation workflows** with automated notifications.
+- **Tournament and bracket support** (hinted in M18 proof modules).
+- **Background check and certification tracking** for coaches and volunteers.
+- **Incident and injury reporting** for officials and coaches.
 
 ## Continuous best practices
 
