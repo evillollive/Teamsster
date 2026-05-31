@@ -98,6 +98,15 @@ export default function SignInPage() {
       <div
         aria-label="Sign-in method"
         className="flex gap-1 rounded-2xl bg-slate-100 p-1"
+        onKeyDown={(e) => {
+          if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+            e.preventDefault();
+            const next = mode === "email" ? "username" : "email";
+            setMode(next);
+            setError(null);
+            document.getElementById(`${next}-tab`)?.focus();
+          }
+        }}
         role="tablist"
       >
         <button
@@ -114,6 +123,7 @@ export default function SignInPage() {
             setError(null);
           }}
           role="tab"
+          tabIndex={mode === "email" ? 0 : -1}
           type="button"
         >
           Email
@@ -132,6 +142,7 @@ export default function SignInPage() {
             setError(null);
           }}
           role="tab"
+          tabIndex={mode === "username" ? 0 : -1}
           type="button"
         >
           Username

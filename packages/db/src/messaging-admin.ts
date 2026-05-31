@@ -81,6 +81,17 @@ export async function createConversation(input: {
     });
   }
 
+  if (input.leagueId) {
+    await db.insert(auditLogs).values({
+      action: "conversation.create",
+      actorUserId: input.memberUserIds[0],
+      entityType: "conversation",
+      entityId: row.id,
+      leagueId: input.leagueId,
+      metadata: { type: input.type, memberCount: input.memberUserIds.length },
+    });
+  }
+
   return row.id;
 }
 
@@ -117,10 +128,15 @@ export async function isThreadMember(
   const rows = await db
     .select({ id: conversationMembers.id })
     .from(conversationMembers)
+    .innerJoin(
+      conversations,
+      eq(conversations.id, conversationMembers.conversationId),
+    )
     .where(
       and(
         eq(conversationMembers.conversationId, conversationId),
         eq(conversationMembers.userId, userId),
+        isNull(conversations.deletedAt),
       ),
     )
     .limit(1);

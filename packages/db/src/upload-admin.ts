@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "./client";
-import { uploads } from "./schema";
+import { auditLogs, uploads } from "./schema";
 
 export async function createUploadRecord(input: {
   uploadedById: string;
@@ -17,6 +17,16 @@ export async function createUploadRecord(input: {
     .insert(uploads)
     .values(input)
     .returning({ id: uploads.id, url: uploads.url });
+
+  if (result[0]) {
+    await db.insert(auditLogs).values({
+      action: "upload.create",
+      actorUserId: input.uploadedById,
+      entityType: "upload",
+      entityId: result[0].id,
+      metadata: { purpose: input.purpose },
+    });
+  }
 
   return result[0];
 }
@@ -34,6 +44,6 @@ export async function getUploadsForUser(userId: string) {
       createdAt: uploads.createdAt,
     })
     .from(uploads)
-    .where(eq(uploads.uploadedById, userId))
+    .where(and(eq(uploads.uploadedById, userId), isNull(uploads.deletedAt)))
     .orderBy(uploads.createdAt);
 }

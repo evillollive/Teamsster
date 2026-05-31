@@ -51,7 +51,7 @@ When a user requests account deletion: profile is soft-deleted (30-day grace), m
 
 ### Input validation
 
-All inputs validated with Zod schemas. Email subjects sanitized against header injection. Message content stripped of XSS vectors. CSV exports sanitized against formula injection. Template payloads depth-limited and prototype-stripped.
+Inputs are validated with Zod schemas on specific mutation paths (registration, templates, player contacts, seasons, account settings). Email subjects are sanitized against header injection in the notification delivery layer. Message content is stripped of XSS vectors in the messaging admin layer. CSV exports are sanitized against formula injection in the volunteer export helper. Not all API routes have equal sanitization depth; new endpoints should use the established patterns in `apps/web/src/lib/`.
 
 ### Rate limiting
 

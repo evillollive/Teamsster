@@ -95,4 +95,43 @@ describe("account settings validation", () => {
     expect(slug).toMatch(/^casey-family-personal-league-[a-f0-9]{12}$/);
     expect(slug.length).toBeLessThanOrEqual(64);
   });
+
+  it("allows empty display name (optional field)", () => {
+    const result = accountSettingsSchema.safeParse({
+      displayName: "",
+      timezone: "UTC",
+      notificationPreferences: {
+        ANNOUNCEMENT: { email: true, inApp: true, push: false },
+        ASSIGNMENT: { email: true, inApp: true, push: false },
+        EVENT_REMINDER: { email: true, inApp: true, push: false },
+        MESSAGE: { email: true, inApp: true, push: false },
+        REGISTRATION_DEADLINE: { email: true, inApp: true, push: false },
+        VOLUNTEER_REMINDER: { email: true, inApp: true, push: false },
+        WEEKLY_DIGEST: { email: true, inApp: true, push: false },
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects display name over 120 chars", () => {
+    expect(
+      accountSettingsSchema.safeParse({
+        displayName: "A".repeat(121),
+        timezone: "UTC",
+        notificationPreferences: {
+          ANNOUNCEMENT: { email: true, inApp: true, push: false },
+          ASSIGNMENT: { email: true, inApp: true, push: false },
+          EVENT_REMINDER: { email: true, inApp: true, push: false },
+          MESSAGE: { email: true, inApp: true, push: false },
+          REGISTRATION_DEADLINE: { email: true, inApp: true, push: false },
+          VOLUNTEER_REMINDER: { email: true, inApp: true, push: false },
+          WEEKLY_DIGEST: { email: true, inApp: true, push: false },
+        },
+      }).success,
+    ).toBe(false);
+  });
+
+  it("handles hasEnabledNotificationChannel with undefined input", () => {
+    expect(hasEnabledNotificationChannel(undefined)).toBe(false);
+  });
 });

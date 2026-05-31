@@ -1,4 +1,10 @@
-import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  pbkdf2Sync,
+  randomBytes,
+} from "node:crypto";
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "./client";
@@ -51,14 +57,15 @@ export function decryptField(ciphertext: string, key: Buffer): string {
 }
 
 /**
- * Derives an encryption key from a secret string.
- * In production, use a proper KMS. This is a placeholder.
+ * Derives an encryption key from a secret string using PBKDF2.
+ * Uses a fixed salt derived from the secret for deterministic key derivation.
+ * In production, consider using a KMS for key management.
  */
 export function deriveEncryptionKey(secret: string): Buffer {
-  const hash = Buffer.alloc(32);
-  const secretBuf = Buffer.from(secret, "utf8");
-  secretBuf.copy(hash, 0, 0, Math.min(secretBuf.length, 32));
-  return hash;
+  const salt = createHash("sha256")
+    .update(`teamsster-key-salt:${secret}`)
+    .digest();
+  return pbkdf2Sync(secret, salt, 100_000, 32, "sha512");
 }
 
 // ── Insurance records ────────────────────────────────────────────────────────
