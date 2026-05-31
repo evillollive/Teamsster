@@ -1833,3 +1833,63 @@ export const fieldAvailability = pgTable(
     index("field_availability_day_idx").on(table.fieldId, table.dayOfWeek),
   ],
 );
+
+// ── Incident and injury reporting ────────────────────────────────────────────
+
+export const incidentTypeValues = [
+  "injury",
+  "conduct",
+  "facility",
+  "other",
+] as const;
+export const incidentTypeEnum = pgEnum("incident_type", incidentTypeValues);
+export type IncidentType = (typeof incidentTypeValues)[number];
+
+export const incidentSeverityValues = [
+  "minor",
+  "moderate",
+  "serious",
+  "critical",
+] as const;
+export const incidentSeverityEnum = pgEnum(
+  "incident_severity",
+  incidentSeverityValues,
+);
+export type IncidentSeverity = (typeof incidentSeverityValues)[number];
+
+export const incidentReports = pgTable(
+  "incident_reports",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    eventId: uuid("event_id"),
+    teamId: uuid("team_id").references(() => teams.id),
+    type: incidentTypeEnum("type").notNull(),
+    severity: incidentSeverityEnum("severity").notNull(),
+    title: text("title").notNull(),
+    narrative: text("narrative").notNull(),
+    encryptedMedicalDetails: text("encrypted_medical_details"),
+    involvedParties: jsonb("involved_parties")
+      .$type<Array<{ name: string; role: string; userId?: string }>>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    reportedById: uuid("reported_by_id")
+      .notNull()
+      .references(() => users.id),
+    reviewedById: uuid("reviewed_by_id").references(() => users.id),
+    reviewedAt: timestamp("reviewed_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("incident_reports_league_idx").on(table.leagueId),
+    index("incident_reports_event_idx").on(table.eventId),
+    index("incident_reports_reporter_idx").on(table.reportedById),
+    index("incident_reports_type_idx").on(table.leagueId, table.type),
+  ],
+);

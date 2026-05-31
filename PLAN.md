@@ -856,17 +856,17 @@ Leagues can manage fields and venues with availability calendars so scheduling a
 Coaches and officials can file incident and injury reports during or after games, with proper access controls and export capabilities for compliance.
 
 ### Work items
-- [ ] Incident report schema: type (injury, conduct, facility), severity, narrative, involved parties, event/game reference.
-- [ ] Report filing UI: coaches and officials can submit reports from the event page.
-- [ ] Role-gated visibility: reports visible to league admins and involved parties only. Medical details follow M11 encryption patterns.
-- [ ] Export for compliance: admin can export incident reports as PDF or CSV for insurance/league review.
-- [ ] Notification integration: alert league admins when a report is filed.
+- [x] Incident report schema: type (injury, conduct, facility), severity, narrative, involved parties, event/game reference.
+- [x] Report filing UI: coaches and officials can submit reports from the event page.
+- [x] Role-gated visibility: reports visible to league admins and involved parties only. Medical details follow M11 encryption patterns.
+- [x] Export for compliance: admin can export incident reports as PDF or CSV for insurance/league review.
+- [x] Notification integration: alert league admins when a report is filed.
 
 #### Security
-- [ ] Encrypt sensitive narrative content. Audit-log all report access. Role-gate exports.
+- [x] Encrypt sensitive narrative content. Audit-log all report access. Role-gate exports.
 
 #### Testing
-- [ ] Unit tests for report validation, visibility rules, export sanitization.
+- [x] Unit tests for report validation, visibility rules, export sanitization.
 
 - [ ] Milestone checkpoint: update SECURITY.md and README.
 

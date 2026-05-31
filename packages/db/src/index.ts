@@ -15,6 +15,7 @@ export * from "./division-admin";
 export * from "./event-admin";
 export * from "./extension-system";
 export * from "./guardian-admin";
+export * from "./incident-admin";
 export * from "./league-admin";
 export * from "./membership-admin";
 export * from "./message-admin";
