@@ -1622,3 +1622,66 @@ export const messagingPolicies = pgTable(
     uniqueIndex("messaging_policies_league_unique").on(table.leagueId),
   ],
 );
+
+// ── Divisions and competitive levels ─────────────────────────────────────────
+
+export const competitiveLevelValues = [
+  "recreational",
+  "competitive",
+  "elite",
+] as const;
+export const competitiveLevelEnum = pgEnum(
+  "competitive_level",
+  competitiveLevelValues,
+);
+export type CompetitiveLevel = (typeof competitiveLevelValues)[number];
+
+export const divisions = pgTable(
+  "divisions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    name: text("name").notNull(),
+    shortName: text("short_name"),
+    minBirthYear: text("min_birth_year"),
+    maxBirthYear: text("max_birth_year"),
+    competitiveLevel: competitiveLevelEnum("competitive_level")
+      .notNull()
+      .default("recreational"),
+    sortOrder: text("sort_order").notNull().default("0"),
+    createdById: uuid("created_by_id").references(() => users.id),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("divisions_league_idx").on(table.leagueId),
+    index("divisions_league_level_idx").on(
+      table.leagueId,
+      table.competitiveLevel,
+    ),
+  ],
+);
+
+export const teamDivisionAssignments = pgTable(
+  "team_division_assignments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    teamId: uuid("team_id")
+      .notNull()
+      .references(() => teams.id),
+    divisionId: uuid("division_id")
+      .notNull()
+      .references(() => divisions.id),
+    seasonId: uuid("season_id").references(() => seasons.id),
+    assignedById: uuid("assigned_by_id").references(() => users.id),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("team_division_assignments_team_idx").on(table.teamId),
+    index("team_division_assignments_division_idx").on(table.divisionId),
+    index("team_division_assignments_season_idx").on(table.seasonId),
+  ],
+);

@@ -734,15 +734,219 @@ Make Teamsster easy to extend with optional modules and external integrations, n
 
 The following areas aren't in the current roadmap but may influence schema design or become milestones as the product matures:
 
-- **Divisions, age groups, and competitive levels** for leagues with multiple tiers.
 - **Tryouts, evaluations, drafts, and team placement** workflows.
 - **Waitlists** for full teams or leagues.
 - **Equipment and uniform sizing** tracking and distribution.
-- **Field and venue management** with availability calendars and weather-aware scheduling.
-- **Weather cancellation workflows** with automated notifications.
-- **Tournament and bracket support** (hinted in M18 proof modules).
 - **Background check and certification tracking** for coaches and volunteers.
-- **Incident and injury reporting** for officials and coaches.
+
+---
+
+# Phase 2 — Product depth
+
+## Milestone 19 — divisions, age groups, and competitive levels
+
+> **Depends on:** M3 roster, M10 seasons
+> **Enables:** M21 tournament brackets (division-scoped brackets), M22 field scheduling (division-aware)
+
+### Goal
+Leagues with multiple tiers can organize teams by division, age group, and competitive level so scheduling, standings, and registration are scoped appropriately.
+
+### Acceptance criteria
+- An admin can create divisions within a league (e.g., U10, U12, U14).
+- Teams are assigned to a division. A team belongs to exactly one division per season.
+- Standings, schedules, and registration forms are filterable by division.
+- Division metadata (age range, competitive level) is visible on league and team pages.
+
+### Work items
+- [ ] Division schema: name, age range (min/max birth year), competitive level (recreational, competitive, elite), league-scoped.
+- [ ] Team-division assignment: many-to-one per season, with migration support for existing teams.
+- [ ] Division-aware standings: stats module filters by division.
+- [ ] Division-aware scheduling: events can be scoped to a division.
+- [ ] Division management UI: admin page to create, edit, reorder, and archive divisions.
+- [ ] Registration form integration: division selection during registration.
+
+#### Security
+- [ ] Enforce admin-only division management. Audit-log all division changes.
+- [ ] Validate division assignments (team can't be in a division from a different league).
+
+#### Accessibility
+- [ ] Division selector is keyboard operable with clear labels.
+- [ ] Division filter on standings/schedule pages is screen-reader friendly.
+
+#### Testing
+- [ ] Unit tests for division validation, assignment rules, and filter logic.
+- [ ] Permission regression tests for division management.
+
+- [ ] Milestone checkpoint: update README and admin documentation.
+
+## Milestone 20 — tournament and bracket support
+
+> **Depends on:** M4 scheduling, M14 officials, M19 divisions
+> **Enables:** cross-league tournament hosting
+
+### Goal
+Leagues can run single-elimination, double-elimination, or round-robin tournaments with auto-generated brackets and score-driven advancement.
+
+### Acceptance criteria
+- An admin can create a tournament with a bracket format and seed teams.
+- Scores advance teams through the bracket automatically.
+- Bracket visualization shows current state, completed matches, and upcoming games.
+- Officials can be assigned to tournament games.
+
+### Work items
+- [ ] Tournament schema: name, format (single_elim, double_elim, round_robin, pool_play), league/division scope, seeding order.
+- [ ] Bracket generation: auto-create matches from seeded team list based on format.
+- [ ] Score-driven advancement: when a match score is published, the winner advances to the next round automatically.
+- [ ] Bracket visualization component: interactive bracket display showing matchups, scores, and progression.
+- [ ] Tournament management UI: admin page to create tournaments, seed teams, manage schedule.
+- [ ] Official assignment integration: assign refs to tournament games using M14 patterns.
+- [ ] Pool play support: round-robin groups with crossover brackets.
+
+#### Security
+- [ ] Validate bracket integrity (teams can't be injected into wrong slots). Audit-log seeding and advancement.
+
+#### Accessibility
+- [ ] Bracket visualization is keyboard navigable with screen-reader announcements for match results.
+
+#### Testing
+- [ ] Unit tests for bracket generation, advancement logic, seeding validation.
+- [ ] Storybook stories for bracket visualization component.
+
+- [ ] Milestone checkpoint: update README.
+
+## Milestone 21 — field and venue management
+
+> **Depends on:** M4 scheduling, M19 divisions
+> **Enables:** weather-aware scheduling, facility booking
+
+### Goal
+Leagues can manage fields and venues with availability calendars so scheduling avoids conflicts and weather cancellations are streamlined.
+
+### Acceptance criteria
+- An admin can create venues with fields, addresses, and availability windows.
+- Scheduling shows field conflicts and suggests available slots.
+- Weather cancellation can be triggered from a venue, cascading to all affected events.
+
+### Work items
+- [ ] Venue and field schema: name, address, capacity, surface type, amenities, availability windows.
+- [ ] Field availability calendar: admin sets recurring availability per field (days/times). Scheduling respects these windows.
+- [ ] Conflict detection: warn when scheduling an event on a field that's already booked.
+- [ ] Venue management UI: admin page to create/edit venues, manage fields, set availability.
+- [ ] Weather cancellation flow: cancel all events at a venue for a date range, with automatic M8 notifications to affected teams.
+- [ ] Map integration placeholder: venue address displayed with link to external maps.
+
+#### Security
+- [ ] Enforce admin-only venue management. Audit-log all venue and cancellation changes.
+
+#### Accessibility
+- [ ] Availability calendar is keyboard navigable. Cancellation confirmation is clearly announced.
+
+#### Testing
+- [ ] Unit tests for conflict detection, availability window validation, cancellation cascade.
+- [ ] Storybook stories for venue management and availability calendar.
+
+- [ ] Milestone checkpoint: update README.
+
+## Milestone 22 — incident and injury reporting
+
+> **Depends on:** M14 officials, M11 medical data
+> **Enables:** compliance reporting, insurance claims
+
+### Goal
+Coaches and officials can file incident and injury reports during or after games, with proper access controls and export capabilities for compliance.
+
+### Work items
+- [ ] Incident report schema: type (injury, conduct, facility), severity, narrative, involved parties, event/game reference.
+- [ ] Report filing UI: coaches and officials can submit reports from the event page.
+- [ ] Role-gated visibility: reports visible to league admins and involved parties only. Medical details follow M11 encryption patterns.
+- [ ] Export for compliance: admin can export incident reports as PDF or CSV for insurance/league review.
+- [ ] Notification integration: alert league admins when a report is filed.
+
+#### Security
+- [ ] Encrypt sensitive narrative content. Audit-log all report access. Role-gate exports.
+
+#### Testing
+- [ ] Unit tests for report validation, visibility rules, export sanitization.
+
+- [ ] Milestone checkpoint: update SECURITY.md and README.
+
+## Milestone 23 — mobile app shell via Capacitor
+
+> **Depends on:** M8 push notifications (designed for Capacitor)
+> **Enables:** native push notifications, offline support
+
+### Goal
+Wrap the Next.js web app in a Capacitor shell for iOS and Android, enabling native push notifications and app store distribution.
+
+### Work items
+- [ ] Capacitor project setup: iOS and Android targets wrapping the web app.
+- [ ] Push notification wiring: connect APNs (iOS) and FCM (Android) to the M8 device token system.
+- [ ] App icon, splash screen, and native navigation shell.
+- [ ] Build and signing pipeline for TestFlight/Play Store internal testing.
+- [ ] Offline-aware UI: graceful degradation when network is unavailable.
+
+- [ ] Milestone checkpoint: update README with mobile build instructions.
+
+---
+
+# Phase 3 — Operational readiness
+
+## Milestone 24 — deployment and infrastructure
+
+### Work items
+- [ ] Deploy to Vercel (web) + Neon (Postgres) with environment configuration.
+- [ ] Error monitoring with Sentry or equivalent.
+- [ ] Uptime monitoring and health check endpoints.
+- [ ] Database backup strategy and disaster recovery plan.
+- [ ] Rate limiting at the infrastructure level (Vercel Edge, Cloudflare).
+- [ ] Staging environment with seed data for QA.
+
+## Milestone 25 — authenticated E2E test suite
+
+### Work items
+- [ ] Test user seeding script for CI (admin, coach, parent, minor accounts).
+- [ ] Playwright tests for full auth flows (sign up, sign in, onboard).
+- [ ] Playwright tests for roster management with relationship dropdown.
+- [ ] Playwright tests for registration wizard (single and multi-child).
+- [ ] Playwright tests for notification preferences and feed.
+- [ ] Visual regression testing with Playwright screenshots.
+
+## Milestone 26 — onboarding polish and user feedback
+
+### Work items
+- [ ] First-run onboarding wizard with guided league/team setup.
+- [ ] Contextual help tooltips on complex forms.
+- [ ] In-app feedback widget (simple form, not a full support system).
+- [ ] Empty state illustrations and CTAs across all pages.
+- [ ] Performance audit and Core Web Vitals optimization.
+
+---
+
+# Phase 4 — Community growth
+
+## Milestone 27 — contributor experience
+
+### Work items
+- [ ] CONTRIBUTING.md with setup instructions, code standards, and PR process.
+- [ ] "Good first issue" label strategy with starter tasks.
+- [ ] Development environment setup script (one-command local dev).
+- [ ] Architecture decision records (ADRs) for key design choices.
+
+## Milestone 28 — demo and marketing
+
+### Work items
+- [ ] Public demo instance with sample data (read-only or time-limited).
+- [ ] Landing page / marketing site explaining features and target audience.
+- [ ] Feature comparison matrix vs. existing league management tools.
+- [ ] Social media presence and community channels (Discord/GitHub Discussions).
+
+## Milestone 29 — plugin marketplace
+
+### Work items
+- [ ] Plugin registry UI: browse, install, and configure extension modules.
+- [ ] Plugin sandboxing: extensions run with scoped permissions and can't access raw DB.
+- [ ] Plugin developer portal with documentation, examples, and submission process.
+- [ ] First-party plugin examples: advanced stats, photo galleries, fundraising tracker.
 
 ## Continuous best practices
 

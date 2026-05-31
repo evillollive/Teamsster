@@ -11,6 +11,7 @@ export * from "./calendar-feed-admin";
 export * from "./captain-admin";
 export * from "./client";
 export * from "./compliance-admin";
+export * from "./division-admin";
 export * from "./event-admin";
 export * from "./extension-system";
 export * from "./guardian-admin";
