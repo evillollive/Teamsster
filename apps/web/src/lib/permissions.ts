@@ -36,6 +36,7 @@ const roleRank: Record<Role, number> = {
   COACH: 50,
   BOARD_MEMBER: 40,
   CAPTAIN: 30,
+  REFEREE: 30,
   PLAYER: 30,
   PARENT: 20,
   GUEST: 10,

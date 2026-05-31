@@ -20,6 +20,7 @@ export const roleValues = [
   "COACH",
   "BOARD_MEMBER",
   "CAPTAIN",
+  "REFEREE",
   "PLAYER",
   "PARENT",
   "GUEST",
@@ -1373,5 +1374,251 @@ export const volunteerRoleAssignments = pgTable(
   (table) => [
     index("volunteer_role_assignments_role_idx").on(table.roleId),
     index("volunteer_role_assignments_user_idx").on(table.userId),
+  ],
+);
+
+// ── Officials and game management ────────────────────────────────────────────
+
+export const assignmentStatusValues = [
+  "pending",
+  "confirmed",
+  "declined",
+] as const;
+export const assignmentStatusEnum = pgEnum(
+  "assignment_status",
+  assignmentStatusValues,
+);
+export type AssignmentStatus = (typeof assignmentStatusValues)[number];
+
+export const gameAssignments = pgTable(
+  "game_assignments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    eventId: uuid("event_id").notNull(),
+    officialUserId: uuid("official_user_id")
+      .notNull()
+      .references(() => users.id),
+    status: assignmentStatusEnum("status").notNull().default("pending"),
+    assignedById: uuid("assigned_by_id").references(() => users.id),
+    respondedAt: timestamp("responded_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("game_assignments_league_idx").on(table.leagueId),
+    index("game_assignments_event_idx").on(table.eventId),
+    index("game_assignments_official_idx").on(table.officialUserId),
+  ],
+);
+
+export const gameScores = pgTable(
+  "game_scores",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    eventId: uuid("event_id").notNull(),
+    homeTeamId: uuid("home_team_id").references(() => teams.id),
+    awayTeamId: uuid("away_team_id").references(() => teams.id),
+    homeScore: text("home_score"),
+    awayScore: text("away_score"),
+    notes: text("notes"),
+    submittedById: uuid("submitted_by_id")
+      .notNull()
+      .references(() => users.id),
+    publishedAt: timestamp("published_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    ...timestampColumns,
+  },
+  (table) => [
+    index("game_scores_league_idx").on(table.leagueId),
+    index("game_scores_event_idx").on(table.eventId),
+  ],
+);
+
+export const officialAvailability = pgTable(
+  "official_availability",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    dayOfWeek: text("day_of_week").notNull(),
+    startTime: text("start_time"),
+    endTime: text("end_time"),
+    isAvailable: boolean("is_available").notNull().default(true),
+    ...timestampColumns,
+  },
+  (table) => [
+    index("official_availability_user_idx").on(table.userId),
+    index("official_availability_league_idx").on(table.leagueId),
+  ],
+);
+
+// ── Messaging ────────────────────────────────────────────────────────────────
+
+export const conversationTypeValues = ["dm", "team", "league"] as const;
+export const conversationTypeEnum = pgEnum(
+  "conversation_type",
+  conversationTypeValues,
+);
+export type ConversationType = (typeof conversationTypeValues)[number];
+
+export const conversations = pgTable(
+  "conversations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    type: conversationTypeEnum("type").notNull(),
+    leagueId: uuid("league_id").references(() => leagues.id),
+    teamId: uuid("team_id").references(() => teams.id),
+    title: text("title"),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("conversations_league_idx").on(table.leagueId),
+    index("conversations_team_idx").on(table.teamId),
+  ],
+);
+
+export const conversationMembers = pgTable(
+  "conversation_members",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => conversations.id),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    lastReadAt: timestamp("last_read_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    isMuted: boolean("is_muted").notNull().default(false),
+    ...timestampColumns,
+  },
+  (table) => [
+    index("conversation_members_conversation_idx").on(table.conversationId),
+    index("conversation_members_user_idx").on(table.userId),
+    uniqueIndex("conversation_members_unique").on(
+      table.conversationId,
+      table.userId,
+    ),
+  ],
+);
+
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => conversations.id),
+    senderUserId: uuid("sender_user_id")
+      .notNull()
+      .references(() => users.id),
+    content: text("content").notNull(),
+    editedAt: timestamp("edited_at", { mode: "date", withTimezone: true }),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("messages_conversation_idx").on(table.conversationId),
+    index("messages_sender_idx").on(table.senderUserId),
+    index("messages_created_at_idx").on(table.createdAt),
+  ],
+);
+
+// ── Messaging safety and moderation ──────────────────────────────────────────
+
+export const flagStatusValues = ["pending", "reviewed", "dismissed"] as const;
+export const flagStatusEnum = pgEnum("flag_status", flagStatusValues);
+
+export const messageFlags = pgTable(
+  "message_flags",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    messageId: uuid("message_id")
+      .notNull()
+      .references(() => messages.id),
+    flaggedById: uuid("flagged_by_id")
+      .notNull()
+      .references(() => users.id),
+    reason: text("reason"),
+    status: flagStatusEnum("status").notNull().default("pending"),
+    reviewedById: uuid("reviewed_by_id").references(() => users.id),
+    reviewNotes: text("review_notes"),
+    ...timestampColumns,
+  },
+  (table) => [
+    index("message_flags_message_idx").on(table.messageId),
+    index("message_flags_status_idx").on(table.status),
+  ],
+);
+
+export const moderationActionValues = [
+  "mute",
+  "unmute",
+  "warn",
+  "restrict",
+] as const;
+export const moderationActionEnum = pgEnum(
+  "moderation_action_type",
+  moderationActionValues,
+);
+
+export const moderationActions = pgTable(
+  "moderation_actions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    targetUserId: uuid("target_user_id")
+      .notNull()
+      .references(() => users.id),
+    action: moderationActionEnum("action").notNull(),
+    reason: text("reason"),
+    expiresAt: timestamp("expires_at", { mode: "date", withTimezone: true }),
+    actorUserId: uuid("actor_user_id")
+      .notNull()
+      .references(() => users.id),
+    ...timestampColumns,
+  },
+  (table) => [
+    index("moderation_actions_league_idx").on(table.leagueId),
+    index("moderation_actions_target_idx").on(table.targetUserId),
+  ],
+);
+
+export const messagingPolicies = pgTable(
+  "messaging_policies",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    minorDmRestriction: text("minor_dm_restriction")
+      .notNull()
+      .default("team_threads_only"),
+    retentionDays: text("retention_days"),
+    updatedById: uuid("updated_by_id").references(() => users.id),
+    ...timestampColumns,
+  },
+  (table) => [
+    uniqueIndex("messaging_policies_league_unique").on(table.leagueId),
   ],
 );

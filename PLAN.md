@@ -505,20 +505,20 @@ Leagues can manage referees and officials, assign them to games, and officials c
 - A parent who also refs can hold REFEREE alongside their other roles.
 
 ### Work items
-- [ ] Add REFEREE role to the membership role enum. Refs are league-scoped members, not team-scoped.
-- [ ] Official profiles: external officials can be invited to the system with a lightweight account, or existing users (e.g., a parent) can receive the REFEREE role alongside their other roles.
-- [ ] Game assignment schema: link officials to specific events/games with assignment status (pending, confirmed, declined).
-- [ ] Assignment workflow: league admins assign officials to games. Officials receive a notification and can confirm or decline.
-- [ ] Official assignment calendar: refs see a personal view of their upcoming assignments with game details, venue, and team info.
-- [ ] Permission scoping for officials: read access to game schedules, team rosters (player names, jersey numbers, eligibility), venue details, and coach contact info. No access to parent contacts, insurance/medical data, or team internal communications.
-- [ ] Score logging: officials can submit game scores after a game. Scores are visible to league admins and can be published to teams.
-- [ ] Admin assignment dashboard: league admins see all games, who's assigned, confirmation status, and gaps that need filling.
-- [ ] Availability preferences: officials can set general availability (days/times) to help admins make assignments.
+- [x] Add REFEREE role to the membership role enum. Refs are league-scoped members, not team-scoped.
+- [x] Official profiles: external officials can be invited to the system with a lightweight account, or existing users (e.g., a parent) can receive the REFEREE role alongside their other roles.
+- [x] Game assignment schema: link officials to specific events/games with assignment status (pending, confirmed, declined).
+- [x] Assignment workflow: league admins assign officials to games. Officials receive a notification and can confirm or decline.
+- [x] Official assignment calendar: refs see a personal view of their upcoming assignments with game details, venue, and team info.
+- [x] Permission scoping for officials: read access to game schedules, team rosters (player names, jersey numbers, eligibility), venue details, and coach contact info. No access to parent contacts, insurance/medical data, or team internal communications.
+- [x] Score logging: officials can submit game scores after a game. Scores are visible to league admins and can be published to teams.
+- [x] Admin assignment dashboard: league admins see all games, who's assigned, confirmation status, and gaps that need filling.
+- [x] Availability preferences: officials can set general availability (days/times) to help admins make assignments.
 
 #### Security
-- [ ] Validate score submissions, assignment state changes, and availability updates so malformed or tampered game data doesn't persist.
-- [ ] Audit-log official assignments, confirmations, declines, score edits, and score publication so competitive outcomes won't change without traceability.
-- [ ] Enforce permission boundaries on assignment notifications and official data views so referee tools can't expose parent contacts or restricted records.
+- [x] Validate score submissions, assignment state changes, and availability updates so malformed or tampered game data doesn't persist.
+- [x] Audit-log official assignments, confirmations, declines, score edits, and score publication so competitive outcomes won't change without traceability.
+- [x] Enforce permission boundaries on assignment notifications and official data views so referee tools can't expose parent contacts or restricted records.
 
 #### Accessibility
 - [ ] Make the assignment calendar, confirm or decline actions, and score entry forms work fully from the keyboard with stable focus behavior so officials don't lose their place.
@@ -526,10 +526,10 @@ Leagues can manage referees and officials, assign them to games, and officials c
 - [ ] Ensure score-entry controls, availability toggles, and calendar affordances meet contrast and touch target guidance.
 
 #### Testing
-- [ ] Unit tests for score validation, assignment transitions, official availability rules, and referee permission resolution.
+- [x] Unit tests for score validation, assignment transitions, official availability rules, and referee permission resolution.
 - [ ] Integration tests for assignment notifications, confirm or decline flows, audit logging, score publishing, and mixed-role account behavior.
 - [ ] E2E or Playwright tests for accepting an assignment, viewing the personal official calendar, and submitting a post-game score.
-- [ ] Permission regression tests to prove officials only receive the roster, venue, and contact data they're explicitly allowed to access.
+- [x] Permission regression tests to prove officials only receive the roster, venue, and contact data they're explicitly allowed to access.
 - [ ] Automated accessibility tests for the assignment calendar, response actions, and score-entry experience.
 
 - [ ] Milestone checkpoint: update README and admin documentation.
@@ -549,19 +549,19 @@ Users can send direct messages and participate in team/league group threads, rep
 - Messages deliver in near-real-time with unread counts.
 
 ### Work items
-- [ ] Conversations schema: support both one-on-one DMs and group threads.
-- [ ] Team and league group threads auto-created when teams/leagues are created.
-- [ ] DM initiation between members within the same league scope.
-- [ ] Real-time or near-real-time message delivery (polling or WebSocket).
-- [ ] Unread counts and notification badges.
-- [ ] Message composition with basic formatting (text, links).
-- [ ] Push notification integration for new messages (via M8 notification platform).
+- [x] Conversations schema: support both one-on-one DMs and group threads.
+- [x] Team and league group threads auto-created when teams/leagues are created.
+- [x] DM initiation between members within the same league scope.
+- [x] Real-time or near-real-time message delivery (polling or WebSocket).
+- [x] Unread counts and notification badges.
+- [x] Message composition with basic formatting (text, links).
+- [x] Push notification integration for new messages (via M8 notification platform).
 
 #### Security
-- [ ] Sanitize message content, link previews, and rendered formatting so thread views can't become an XSS delivery surface.
-- [ ] Require authenticated WebSocket or real-time connections with secure token handling and reconnect checks so stale sessions don't keep receiving messages.
-- [ ] Enforce thread membership and same-league permission boundaries on every send, read, and notification path so messages won't leak across scopes.
-- [ ] Add rate limiting for message send bursts and thread creation so abuse doesn't degrade delivery or notification systems.
+- [x] Sanitize message content, link previews, and rendered formatting so thread views can't become an XSS delivery surface.
+- [x] Require authenticated WebSocket or real-time connections with secure token handling and reconnect checks so stale sessions don't keep receiving messages.
+- [x] Enforce thread membership and same-league permission boundaries on every send, read, and notification path so messages won't leak across scopes.
+- [x] Add rate limiting for message send bursts and thread creation so abuse doesn't degrade delivery or notification systems.
 
 #### Accessibility
 - [ ] Make the chat interface keyboard navigable, including thread switching, composer actions, and unread-jump controls so users don't depend on pointer-only actions.
@@ -569,10 +569,10 @@ Users can send direct messages and participate in team/league group threads, rep
 - [ ] Support reduced motion for incoming-message effects and keep message status, timestamps, and unread indicators readable with strong contrast so animation doesn't block comprehension.
 
 #### Testing
-- [ ] Unit tests for message sanitization, formatting helpers, unread-count logic, and real-time auth token lifecycle helpers.
+- [x] Unit tests for message sanitization, formatting helpers, unread-count logic, and real-time auth token lifecycle helpers.
 - [ ] Integration tests for thread creation, secure real-time delivery, membership enforcement, notification fan-out, and message persistence.
 - [ ] E2E or Playwright tests for sending a DM, participating in a group thread, and seeing unread counts update across sessions.
-- [ ] Permission regression tests to prove users can't open or post into threads outside their league or membership scope.
+- [x] Permission regression tests to prove users can't open or post into threads outside their league or membership scope.
 - [ ] Automated accessibility tests for thread lists, message announcements, composer controls, and keyboard navigation paths.
 
 - [ ] Milestone checkpoint: update README and communication documentation.
@@ -592,17 +592,17 @@ Messaging is safe for organizations with minor participants, with admin controls
 - Message retention policies are configurable per league.
 
 ### Work items
-- [ ] Minor safety controls: admins/coaches can restrict who minor accounts can message (e.g., no unsupervised DMs, team threads only, or specific contact lists).
-- [ ] Admin moderation tools: ability to review flagged messages, mute users, and set messaging policies per league.
-- [ ] Message flagging: users can flag messages for admin review.
-- [ ] Message retention and audit logging consistent with existing audit patterns.
-- [ ] Configurable retention policies: leagues can set how long messages are kept before auto-archiving.
+- [x] Minor safety controls: admins/coaches can restrict who minor accounts can message (e.g., no unsupervised DMs, team threads only, or specific contact lists).
+- [x] Admin moderation tools: ability to review flagged messages, mute users, and set messaging policies per league.
+- [x] Message flagging: users can flag messages for admin review.
+- [x] Message retention and audit logging consistent with existing audit patterns.
+- [x] Configurable retention policies: leagues can set how long messages are kept before auto-archiving.
 
 #### Security
-- [ ] Audit-log moderation actions, policy changes, message review decisions, and retention updates so safety enforcement won't happen without an accountable trail.
-- [ ] Rate limit message flagging and moderation-trigger endpoints so abuse reports can't be spammed into uselessness.
-- [ ] Validate every minor messaging restriction against actor, target, and thread context so policy gaps don't allow unsafe contact paths.
-- [ ] Enforce moderator permission checks on review, mute, and policy controls so safety tooling can't become its own escalation vector.
+- [x] Audit-log moderation actions, policy changes, message review decisions, and retention updates so safety enforcement won't happen without an accountable trail.
+- [x] Rate limit message flagging and moderation-trigger endpoints so abuse reports can't be spammed into uselessness.
+- [x] Validate every minor messaging restriction against actor, target, and thread context so policy gaps don't allow unsafe contact paths.
+- [x] Enforce moderator permission checks on review, mute, and policy controls so safety tooling can't become its own escalation vector.
 
 #### Accessibility
 - [ ] Make moderation queues, review drawers, and mute dialogs fully keyboard accessible with clear focus management so moderators don't lose the active item.
@@ -610,10 +610,10 @@ Messaging is safe for organizations with minor participants, with admin controls
 - [ ] Keep warning states, muted indicators, and retention settings understandable without color dependence and usable on mobile touch targets.
 
 #### Testing
-- [ ] Unit tests for flagging thresholds, minor messaging rule evaluation, mute duration logic, and retention policy calculations.
+- [x] Unit tests for flagging thresholds, minor messaging rule evaluation, mute duration logic, and retention policy calculations.
 - [ ] Integration tests for abuse-rate limiting, moderation review flows, audit logging, and league policy enforcement.
 - [ ] E2E or Playwright tests for flagging a message, reviewing it as an admin, muting a user, and exercising minor restriction scenarios.
-- [ ] Permission regression tests to prove minor safety rules and moderator tools behave correctly across guardians, coaches, admins, and peers.
+- [x] Permission regression tests to prove minor safety rules and moderator tools behave correctly across guardians, coaches, admins, and peers.
 - [ ] Automated accessibility tests for moderation dashboards, review forms, and policy-management controls.
 
 - [ ] Milestone checkpoint: update communication and safety documentation.
