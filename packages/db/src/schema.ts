@@ -1154,3 +1154,224 @@ export const calendarFeedTokens = pgTable(
     index("calendar_feed_tokens_user_idx").on(table.userId),
   ],
 );
+
+// ── Waivers, medical, and compliance ─────────────────────────────────────────
+
+export const paymentStatusValues = [
+  "pending",
+  "received",
+  "comped",
+  "scholarship",
+] as const;
+export const paymentStatusEnum = pgEnum("payment_status", paymentStatusValues);
+export type PaymentStatus = (typeof paymentStatusValues)[number];
+
+export type InsuranceRecord = {
+  carrier: string;
+  policyNumber: string;
+  groupNumber?: string;
+  insuredName: string;
+};
+
+export type WaiverMetadata = {
+  waiverVersion: string;
+  ipAddress: string;
+  userAgent: string;
+  signedByName: string;
+  signedByRelationship?: string;
+};
+
+export const insuranceRecords = pgTable(
+  "insurance_records",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    registrationId: uuid("registration_id")
+      .notNull()
+      .references(() => registrations.id),
+    playerId: uuid("player_id").references(() => players.id),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    encryptedData: text("encrypted_data").notNull(),
+    createdById: uuid("created_by_id").references(() => users.id),
+    ...timestampColumns,
+  },
+  (table) => [
+    index("insurance_records_registration_idx").on(table.registrationId),
+    index("insurance_records_player_idx").on(table.playerId),
+  ],
+);
+
+export const medicalNotes = pgTable(
+  "medical_notes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    registrationId: uuid("registration_id")
+      .notNull()
+      .references(() => registrations.id),
+    playerId: uuid("player_id").references(() => players.id),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    encryptedNotes: text("encrypted_notes").notNull(),
+    createdById: uuid("created_by_id").references(() => users.id),
+    ...timestampColumns,
+  },
+  (table) => [
+    index("medical_notes_registration_idx").on(table.registrationId),
+    index("medical_notes_player_idx").on(table.playerId),
+  ],
+);
+
+export const waiverSignatures = pgTable(
+  "waiver_signatures",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    registrationId: uuid("registration_id")
+      .notNull()
+      .references(() => registrations.id),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    signerUserId: uuid("signer_user_id")
+      .notNull()
+      .references(() => users.id),
+    waiverText: text("waiver_text").notNull(),
+    metadata: jsonb("metadata").$type<WaiverMetadata>().notNull(),
+    signedAt: timestamp("signed_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    ...timestampColumns,
+  },
+  (table) => [
+    index("waiver_signatures_registration_idx").on(table.registrationId),
+    index("waiver_signatures_league_idx").on(table.leagueId),
+    index("waiver_signatures_signer_idx").on(table.signerUserId),
+  ],
+);
+
+export const registrationPayments = pgTable(
+  "registration_payments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    registrationId: uuid("registration_id")
+      .notNull()
+      .references(() => registrations.id),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    status: paymentStatusEnum("status").notNull().default("pending"),
+    amount: text("amount"),
+    notes: text("notes"),
+    updatedById: uuid("updated_by_id").references(() => users.id),
+    ...timestampColumns,
+  },
+  (table) => [
+    index("registration_payments_registration_idx").on(table.registrationId),
+    index("registration_payments_league_idx").on(table.leagueId),
+  ],
+);
+
+// ── Volunteer tracking ───────────────────────────────────────────────────────
+
+export const volunteerOpportunities = pgTable(
+  "volunteer_opportunities",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    teamId: uuid("team_id").references(() => teams.id),
+    eventId: uuid("event_id"),
+    title: text("title").notNull(),
+    description: text("description"),
+    location: text("location"),
+    startsAt: timestamp("starts_at", { mode: "date", withTimezone: true }),
+    endsAt: timestamp("ends_at", { mode: "date", withTimezone: true }),
+    slotsAvailable: text("slots_available").notNull().default("1"),
+    createdById: uuid("created_by_id").references(() => users.id),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("volunteer_opportunities_league_idx").on(table.leagueId),
+    index("volunteer_opportunities_team_idx").on(table.teamId),
+  ],
+);
+
+export const volunteerSignups = pgTable(
+  "volunteer_signups",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    opportunityId: uuid("opportunity_id")
+      .notNull()
+      .references(() => volunteerOpportunities.id),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    checkedInAt: timestamp("checked_in_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    checkedOutAt: timestamp("checked_out_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    manualHours: text("manual_hours"),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("volunteer_signups_opportunity_idx").on(table.opportunityId),
+    index("volunteer_signups_user_idx").on(table.userId),
+  ],
+);
+
+export const volunteerRoleScopeValues = ["league", "team"] as const;
+export const volunteerRoleScopeEnum = pgEnum(
+  "volunteer_role_scope",
+  volunteerRoleScopeValues,
+);
+
+export const volunteerRoles = pgTable(
+  "volunteer_roles",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    teamId: uuid("team_id").references(() => teams.id),
+    scope: volunteerRoleScopeEnum("scope").notNull(),
+    title: text("title").notNull(),
+    description: text("description"),
+    isBuiltIn: boolean("is_built_in").notNull().default(false),
+    createdById: uuid("created_by_id").references(() => users.id),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("volunteer_roles_league_idx").on(table.leagueId),
+    index("volunteer_roles_team_idx").on(table.teamId),
+  ],
+);
+
+export const volunteerRoleAssignments = pgTable(
+  "volunteer_role_assignments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    roleId: uuid("role_id")
+      .notNull()
+      .references(() => volunteerRoles.id),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    seasonId: uuid("season_id").references(() => seasons.id),
+    assignedById: uuid("assigned_by_id").references(() => users.id),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("volunteer_role_assignments_role_idx").on(table.roleId),
+    index("volunteer_role_assignments_user_idx").on(table.userId),
+  ],
+);

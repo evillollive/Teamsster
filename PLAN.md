@@ -362,30 +362,30 @@ Registration collects sensitive information (insurance, medical, waivers) with p
 - Payment status can be manually marked as received/pending.
 
 ### Work items
-- [ ] Insurance information fields: carrier, policy number, group number, insured name. Stored securely with role-gated visibility (admin/coach only).
-- [ ] Medical/allergy notes field: free-text for conditions coaches need to know about, with appropriate visibility controls.
-- [ ] Digital waiver signatures: click-through liability/participation agreements with timestamp, IP, and signer identity recorded. Waiver text is configurable per league.
-- [ ] Waiver storage and retrieval: admins can view and export signed waivers for compliance.
-- [ ] Payment integration hook: registration form includes a "payment" step placeholder that can link to an external processor (Stripe, PayPal, etc.) in a future milestone. For now, admins can mark payment as received/pending/comped/scholarship manually.
-- [ ] Payment status visibility on registration dashboard (ties into M10 dashboard).
-- [ ] Audit logging for all access to medical and insurance data.
+- [x] Insurance information fields: carrier, policy number, group number, insured name. Stored securely with role-gated visibility (admin/coach only).
+- [x] Medical/allergy notes field: free-text for conditions coaches need to know about, with appropriate visibility controls.
+- [x] Digital waiver signatures: click-through liability/participation agreements with timestamp, IP, and signer identity recorded. Waiver text is configurable per league.
+- [x] Waiver storage and retrieval: admins can view and export signed waivers for compliance.
+- [x] Payment integration hook: registration form includes a "payment" step placeholder that can link to an external processor (Stripe, PayPal, etc.) in a future milestone. For now, admins can mark payment as received/pending/comped/scholarship manually.
+- [x] Payment status visibility on registration dashboard (ties into M10 dashboard).
+- [x] Audit logging for all access to medical and insurance data.
 
 #### Security
-- [ ] Encrypt medical and insurance fields at rest and keep decryption tightly scoped so raw sensitive values can't be read outside approved service paths.
-- [ ] Store waiver signatures with tamper-evident metadata, immutable revision references, and signer context so legal records won't be silently altered.
-- [ ] Audit-log every read, export, and update of medical, insurance, waiver, and payment-status fields with actor and target context.
-- [ ] Re-validate role-gated visibility on every access path, including exports, so sensitive registration data can't leak through convenience tooling.
+- [x] Encrypt medical and insurance fields at rest and keep decryption tightly scoped so raw sensitive values can't be read outside approved service paths.
+- [x] Store waiver signatures with tamper-evident metadata, immutable revision references, and signer context so legal records won't be silently altered.
+- [x] Audit-log every read, export, and update of medical, insurance, waiver, and payment-status fields with actor and target context.
+- [x] Re-validate role-gated visibility on every access path, including exports, so sensitive registration data can't leak through convenience tooling.
 
 #### Accessibility
-- [ ] Make the waiver review and signature flow fully accessible from keyboard and screen readers so users with disabilities aren't blocked from completing legal steps.
-- [ ] Use clear headings, readable summary text, and focus management for waiver confirmation, payment placeholder, and sensitive field disclosures so users don't lose context.
-- [ ] Ensure error messaging, required acknowledgements, and signature confirmation states meet contrast and touch target expectations so nobody has to hunt for next steps.
+- [x] Make the waiver review and signature flow fully accessible from keyboard and screen readers so users with disabilities aren't blocked from completing legal steps.
+- [x] Use clear headings, readable summary text, and focus management for waiver confirmation, payment placeholder, and sensitive field disclosures so users don't lose context.
+- [x] Ensure error messaging, required acknowledgements, and signature confirmation states meet contrast and touch target expectations so nobody has to hunt for next steps.
 
 #### Testing
-- [ ] Unit tests for field encryption helpers, waiver integrity metadata, access control guards, and payment-status visibility rules.
+- [x] Unit tests for field encryption helpers, waiver integrity metadata, access control guards, and payment-status visibility rules.
 - [ ] Integration tests for waiver capture, sensitive field storage and retrieval, audit logging, admin export paths, and manual payment updates.
 - [ ] E2E or Playwright tests for completing registration with waiver signing, reviewing stored records, and exporting signed waivers as an admin.
-- [ ] Permission regression tests to prove coaches, admins, guardians, and unrelated users only see the sensitive fields they're allowed to access.
+- [x] Permission regression tests to prove coaches, admins, guardians, and unrelated users only see the sensitive fields they're allowed to access.
 - [ ] Automated accessibility tests for the waiver flow, signature step, sensitive-field review UI, and export controls.
 
 - [ ] Milestone checkpoint: update README and admin documentation.
@@ -449,42 +449,42 @@ Leagues can post volunteer opportunities, volunteers can sign up, and admins can
 ### Work items
 
 #### Event-based volunteer opportunities
-- [ ] Volunteer opportunity schema (title, description, date/time, location, slots available, associated event/team/league).
-- [ ] Signup flow: volunteers can claim open slots from a list of opportunities.
-- [ ] Check-in and hours tracking: auto-calculated from slot times, with optional manual hour entry for off-app work.
-- [ ] Volunteer dashboard for users to see their own signups and logged hours.
-- [ ] Admin volunteer management view: see all volunteers, hours, and signups across the league.
-- [ ] Spreadsheet export (CSV) of volunteer hours and signups, admin-only, filterable by date range, team, and volunteer.
-- [ ] Notifications for upcoming volunteer slots (opt-in, via M8 notification platform).
+- [x] Volunteer opportunity schema (title, description, date/time, location, slots available, associated event/team/league).
+- [x] Signup flow: volunteers can claim open slots from a list of opportunities.
+- [x] Check-in and hours tracking: auto-calculated from slot times, with optional manual hour entry for off-app work.
+- [x] Volunteer dashboard for users to see their own signups and logged hours.
+- [x] Admin volunteer management view: see all volunteers, hours, and signups across the league.
+- [x] Spreadsheet export (CSV) of volunteer hours and signups, admin-only, filterable by date range, team, and volunteer.
+- [x] Notifications for upcoming volunteer slots (opt-in, via M8 notification platform).
 
 #### Standing volunteer roles
-- [ ] Volunteer role definition schema: title (text), description (optional), scope (team or league), and a `scopeId` FK to the team or league. Admins can create, rename, and archive role definitions.
-- [ ] Starter role list shipped by default: Travel Coordinator, Social Coordinator, Communications Manager, Fundraising Chair, Equipment Manager, Team Parent, Snack Coordinator. Leagues can delete or rename these and add custom ones.
-- [ ] Role assignment: admins assign one or more users to a volunteer role. Multiple holders per role are supported (e.g., two Snack Coordinators). A user can hold multiple roles.
-- [ ] Directory view: team and league pages display a "Volunteer roles" section showing each active role, the assigned holder(s), and their contact info (name, email, phone). Visible to all members of the team/league.
-- [ ] Volunteer role integration: link volunteer role assignments to existing membership and role system so permission checks work naturally.
-- [ ] Season lifecycle: volunteer role assignments can optionally carry over to the next season or be cleared at season boundary.
+- [x] Volunteer role definition schema: title (text), description (optional), scope (team or league), and a `scopeId` FK to the team or league. Admins can create, rename, and archive role definitions.
+- [x] Starter role list shipped by default: Travel Coordinator, Social Coordinator, Communications Manager, Fundraising Chair, Equipment Manager, Team Parent, Snack Coordinator. Leagues can delete or rename these and add custom ones.
+- [x] Role assignment: admins assign one or more users to a volunteer role. Multiple holders per role are supported (e.g., two Snack Coordinators). A user can hold multiple roles.
+- [x] Directory view: team and league pages display a "Volunteer roles" section showing each active role, the assigned holder(s), and their contact info (name, email, phone). Visible to all members of the team/league.
+- [x] Volunteer role integration: link volunteer role assignments to existing membership and role system so permission checks work naturally.
+- [x] Season lifecycle: volunteer role assignments can optionally carry over to the next season or be cleared at season boundary.
 
 #### Security
-- [ ] Sanitize CSV export values to prevent formula injection so exported volunteer reports can't execute when opened in spreadsheet tools.
-- [ ] Validate manual hour edits, check-in updates, and opportunity capacity changes so volunteers or admins can't tamper with totals unnoticed.
-- [ ] Enforce admin-only export access and audit-log hour overrides, bulk edits, and report downloads so sensitive volunteer history stays accountable.
-- [ ] Restrict volunteer role definition creation, renaming, and assignment to league/team admins. Audit-log all role assignment changes.
-- [ ] Contact info shown in the volunteer directory must respect existing field-level permission rules (e.g., don't expose phone numbers to non-members).
+- [x] Sanitize CSV export values to prevent formula injection so exported volunteer reports can't execute when opened in spreadsheet tools.
+- [x] Validate manual hour edits, check-in updates, and opportunity capacity changes so volunteers or admins can't tamper with totals unnoticed.
+- [x] Enforce admin-only export access and audit-log hour overrides, bulk edits, and report downloads so sensitive volunteer history stays accountable.
+- [x] Restrict volunteer role definition creation, renaming, and assignment to league/team admins. Audit-log all role assignment changes.
+- [x] Contact info shown in the volunteer directory must respect existing field-level permission rules (e.g., don't expose phone numbers to non-members).
 
 #### Accessibility
-- [ ] Ensure volunteer signup lists, dashboard summaries, and export controls are keyboard operable and announced clearly to screen readers so volunteers don't miss key actions.
-- [ ] Use accessible status messaging for claimed slots, wait states, and check-in confirmation so volunteers don't rely on visual cues alone.
-- [ ] Keep mobile signup actions and filters large enough for touch use and compliant with contrast guidance so volunteers don't mistap critical actions.
-- [ ] Make the volunteer role directory section keyboard navigable with clear heading hierarchy and role-holder grouping.
+- [x] Ensure volunteer signup lists, dashboard summaries, and export controls are keyboard operable and announced clearly to screen readers so volunteers don't miss key actions.
+- [x] Use accessible status messaging for claimed slots, wait states, and check-in confirmation so volunteers don't rely on visual cues alone.
+- [x] Keep mobile signup actions and filters large enough for touch use and compliant with contrast guidance so volunteers don't mistap critical actions.
+- [x] Make the volunteer role directory section keyboard navigable with clear heading hierarchy and role-holder grouping.
 
 #### Testing
-- [ ] Unit tests for slot availability rules, hour calculations, manual override validation, and CSV export sanitization.
+- [x] Unit tests for slot availability rules, hour calculations, manual override validation, and CSV export sanitization.
 - [ ] Integration tests for volunteer signup, check-in, dashboard aggregation, admin reporting, and protected export endpoints.
-- [ ] Unit tests for volunteer role definition CRUD, assignment logic, multi-holder constraints, and starter role seeding.
+- [x] Unit tests for volunteer role definition CRUD, assignment logic, multi-holder constraints, and starter role seeding.
 - [ ] Integration tests for directory view rendering with assigned roles, contact info visibility, and season carryover/clear behavior.
 - [ ] E2E or Playwright tests for claiming a slot, reviewing logged hours, and exporting filtered volunteer reports as an admin.
-- [ ] Permission regression tests to prove volunteers can see only their own hours while admins can manage league-wide reporting.
+- [x] Permission regression tests to prove volunteers can see only their own hours while admins can manage league-wide reporting.
 - [ ] Automated accessibility tests for the signup flow, dashboard, filters, export UI, and volunteer role directory.
 
 - [ ] Milestone checkpoint: update README and admin documentation.

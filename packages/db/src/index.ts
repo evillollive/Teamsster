@@ -10,6 +10,7 @@
 export * from "./calendar-feed-admin";
 export * from "./captain-admin";
 export * from "./client";
+export * from "./compliance-admin";
 export * from "./event-admin";
 export * from "./guardian-admin";
 export * from "./league-admin";
@@ -24,3 +25,4 @@ export * from "./team-admin";
 export * from "./template-admin";
 export * from "./upload-admin";
 export * from "./user-onboarding";
+export * from "./volunteer-admin";
