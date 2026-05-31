@@ -63,7 +63,7 @@ export function generateSingleEliminationBracket(teamIds: string[]): Array<{
 }> {
   const totalRounds = calculateRounds(teamIds.length);
   const bracketSize = 2 ** totalRounds;
-  const byes = bracketSize - teamIds.length;
+  const _byes = bracketSize - teamIds.length;
   const matches: Array<{
     round: string;
     matchNumber: string;
@@ -100,7 +100,7 @@ export function generateSingleEliminationBracket(teamIds: string[]): Array<{
   }
 
   // Generate subsequent rounds
-  let prevRoundStart = 0;
+  let _prevRoundStart = 0;
   for (let r = 2; r <= totalRounds; r++) {
     const matchesInRound = roundSizes[r - 1];
     const roundStart = matchIndex;
@@ -118,7 +118,7 @@ export function generateSingleEliminationBracket(teamIds: string[]): Array<{
       });
       matchIndex++;
     }
-    prevRoundStart = roundStart;
+    _prevRoundStart = roundStart;
   }
 
   return matches;

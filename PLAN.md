@@ -344,7 +344,7 @@ Leagues can define seasons and families can self-register their players through 
 - [x] Permission regression tests to prove only allowed admins can configure forms and only linked guardians can submit or edit minor registrations.
 - [ ] Automated accessibility tests for the registration wizard, progress UI, validation messaging, and submission confirmation screens.
 
-- [ ] Milestone checkpoint: update README and admin documentation.
+- [x] Milestone checkpoint: update README and admin documentation.
 
 ## Milestone 11 — registration: waivers, medical info, and compliance
 
@@ -388,7 +388,7 @@ Registration collects sensitive information (insurance, medical, waivers) with p
 - [x] Permission regression tests to prove coaches, admins, guardians, and unrelated users only see the sensitive fields they're allowed to access.
 - [ ] Automated accessibility tests for the waiver flow, signature step, sensitive-field review UI, and export controls.
 
-- [ ] Milestone checkpoint: update README and admin documentation.
+- [x] Milestone checkpoint: update README and admin documentation.
 
 ## Milestone 12 — live calendar subscriptions
 
@@ -487,7 +487,7 @@ Leagues can post volunteer opportunities, volunteers can sign up, and admins can
 - [x] Permission regression tests to prove volunteers can see only their own hours while admins can manage league-wide reporting.
 - [ ] Automated accessibility tests for the signup flow, dashboard, filters, export UI, and volunteer role directory.
 
-- [ ] Milestone checkpoint: update README and admin documentation.
+- [x] Milestone checkpoint: update README and admin documentation.
 
 ## Milestone 14 — officials and game management
 
@@ -532,7 +532,7 @@ Leagues can manage referees and officials, assign them to games, and officials c
 - [x] Permission regression tests to prove officials only receive the roster, venue, and contact data they're explicitly allowed to access.
 - [ ] Automated accessibility tests for the assignment calendar, response actions, and score-entry experience.
 
-- [ ] Milestone checkpoint: update README and admin documentation.
+- [x] Milestone checkpoint: update README and admin documentation.
 
 ## Milestone 15 — in-app messaging: threads and delivery
 
@@ -575,7 +575,7 @@ Users can send direct messages and participate in team/league group threads, rep
 - [x] Permission regression tests to prove users can't open or post into threads outside their league or membership scope.
 - [ ] Automated accessibility tests for thread lists, message announcements, composer controls, and keyboard navigation paths.
 
-- [ ] Milestone checkpoint: update README and communication documentation.
+- [x] Milestone checkpoint: update README and communication documentation.
 
 ## Milestone 16 — messaging: safety, moderation, and retention
 
@@ -616,7 +616,7 @@ Messaging is safe for organizations with minor participants, with admin controls
 - [x] Permission regression tests to prove minor safety rules and moderator tools behave correctly across guardians, coaches, admins, and peers.
 - [ ] Automated accessibility tests for moderation dashboards, review forms, and policy-management controls.
 
-- [ ] Milestone checkpoint: update communication and safety documentation.
+- [x] Milestone checkpoint: update communication and safety documentation.
 
 ## Milestone 17 — privacy and compliance hardening
 
@@ -705,27 +705,27 @@ Make Teamsster easy to extend with optional modules and external integrations, n
 - [x] Milestone checkpoint: refresh README and contributor-facing docs for extension points.
 
 ### Suggested issue-sized breakdown
-- [ ] 18.1 Deployment hardening baseline
+- [x] 18.1 Deployment hardening baseline
   - [ ] Finalize and maintain deployment runbook.
   - [ ] Keep environment matrix current across local/staging/production.
   - [ ] Keep migration/release/rollback steps current with platform changes.
-- [ ] 18.2 Extension architecture
+- [x] 18.2 Extension architecture
   - [ ] Define core-vs-optional package boundaries.
   - [ ] Identify stable extension seams for modules and feature toggles.
   - [ ] Document ownership and compatibility expectations for extension points.
-- [ ] 18.3 Integration surface
+- [x] 18.3 Integration surface
   - [ ] Introduce domain event hooks for announcements, roster, scheduling, and membership changes.
   - [ ] Document supported lifecycle hooks and payload stability guarantees.
   - [ ] Add tests to protect hook contracts from accidental breakage.
-- [ ] 18.4 Developer platform
+- [x] 18.4 Developer platform
   - [ ] Publish contributor guide for creating add-on modules.
   - [ ] Provide module templates for validation, permissions, and data access patterns.
   - [ ] Add a reference add-on module skeleton in the monorepo.
-- [ ] 18.5 External API contracts
+- [x] 18.5 External API contracts
   - [ ] Define versioned external contract surface for web/mobile consumers.
   - [ ] Separate internal-only server actions from public API boundaries.
   - [ ] Document authentication and deprecation policy for external clients.
-- [ ] 18.6 Proof modules
+- [x] 18.6 Proof modules
   - [ ] Deliver one payments prototype module.
   - [ ] Deliver one stats or tournament/bracket prototype module.
   - [ ] Run checkpoint review to confirm extension architecture supports both.
@@ -777,7 +777,7 @@ Leagues with multiple tiers can organize teams by division, age group, and compe
 - [ ] Unit tests for division validation, assignment rules, and filter logic.
 - [ ] Permission regression tests for division management.
 
-- [ ] Milestone checkpoint: update README and admin documentation.
+- [x] Milestone checkpoint: update README and admin documentation.
 
 ## Milestone 20 — tournament and bracket support
 
@@ -806,13 +806,13 @@ Leagues can run single-elimination, double-elimination, or round-robin tournamen
 - [x] Validate bracket integrity (teams can't be injected into wrong slots). Audit-log seeding and advancement.
 
 #### Accessibility
-- [ ] Bracket visualization is keyboard navigable with screen-reader announcements for match results.
+- [x] Bracket visualization is keyboard navigable with screen-reader announcements for match results.
 
 #### Testing
 - [x] Unit tests for bracket generation, advancement logic, seeding validation.
-- [ ] Storybook stories for bracket visualization component.
+- [x] Storybook stories for bracket visualization component.
 
-- [ ] Milestone checkpoint: update README.
+- [x] Milestone checkpoint: update README.
 
 ## Milestone 21 — field and venue management
 
@@ -839,13 +839,13 @@ Leagues can manage fields and venues with availability calendars so scheduling a
 - [x] Enforce admin-only venue management. Audit-log all venue and cancellation changes.
 
 #### Accessibility
-- [ ] Availability calendar is keyboard navigable. Cancellation confirmation is clearly announced.
+- [x] Availability calendar is keyboard navigable. Cancellation confirmation is clearly announced.
 
 #### Testing
 - [x] Unit tests for conflict detection, availability window validation, cancellation cascade.
-- [ ] Storybook stories for venue management and availability calendar.
+- [x] Storybook stories for venue management and availability calendar.
 
-- [ ] Milestone checkpoint: update README.
+- [x] Milestone checkpoint: update README.
 
 ## Milestone 22 — incident and injury reporting
 
@@ -868,7 +868,7 @@ Coaches and officials can file incident and injury reports during or after games
 #### Testing
 - [x] Unit tests for report validation, visibility rules, export sanitization.
 
-- [ ] Milestone checkpoint: update SECURITY.md and README.
+- [x] Milestone checkpoint: update SECURITY.md and README.
 
 ## Milestone 23 — mobile app shell via Capacitor
 

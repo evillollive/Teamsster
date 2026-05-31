@@ -1,12 +1,7 @@
-import type {
-  RegistrationFormConfig,
-  RegistrationStatus,
-  SeasonStatus,
-} from "@teamsster/db";
+import type { RegistrationFormConfig, SeasonStatus } from "@teamsster/db";
 import {
   createRegistration,
   createSeason,
-  getActiveSeasonForLeague,
   getRegistrationStatusCounts,
   getRegistrationsByGuardian,
   getRegistrationsBySeason,
@@ -14,7 +9,6 @@ import {
   getSeasonsByLeague,
   getUserIdByAuthUserId,
   getUserLeagueMembership,
-  reviewRegistration,
   updateRegistrationFormData,
   updateSeasonFormConfig,
   updateSeasonStatus,
@@ -178,7 +172,7 @@ export async function getRegistrationDashboard(
   const season = await getSeasonById(seasonId);
   if (!season) throw new Error("Season not found.");
 
-  const userId = await resolveAdminUser(authUserId, season.leagueId);
+  const _userId = await resolveAdminUser(authUserId, season.leagueId);
   const [allRegistrations, statusCounts] = await Promise.all([
     getRegistrationsBySeason(seasonId),
     getRegistrationStatusCounts(seasonId),

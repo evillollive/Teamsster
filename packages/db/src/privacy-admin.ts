@@ -1,14 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "./client";
-import {
-  auditLogs,
-  conversationMembers,
-  messages,
-  users,
-  volunteerRoleAssignments,
-  volunteerSignups,
-} from "./schema";
+import { users } from "./schema";
 
 // ── Account data export ──────────────────────────────────────────────────────
 
@@ -113,13 +106,13 @@ export function validateDeletionPlan(plan: DeletionPlan): string[] {
 
 // ── Message anonymization ────────────────────────────────────────────────────
 
-const ANONYMIZED_SENDER = "deleted-user";
+const _ANONYMIZED_SENDER = "deleted-user";
 
 /**
  * Anonymizes message content from a deleted user.
  * Replaces sender reference but preserves message structure for thread continuity.
  */
-export function anonymizeMessageContent(content: string): string {
+export function anonymizeMessageContent(_content: string): string {
   return "[Message from deleted account]";
 }
 

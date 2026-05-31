@@ -1,7 +1,5 @@
 import {
   createFeedToken,
-  generateFeedToken,
-  getFeedTokenByToken,
   getFeedTokensByUser,
   getUserIdByAuthUserId,
   regenerateFeedToken,

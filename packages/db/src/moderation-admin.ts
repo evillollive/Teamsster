@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { db } from "./client";
 import {
@@ -117,7 +117,7 @@ export async function reviewFlag(input: {
   });
 }
 
-export async function getPendingFlags(leagueId: string) {
+export async function getPendingFlags(_leagueId: string) {
   return db
     .select({
       id: messageFlags.id,
