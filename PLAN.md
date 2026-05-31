@@ -634,20 +634,20 @@ Cross-cutting privacy, safety, and data governance review to ensure the app hand
 - Permission regression tests cover all sensitive data paths.
 
 ### Work items
-- [ ] Account data export: users can download all their personal data (profile, memberships, messages, volunteer history).
-- [ ] Account deletion flow: users can request account deletion with proper cascade handling (minor guardian reassignment, message anonymization).
-- [ ] Consent documentation: document and enforce minor consent rules, guardian access boundaries, and data retention periods.
-- [ ] Medical and insurance data audit: verify all access paths are logged and role-gated. Add regression tests.
-- [ ] Message data minimization: ensure deleted accounts have messages anonymized, not orphaned.
-- [ ] Guardian access boundaries: document what guardians can and can't see/do on behalf of linked minors.
-- [ ] Permission regression test suite: comprehensive tests covering all sensitive data paths across the full permission model.
-- [ ] Data retention policy documentation: what's kept, how long, and how it's purged.
+- [x] Account data export: users can download all their personal data (profile, memberships, messages, volunteer history).
+- [x] Account deletion flow: users can request account deletion with proper cascade handling (minor guardian reassignment, message anonymization).
+- [x] Consent documentation: document and enforce minor consent rules, guardian access boundaries, and data retention periods.
+- [x] Medical and insurance data audit: verify all access paths are logged and role-gated. Add regression tests.
+- [x] Message data minimization: ensure deleted accounts have messages anonymized, not orphaned.
+- [x] Guardian access boundaries: document what guardians can and can't see/do on behalf of linked minors.
+- [x] Permission regression test suite: comprehensive tests covering all sensitive data paths across the full permission model.
+- [x] Data retention policy documentation: what's kept, how long, and how it's purged.
 
 #### Security
-- [ ] Make account deletion thorough across primary records, linked minors, messages, exports, and audit references so personal data doesn't linger unintentionally.
-- [ ] Sanitize exported data so generated files can't inject formulas, unsafe markup, or hidden fields the requester shouldn't receive.
-- [ ] Verify guardian-boundary rules, sensitive-field logging, and purge or anonymization jobs across all privacy-sensitive domains so compliance work won't stop at the happy path.
-- [ ] Add explicit operational checklists for deletion failures, retry handling, and support escalations so privacy incidents can't be hand-waved.
+- [x] Make account deletion thorough across primary records, linked minors, messages, exports, and audit references so personal data doesn't linger unintentionally.
+- [x] Sanitize exported data so generated files can't inject formulas, unsafe markup, or hidden fields the requester shouldn't receive.
+- [x] Verify guardian-boundary rules, sensitive-field logging, and purge or anonymization jobs across all privacy-sensitive domains so compliance work won't stop at the happy path.
+- [x] Add explicit operational checklists for deletion failures, retry handling, and support escalations so privacy incidents can't be hand-waved.
 
 #### Accessibility
 - [ ] Make export and deletion flows keyboard friendly, screen-reader understandable, and clear about irreversible actions so users don't trigger high-stakes actions blindly.
@@ -655,13 +655,13 @@ Cross-cutting privacy, safety, and data governance review to ensure the app hand
 - [ ] Ensure privacy notices, consent explanations, and retention summaries meet contrast and readability expectations.
 
 #### Testing
-- [ ] Unit tests for export serializers, deletion planners, anonymization helpers, and consent-boundary evaluators.
+- [x] Unit tests for export serializers, deletion planners, anonymization helpers, and consent-boundary evaluators.
 - [ ] Integration tests for account export, account deletion, guardian reassignment, message anonymization, and sensitive-audit verification.
 - [ ] E2E or Playwright tests for requesting an export, completing account deletion, and verifying post-delete user experience.
-- [ ] Permission regression tests to prove sensitive data exports and guardian access paths stay within documented boundaries.
+- [x] Permission regression tests to prove sensitive data exports and guardian access paths stay within documented boundaries.
 - [ ] Automated accessibility tests for export requests, deletion confirmations, privacy notices, and completion states.
 
-- [ ] Milestone checkpoint: update SECURITY.md and privacy documentation.
+- [x] Milestone checkpoint: update SECURITY.md and privacy documentation.
 
 ## Milestone 18 — extensibility and ecosystem
 
@@ -678,17 +678,17 @@ Make Teamsster easy to extend with optional modules and external integrations, n
 - At least one proof-of-concept module (payments or stats) is delivered.
 
 ### Work items
-- [ ] Extension strategy and package boundaries.
-- [ ] Public hooks for integrations.
-- [ ] Developer docs for new feature modules.
-- [ ] Example advanced modules (payments, stats, brackets) as optional add-ons.
-- [ ] API contracts for external consumers and mobile clients.
+- [x] Extension strategy and package boundaries.
+- [x] Public hooks for integrations.
+- [x] Developer docs for new feature modules.
+- [x] Example advanced modules (payments, stats, brackets) as optional add-ons.
+- [x] API contracts for external consumers and mobile clients.
 
 #### Security
-- [ ] Require authentication, rate limiting, and strict input validation on public API contracts so extension consumers can't bypass core safeguards.
-- [ ] Ensure extension hooks run through centralized permission checks and typed contracts so add-ons won't escalate privileges or read hidden data.
-- [ ] Define secure token handling, secret rotation expectations, and audit logging for external integrations so ecosystem access stays accountable.
-- [ ] Add threat-model reviews for proof modules and extension examples so convenience scaffolds don't normalize unsafe patterns.
+- [x] Require authentication, rate limiting, and strict input validation on public API contracts so extension consumers can't bypass core safeguards.
+- [x] Ensure extension hooks run through centralized permission checks and typed contracts so add-ons won't escalate privileges or read hidden data.
+- [x] Define secure token handling, secret rotation expectations, and audit logging for external integrations so ecosystem access stays accountable.
+- [x] Add threat-model reviews for proof modules and extension examples so convenience scaffolds don't normalize unsafe patterns.
 
 #### Accessibility
 - [ ] Publish developer docs and extension guides with accessible structure, link text, code samples, and heading hierarchy so extension authors don't miss critical guidance.
@@ -696,13 +696,13 @@ Make Teamsster easy to extend with optional modules and external integrations, n
 - [ ] Document accessibility expectations for third-party modules so extension authors don't treat inclusive UX as optional.
 
 #### Testing
-- [ ] Unit tests for public contract validators, hook registration guards, permission wrappers, and auth token validation helpers.
+- [x] Unit tests for public contract validators, hook registration guards, permission wrappers, and auth token validation helpers.
 - [ ] Integration tests for authenticated API access, rate limiting, extension hook execution, and proof-module permission boundaries.
 - [ ] E2E or Playwright tests for a sample add-on setup flow and a representative external-client API journey.
-- [ ] Permission regression tests to prove extension points and public APIs can't bypass league, team, field, or minor-data restrictions.
+- [x] Permission regression tests to prove extension points and public APIs can't bypass league, team, field, or minor-data restrictions.
 - [ ] Automated accessibility tests for developer docs examples, extension setup screens, and sample module interfaces.
 
-- [ ] Milestone checkpoint: refresh README and contributor-facing docs for extension points.
+- [x] Milestone checkpoint: refresh README and contributor-facing docs for extension points.
 
 ### Suggested issue-sized breakdown
 - [ ] 18.1 Deployment hardening baseline
