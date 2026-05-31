@@ -31,6 +31,8 @@ export * from "./schema";
 export * from "./season-admin";
 export * from "./team-admin";
 export * from "./template-admin";
+export * from "./tournament-admin";
 export * from "./upload-admin";
 export * from "./user-onboarding";
+export * from "./venue-admin";
 export * from "./volunteer-admin";

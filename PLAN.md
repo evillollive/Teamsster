@@ -794,22 +794,22 @@ Leagues can run single-elimination, double-elimination, or round-robin tournamen
 - Officials can be assigned to tournament games.
 
 ### Work items
-- [ ] Tournament schema: name, format (single_elim, double_elim, round_robin, pool_play), league/division scope, seeding order.
-- [ ] Bracket generation: auto-create matches from seeded team list based on format.
-- [ ] Score-driven advancement: when a match score is published, the winner advances to the next round automatically.
-- [ ] Bracket visualization component: interactive bracket display showing matchups, scores, and progression.
-- [ ] Tournament management UI: admin page to create tournaments, seed teams, manage schedule.
-- [ ] Official assignment integration: assign refs to tournament games using M14 patterns.
-- [ ] Pool play support: round-robin groups with crossover brackets.
+- [x] Tournament schema: name, format (single_elim, double_elim, round_robin, pool_play), league/division scope, seeding order.
+- [x] Bracket generation: auto-create matches from seeded team list based on format.
+- [x] Score-driven advancement: when a match score is published, the winner advances to the next round automatically.
+- [x] Bracket visualization component: interactive bracket display showing matchups, scores, and progression.
+- [x] Tournament management UI: admin page to create tournaments, seed teams, manage schedule.
+- [x] Official assignment integration: assign refs to tournament games using M14 patterns.
+- [x] Pool play support: round-robin groups with crossover brackets.
 
 #### Security
-- [ ] Validate bracket integrity (teams can't be injected into wrong slots). Audit-log seeding and advancement.
+- [x] Validate bracket integrity (teams can't be injected into wrong slots). Audit-log seeding and advancement.
 
 #### Accessibility
 - [ ] Bracket visualization is keyboard navigable with screen-reader announcements for match results.
 
 #### Testing
-- [ ] Unit tests for bracket generation, advancement logic, seeding validation.
+- [x] Unit tests for bracket generation, advancement logic, seeding validation.
 - [ ] Storybook stories for bracket visualization component.
 
 - [ ] Milestone checkpoint: update README.
@@ -828,21 +828,21 @@ Leagues can manage fields and venues with availability calendars so scheduling a
 - Weather cancellation can be triggered from a venue, cascading to all affected events.
 
 ### Work items
-- [ ] Venue and field schema: name, address, capacity, surface type, amenities, availability windows.
-- [ ] Field availability calendar: admin sets recurring availability per field (days/times). Scheduling respects these windows.
-- [ ] Conflict detection: warn when scheduling an event on a field that's already booked.
-- [ ] Venue management UI: admin page to create/edit venues, manage fields, set availability.
-- [ ] Weather cancellation flow: cancel all events at a venue for a date range, with automatic M8 notifications to affected teams.
-- [ ] Map integration placeholder: venue address displayed with link to external maps.
+- [x] Venue and field schema: name, address, capacity, surface type, amenities, availability windows.
+- [x] Field availability calendar: admin sets recurring availability per field (days/times). Scheduling respects these windows.
+- [x] Conflict detection: warn when scheduling an event on a field that's already booked.
+- [x] Venue management UI: admin page to create/edit venues, manage fields, set availability.
+- [x] Weather cancellation flow: cancel all events at a venue for a date range, with automatic M8 notifications to affected teams.
+- [x] Map integration placeholder: venue address displayed with link to external maps.
 
 #### Security
-- [ ] Enforce admin-only venue management. Audit-log all venue and cancellation changes.
+- [x] Enforce admin-only venue management. Audit-log all venue and cancellation changes.
 
 #### Accessibility
 - [ ] Availability calendar is keyboard navigable. Cancellation confirmation is clearly announced.
 
 #### Testing
-- [ ] Unit tests for conflict detection, availability window validation, cancellation cascade.
+- [x] Unit tests for conflict detection, availability window validation, cancellation cascade.
 - [ ] Storybook stories for venue management and availability calendar.
 
 - [ ] Milestone checkpoint: update README.

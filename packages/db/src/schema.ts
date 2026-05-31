@@ -1685,3 +1685,151 @@ export const teamDivisionAssignments = pgTable(
     index("team_division_assignments_season_idx").on(table.seasonId),
   ],
 );
+
+// ── Tournaments and brackets ─────────────────────────────────────────────────
+
+export const tournamentFormatValues = [
+  "single_elimination",
+  "double_elimination",
+  "round_robin",
+  "pool_play",
+] as const;
+export const tournamentFormatEnum = pgEnum(
+  "tournament_format",
+  tournamentFormatValues,
+);
+export type TournamentFormat = (typeof tournamentFormatValues)[number];
+
+export const matchStatusValues = [
+  "scheduled",
+  "in_progress",
+  "completed",
+  "cancelled",
+] as const;
+export const matchStatusEnum = pgEnum("match_status", matchStatusValues);
+export type MatchStatus = (typeof matchStatusValues)[number];
+
+export const tournaments = pgTable(
+  "tournaments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    divisionId: uuid("division_id").references(() => divisions.id),
+    seasonId: uuid("season_id").references(() => seasons.id),
+    name: text("name").notNull(),
+    format: tournamentFormatEnum("format").notNull(),
+    seedOrder: jsonb("seed_order")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    createdById: uuid("created_by_id").references(() => users.id),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [
+    index("tournaments_league_idx").on(table.leagueId),
+    index("tournaments_division_idx").on(table.divisionId),
+  ],
+);
+
+export const tournamentMatches = pgTable(
+  "tournament_matches",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tournamentId: uuid("tournament_id")
+      .notNull()
+      .references(() => tournaments.id),
+    round: text("round").notNull(),
+    matchNumber: text("match_number").notNull(),
+    homeTeamId: uuid("home_team_id").references(() => teams.id),
+    awayTeamId: uuid("away_team_id").references(() => teams.id),
+    homeScore: text("home_score"),
+    awayScore: text("away_score"),
+    winnerId: uuid("winner_id").references(() => teams.id),
+    status: matchStatusEnum("status").notNull().default("scheduled"),
+    scheduledAt: timestamp("scheduled_at", {
+      mode: "date",
+      withTimezone: true,
+    }),
+    nextMatchId: uuid("next_match_id"),
+    ...timestampColumns,
+  },
+  (table) => [
+    index("tournament_matches_tournament_idx").on(table.tournamentId),
+    index("tournament_matches_round_idx").on(table.tournamentId, table.round),
+  ],
+);
+
+// ── Venues and field management ──────────────────────────────────────────────
+
+export const surfaceTypeValues = [
+  "grass",
+  "turf",
+  "indoor",
+  "dirt",
+  "court",
+  "other",
+] as const;
+export const surfaceTypeEnum = pgEnum("surface_type", surfaceTypeValues);
+export type SurfaceType = (typeof surfaceTypeValues)[number];
+
+export const venues = pgTable(
+  "venues",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    leagueId: uuid("league_id")
+      .notNull()
+      .references(() => leagues.id),
+    name: text("name").notNull(),
+    address: text("address"),
+    city: text("city"),
+    state: text("state"),
+    zipCode: text("zip_code"),
+    latitude: text("latitude"),
+    longitude: text("longitude"),
+    notes: text("notes"),
+    createdById: uuid("created_by_id").references(() => users.id),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [index("venues_league_idx").on(table.leagueId)],
+);
+
+export const fields = pgTable(
+  "fields",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    venueId: uuid("venue_id")
+      .notNull()
+      .references(() => venues.id),
+    name: text("name").notNull(),
+    surfaceType: surfaceTypeEnum("surface_type").notNull().default("grass"),
+    capacity: text("capacity"),
+    amenities: jsonb("amenities").$type<string[]>().default(sql`'[]'::jsonb`),
+    ...timestampColumns,
+    ...softDeleteColumns,
+  },
+  (table) => [index("fields_venue_idx").on(table.venueId)],
+);
+
+export const fieldAvailability = pgTable(
+  "field_availability",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    fieldId: uuid("field_id")
+      .notNull()
+      .references(() => fields.id),
+    dayOfWeek: text("day_of_week").notNull(),
+    startTime: text("start_time").notNull(),
+    endTime: text("end_time").notNull(),
+    isRecurring: boolean("is_recurring").notNull().default(true),
+    effectiveDate: date("effective_date", { mode: "string" }),
+    ...timestampColumns,
+  },
+  (table) => [
+    index("field_availability_field_idx").on(table.fieldId),
+    index("field_availability_day_idx").on(table.fieldId, table.dayOfWeek),
+  ],
+);
