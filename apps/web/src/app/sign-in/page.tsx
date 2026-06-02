@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,9 @@ type AuthMode = "email" | "username";
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next");
+  const destination = nextPath?.startsWith("/") ? nextPath : "/account";
   const [mode, setMode] = useState<AuthMode>("email");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -46,10 +49,10 @@ export default function SignInPage() {
         return;
       }
 
-      router.push("/account");
+      router.push(destination);
       router.refresh();
     },
-    [router],
+    [destination, router],
   );
 
   const handleUsernameSignIn = useCallback(
@@ -77,10 +80,10 @@ export default function SignInPage() {
         return;
       }
 
-      router.push("/account");
+      router.push(destination);
       router.refresh();
     },
-    [router],
+    [destination, router],
   );
 
   return (

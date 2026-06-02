@@ -7,6 +7,7 @@ import {
 } from "@teamsster/db";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { FormField } from "@/components/form-field";
@@ -122,8 +123,13 @@ async function changePasswordAction(formData: FormData) {
   revalidatePath("/account");
 }
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ invitationToken?: string; onboarding?: string }>;
+}) {
   const currentSession = await getCurrentSession();
+  const query = searchParams ? await searchParams : {};
   const accountSettings = currentSession?.user
     ? await getAccountSettings(currentSession.user.id)
     : null;
@@ -137,6 +143,11 @@ export default async function AccountPage() {
   // Detect minor account: placeholder email means this is a username-only minor.
   const userEmail = currentSession?.user?.email ?? "";
   const isMinorUser = isMinorPlaceholderEmail(userEmail);
+  const showOnboardingShell =
+    Boolean(currentSession?.user) &&
+    !isMinorUser &&
+    (!accountSettings || query.onboarding === "1");
+  const invitationToken = query.invitationToken ?? "";
 
   // For minor accounts, resolve and display linked guardians.
   let guardians: Awaited<ReturnType<typeof getMinorGuardians>> = [];
@@ -155,7 +166,11 @@ export default async function AccountPage() {
           Account
         </p>
         <h1 className="text-2xl font-semibold tracking-tight">
-          {isMinorUser ? "Your profile" : "Profile and onboarding"}
+          {isMinorUser
+            ? "Your profile"
+            : showOnboardingShell
+              ? "Finish your setup"
+              : "Profile and settings"}
         </h1>
         {isMinorUser ? (
           <p className="text-sm text-slate-600">
@@ -163,10 +178,22 @@ export default async function AccountPage() {
             aren&apos;t available for minor accounts.
           </p>
         ) : (
-          <p className="text-sm text-slate-600">
-            Teamsster now provisions a Personal League automatically for newly
-            created accounts unless an invitation token is used.
-          </p>
+          <div className="grid gap-2">
+            <p className="text-sm text-slate-600">
+              {showOnboardingShell
+                ? "Teamsster will create your profile and a Personal League unless you paste an invitation token instead."
+                : "Teamsster provisions a Personal League automatically for newly created accounts unless an invitation token is used."}
+            </p>
+            {!showOnboardingShell && accountSettings ? (
+              <div>
+                <Button asChild size="sm" variant="secondary">
+                  <Link href="/account?onboarding=1">
+                    Reopen guided onboarding
+                  </Link>
+                </Button>
+              </div>
+            ) : null}
+          </div>
         )}
         {!currentSession?.user ? (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
@@ -207,67 +234,110 @@ export default async function AccountPage() {
         </Card>
       ) : null}
 
-      {/* Onboarding controls: hidden for minor accounts */}
-      {!isMinorUser ? (
-        <Card className="grid gap-4">
-          <div>
-            <h2 className="text-lg font-semibold">Onboarding controls</h2>
+      {!isMinorUser && showOnboardingShell ? (
+        <Card className="grid gap-5">
+          <div className="grid gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-600">
+              Guided onboarding
+            </p>
+            <h2 className="text-lg font-semibold">
+              Set up your account and first league
+            </h2>
             <p className="text-sm text-slate-600">
-              Re-run onboarding to provision profile records and a Personal
-              League for signed-in users.
+              Teamsster will provision your profile, timezone, and first league
+              in one pass. If you&apos;re joining an invited league, paste the
+              invitation token and we&apos;ll skip Personal League creation.
             </p>
           </div>
-          <form action={runOnboardingAction} className="grid gap-4">
-            <FormField htmlFor="onboarding-display-name" label="Display name">
-              <Input
-                defaultValue={displayName}
-                id="onboarding-display-name"
-                name="displayName"
-                placeholder="Coach Casey"
-              />
-            </FormField>
-            <FormField htmlFor="onboarding-timezone" label="Timezone">
-              <Input
-                defaultValue={timezone}
-                id="onboarding-timezone"
-                name="timezone"
-                placeholder="America/Los_Angeles"
-              />
-            </FormField>
-            <FormField
-              description="Optional: if set, Personal League auto-creation is skipped."
-              htmlFor="invitation-token"
-              label="Invitation token"
-            >
-              <Input
-                id="invitation-token"
-                name="invitationToken"
-                placeholder="invite_abc123"
-              />
-            </FormField>
-            <label className="flex items-start gap-2 text-sm text-slate-700">
-              <input
-                className="mt-0.5"
-                name="ageConfirmation"
-                required
-                type="checkbox"
-              />
-              <span>
-                I confirm that I am at least 18 years old or have
-                parental/guardian consent to use this service. I understand that
-                player records for minors are managed by authorized adults only.
-              </span>
-            </label>
-            <div>
-              <Button disabled={!currentSession?.user} type="submit">
-                Run onboarding
-              </Button>
+
+          <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+            <form action={runOnboardingAction} className="grid gap-4">
+              <FormField htmlFor="onboarding-display-name" label="Display name">
+                <Input
+                  defaultValue={displayName}
+                  id="onboarding-display-name"
+                  name="displayName"
+                  placeholder="Coach Casey"
+                />
+              </FormField>
+              <FormField htmlFor="onboarding-timezone" label="Timezone">
+                <Input
+                  defaultValue={timezone}
+                  id="onboarding-timezone"
+                  name="timezone"
+                  placeholder="America/Los_Angeles"
+                />
+              </FormField>
+              <FormField
+                description="Optional. Paste an invitation token if you're joining an existing league. Leave it blank to create your Personal League."
+                htmlFor="invitation-token"
+                label="Invitation token"
+              >
+                <Input
+                  id="invitation-token"
+                  name="invitationToken"
+                  defaultValue={invitationToken}
+                  placeholder="invite_abc123"
+                />
+              </FormField>
+              <label className="flex items-start gap-2 text-sm text-slate-700">
+                <input
+                  className="mt-0.5"
+                  name="ageConfirmation"
+                  required
+                  type="checkbox"
+                />
+                <span>
+                  I confirm that I am at least 18 years old or have parental or
+                  guardian consent to use this service. I understand that player
+                  records for minors are managed by authorized adults only.
+                </span>
+              </label>
+              <div className="flex flex-wrap gap-3">
+                <Button disabled={!currentSession?.user} type="submit">
+                  Finish setup and continue
+                </Button>
+              </div>
+            </form>
+
+            <div className="grid gap-4 rounded-2xl bg-sky-50 p-4 text-sm text-slate-700">
+              <div>
+                <h3 className="font-semibold text-slate-900">What happens next</h3>
+                <p className="mt-1 text-slate-600">
+                  This first pass gets you to a real league dashboard quickly,
+                  then you can add teams, members, and events.
+                </p>
+              </div>
+              <ol className="grid gap-3">
+                <li className="flex gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-sky-700 shadow-sm">
+                    1
+                  </span>
+                  <span>Confirm your display name and timezone.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-sky-700 shadow-sm">
+                    2
+                  </span>
+                  <span>
+                    Decide whether to create a Personal League or join with an
+                    invitation token.
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-sky-700 shadow-sm">
+                    3
+                  </span>
+                  <span>Continue into league setup or the invited dashboard.</span>
+                </li>
+              </ol>
             </div>
-          </form>
+          </div>
         </Card>
       ) : null}
 
-      <Card className="grid gap-4">
+      {isMinorUser || (!isMinorUser && accountSettings && !showOnboardingShell) ? (
+        <Card className="grid gap-4">
         <div>
           <h2 className="text-lg font-semibold">
             {isMinorUser ? "Profile settings" : "Account settings"}
@@ -387,9 +457,11 @@ export default async function AccountPage() {
             </Button>
           </div>
         </form>
-      </Card>
+        </Card>
+      ) : null}
 
-      {currentSession?.user ? (
+      {currentSession?.user &&
+      (isMinorUser || (!isMinorUser && accountSettings && !showOnboardingShell)) ? (
         <Card className="grid gap-4">
           <div>
             <h2 className="text-lg font-semibold">Change password</h2>
@@ -436,7 +508,10 @@ export default async function AccountPage() {
       ) : null}
 
       {/* Danger zone: don't show for minor accounts */}
-      {currentSession?.user && !isMinorUser ? (
+      {currentSession?.user &&
+      !isMinorUser &&
+      accountSettings &&
+      !showOnboardingShell ? (
         <Card className="grid gap-4 border-rose-200 bg-rose-50">
           <div>
             <h2 className="text-lg font-semibold text-rose-900">Danger zone</h2>

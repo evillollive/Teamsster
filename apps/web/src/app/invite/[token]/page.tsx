@@ -178,7 +178,9 @@ export default async function InvitePage({
       headers: await headers(),
     });
     if (!currentSession?.user) {
-      redirect("/account");
+      redirect(
+        `/sign-in?next=${encodeURIComponent(`/account?invitationToken=${token}`)}`,
+      );
     }
 
     try {
