@@ -128,6 +128,9 @@ Plausible is scaffolded as an optional script include and only loads when explic
 | Document | What it covers |
 | --- | --- |
 | [`DEPLOYMENT.md`](./DEPLOYMENT.md) | Deployment runbook, env matrix, and release/rollback steps |
+| [`COMPETITIVE_ANALYSIS.md`](./COMPETITIVE_ANALYSIS.md) | Comparative analysis of current product depth, roadmap gaps, and competitor positioning |
+| [`EXECUTION_PLAN_90_DAYS.md`](./EXECUTION_PLAN_90_DAYS.md) | A 90-day execution plan focused on onboarding, proof, deployment readiness, and go-to-market packaging |
+| [`MARKETING_FEATURE_MATRIX.md`](./MARKETING_FEATURE_MATRIX.md) | Marketing-ready comparison matrix and positioning guide versus key competitors |
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Local workflow, branch expectations, and review notes |
 | [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md) | Community participation standards |
 | [`SECURITY.md`](./SECURITY.md) | How to report vulnerabilities |

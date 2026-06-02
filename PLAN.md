@@ -870,6 +870,28 @@ Coaches and officials can file incident and injury reports during or after games
 
 - [x] Milestone checkpoint: update SECURITY.md and README.
 
+## Current execution focus
+
+Most milestone-level feature depth from Milestones 0 through 22 is now in place. The next public phase should focus on productization and proof, not broadening feature surface area.
+
+Priority order for the next execution window:
+
+1. Milestone 26, onboarding polish and first-run clarity
+2. Milestone 24, deployment and infrastructure readiness
+3. Milestone 25, authenticated E2E and visual proof
+4. Milestone 28, demo and marketing packaging
+5. Milestone 23, mobile shell and native push completion
+6. Payments strategy and public-facing website features, using the extension and league-public-surface work already mapped elsewhere
+
+When roadmap tradeoffs come up, bias toward:
+
+- faster time to first success for a new league admin
+- public trust signals, such as staging, demos, monitoring, and believable test coverage
+- visible UX polish in core journeys, especially onboarding, dashboards, scheduling, notifications, and registration
+- competitive differentiation around minors, permissions, privacy, and volunteer-run governance
+
+The supporting planning artifacts for this phase live in `COMPETITIVE_ANALYSIS.md`, `EXECUTION_PLAN_90_DAYS.md`, and `MARKETING_FEATURE_MATRIX.md`.
+
 ## Milestone 23 — mobile app shell via Capacitor
 
 > **Depends on:** M8 push notifications (designed for Capacitor)
