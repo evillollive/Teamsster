@@ -332,21 +332,85 @@ Minor or username-only account flow:
 
 **Why now**
 - The account page already exposes onboarding controls, but it still reads like a power-user utility instead of a productized first-run experience.
+- The existing onboarding logic is solid enough to reuse, but the presentation doesn't yet give new admins a clear sense of progress, completion, or what happens next.
 
 **Scope**
 - Add a dedicated onboarding shell that frames account setup as a guided experience.
 - Reuse existing onboarding actions and validation instead of inventing parallel logic.
 - Add progress copy, next-step messaging, and clear continuation into league creation.
+- Separate onboarding from long-term account settings so first-run users aren't dropped into a dense general-purpose settings page.
 
 **Grounding in repo**
 - `apps/web/src/app/account/page.tsx`
 - `packages/db/src/user-onboarding.ts`
 - `apps/web/src/lib/account.ts`
+- `apps/web/src/app/sign-in/page.tsx`
+- `apps/web/src/app/league/new/page.tsx`
+
+**Current UX observations**
+- The account page combines onboarding, settings, password change, and account deletion in one place.
+- The onboarding section currently reads like an admin utility: display name, timezone, optional invitation token, age confirmation, and a generic `Run onboarding` CTA.
+- The underlying server path already does the right foundational work: it validates input, provisions the user profile, and creates a Personal League only when no invitation token is present.
+- Minor accounts are already split out correctly and should stay on a restricted profile path.
+
+**Shell definition for the issue**
+- Introduce a first-run onboarding container for eligible signed-in adult admins.
+- Present onboarding as a short sequence, not a loose form block.
+- Frame the sequence around three user-facing outcomes:
+  1. confirm identity and display name
+  2. confirm timezone and basic account readiness
+  3. continue into league creation or invited-destination flow
+- Keep advanced account settings, notification preferences, password changes, and destructive actions outside the first-run shell.
+
+**Recommended screen structure**
+1. Header with clear title, short reassurance copy, and step indicator
+2. Lightweight explanation of what Teamsster will do next
+3. Focused onboarding form using the existing fields already required by server logic
+4. Inline explanation of when a Personal League will or won't be created
+5. Primary CTA that clearly states the next step, not just `Run onboarding`
+6. Secondary path for invited users when an invitation token is present
+7. Completion state that routes users directly into league creation or the invited destination
+
+**Flow rules to document in the issue**
+- A newly signed-in self-serve adult should land in the onboarding shell before broad settings UI.
+- If the user is on an invitation flow, the shell should preserve that context and explain that Personal League creation will be skipped.
+- Minor accounts must not see the admin onboarding shell.
+- Returning users with an already provisioned account should not be forced through the shell again unless they explicitly re-enter onboarding.
+- The primary CTA should be phrased around the next destination, such as continuing to create a league, not around internal implementation language.
+
+**Content and UX requirements**
+- Replace operator-style wording like `Run onboarding` with user-facing language.
+- Add copy that makes the first success legible: what will be created, what won't, and what comes next.
+- Keep the shell visually simpler than the full account settings view.
+- Make progress obvious without turning the flow into a long wizard.
+- Preserve the existing age-confirmation and guardian-safety messaging where relevant.
+
+**Accessibility and safety requirements**
+- Step structure, headings, and instructions must read clearly in screen readers.
+- Focus should move predictably after sign-in and after submission errors.
+- The shell must remain fully keyboard operable.
+- Any explanatory UI must not rely on hover alone.
+- Minor-account restrictions and invitation behavior must remain explicit so users aren't confused into unsafe or unauthorized paths.
+
+**Implementation boundaries to capture in the issue**
+- Reuse `runOnboardingForAuthenticatedUser` and existing account validation.
+- Do not fork onboarding business rules into a separate form handler unless a technical limitation forces it.
+- Keep notification preferences, password changes, and delete-account actions out of the first-run shell scope.
+- If account state detection is needed, derive it from existing settings or provisioning state rather than inventing a parallel source of truth without a clear reason.
+
+**Ticket-specific validation and ship requirements**
+- Document the intended entry conditions, exit conditions, and re-entry behavior in the issue body.
+- Identify the smallest existing checks to run when implementation starts, likely targeted Playwright auth/onboarding coverage plus any touched unit or type checks.
+- Include screenshots or mockups showing the shell state and the post-completion handoff.
+- Update roadmap or onboarding docs if the user-visible flow changes.
+- When the implementation ticket ships, it must be pushed to `main`, the triggered GitHub Actions runs must be checked, and follow-up fixes must be treated as part of the same delivery until `main` is green.
 
 **Acceptance criteria**
 - Signed-in admins see a guided onboarding container instead of only raw controls.
 - Minor accounts keep their current restricted experience.
 - Keyboard flow and screen-reader labels are covered in the issue requirements.
+- The issue defines what content stays inside the shell versus the full settings page.
+- The issue defines how invited users and returning users bypass or re-enter the shell.
 
 ### 3. League creation follow-through and team-setup handoff
 
