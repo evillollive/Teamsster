@@ -41,7 +41,8 @@ export default async function NewLeaguePage() {
           Create a league
         </h1>
         <p className="text-sm text-slate-600">
-          Give your league a name and timezone. You'll be added as the owner.
+          Give your league a name and timezone. You'll land on the new league
+          dashboard next, where you can create the first team right away.
         </p>
       </Card>
 
@@ -71,7 +72,7 @@ export default async function NewLeaguePage() {
           </FormField>
           <div className="flex items-center gap-3">
             <Button disabled={!session?.user} type="submit">
-              Create league
+              Create league and continue
             </Button>
             <Button asChild variant="ghost">
               <Link href="/league">Cancel</Link>
