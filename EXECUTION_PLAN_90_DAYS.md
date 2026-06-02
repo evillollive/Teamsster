@@ -865,31 +865,84 @@ Minor or username-only account flow:
 
 **Why now**
 - Teamsster's depth matters most when it proves league-to-family workflows, not just authentication.
+- The repo already models roster, guardian, and registration behavior, but the current E2E coverage doesn't yet prove the most sensitive family flows end to end.
 
 **Scope**
 - Expand Playwright coverage for roster management and registration journeys.
 - Include permission-sensitive assertions, especially for guardians and minor-related flows.
 - Cover at least one realistic admin-to-family handoff.
+- Prove that roster, guardian, and registration paths respect permission boundaries instead of only rendering successfully.
 
 **Grounding in repo**
 - `apps/web/tests/e2e/roster.spec.ts`
 - `apps/web/src/lib/registration.ts`
 - `apps/web/src/lib/guardian.ts`
+- `apps/web/src/app/roster/page.tsx`
+- `apps/web/src/app/events/page.tsx`
+
+**Current observations**
+- The current roster test only checks that the page does not 500 and that notification pages load, which is useful but not enough for trust-sensitive workflows.
+- Registration logic already includes sanitization, rate limiting, and permission gating, so the proof suite should lean on those real behaviors instead of inventing fake happy paths.
+- Guardian-related flows are part of the product story, so the proof suite should cover at least one family handoff that is realistic but still safe.
+- The roster view and registration helpers already give us the right surfaces for verifying role-based boundaries.
+
+**Issue definition**
+- Build a proof suite that demonstrates Teamsster's family workflow depth, not just generic navigation.
+- Require the issue to specify:
+  1. seeded personas
+  2. roster and registration route sequence
+  3. permission boundaries under test
+  4. sensitive data expectations
+  5. cleanup or reset behavior
+
+**Recommended flow coverage**
+1. open a seeded league roster or season registration entrypoint
+2. verify the seeded admin can view and manage roster data
+3. verify a guardian can see the family-facing registration path
+4. verify a minor-linked flow respects guardian routing and account boundaries
+5. verify at least one registration submission or update path
+6. verify one blocked or limited-permission path so the suite proves the guardrails, not just the happy path
+
+**Assertion requirements**
+- Assert route transitions and visible content for roster and registration flows.
+- Assert at least one permission-sensitive state, such as blocked access, limited visibility, or guardian-only routing.
+- Assert that sensitive fields are not exposed where they should not be.
+- Avoid brittle selectors that depend on exact card layout unless those selectors are the stable contract for the route.
+
+**Privacy and safety requirements**
+- The suite must not depend on real personal, medical, or child-identifying data.
+- Use seeded fixture data that is intentionally synthetic and small.
+- If the issue requires screenshots or logs, make sure they are scrubbed of sensitive identifiers.
+- The issue should name which fields are acceptable to expose in assertions and which are not.
+
+**Implementation boundaries to capture in the issue**
+- Reuse seeded data from the seed-data ticket rather than inventing roster state inside the test itself.
+- Keep the first suite focused on the core family handoff and one permission-sensitive negative case.
+- Do not expand this ticket into every roster mutation or every registration form variant.
+
+**Ticket-specific validation and ship requirements**
+- Include the exact route list and persona list in the issue body.
+- Identify the smallest existing checks to run when implementation starts, likely targeted Playwright suites plus touched helper tests.
+- Update docs if the suite changes how we describe roster or registration proof.
+- Push to `main`, verify the triggered GitHub Actions runs, and keep follow-up flake fixes within the same delivery.
 
 **Acceptance criteria**
 - Tests cover a seeded admin and at least one family scenario.
 - Permission assertions are part of the suite, not only happy-path rendering.
 - The issue calls out sensitive-data visibility boundaries.
+- The issue defines at least one blocked or limited-permission path.
 
 ### 10. Staging environment baseline and health checks
 
 **Why now**
 - Product trust still depends too much on reading the repo instead of seeing a live system.
+- The deployment runbook is already present, but the repo still needs a concrete staging target and a checklist that makes first deploys repeatable.
 
 **Scope**
 - Define the first staging environment target and the minimum services it needs.
 - Add health-check expectations and a deployment verification checklist.
 - Decide which seeded data belongs in staging.
+- Make staging the first place where the product can be checked as a real system instead of only as code.
 
 **Grounding in repo**
 - `DEPLOYMENT.md`
@@ -897,50 +950,200 @@ Minor or username-only account flow:
 - `.github/workflows/e2e.yml`
 - `apps/web/src/lib/env.ts`
 
+**Current observations**
+- The runbook already defines hosting assumptions, environment variables, release flow, and rollback basics.
+- What is missing is a ticket-sized plan for the first staging topology, what has to be healthy there, and how to know it is safe to promote.
+- The env layer already captures the important knobs, so the issue can stay focused on operational packaging instead of inventing new application behavior.
+
+**Issue definition**
+- Define the first staging environment as a concrete deliverable, not a vague intention.
+- Require the issue to specify:
+  1. hosting target
+  2. required services
+  3. health checks
+  4. seeded data policy
+  5. promotion gate to production
+
+**Recommended staging baseline**
+- one deployable web app instance
+- one staging Postgres database
+- required auth and email variables
+- a small set of seeded or resettable non-sensitive test accounts
+- operational monitoring that can catch deploy regressions before production
+
+**Health-check requirements**
+- auth entrypoint availability
+- league dashboard availability
+- roster or schedule workspace availability
+- outbound auth or notification delivery readiness where relevant
+- one or more smoke checks that prove the deployment is not just alive, but usable
+
+**Operational requirements**
+- define who owns staging failures
+- define how often staging should be refreshed or reset
+- define which tests must pass before the staging environment is promoted
+- document how secrets, preview data, and non-sensitive seed data are separated
+
+**Implementation boundaries to capture in the issue**
+- Do not broaden this into full production infrastructure hardening yet.
+- Keep the first version focused on a practical staging baseline and observable health checks.
+- Reuse the runbook where possible instead of duplicating it in a second doc.
+
+**Ticket-specific validation and ship requirements**
+- Add a checklist of exact staging smoke steps in the issue body.
+- Identify the smallest existing checks to run when implementation starts, likely deployment validation plus touched env or workflow tests.
+- Update `DEPLOYMENT.md` if the staging definition changes any runbook steps.
+- Push to `main`, verify the triggered GitHub Actions runs, and keep post-push deployment fixes in scope until `main` is green.
+
 **Acceptance criteria**
 - The issue names the initial staging topology.
 - Health-check responsibilities and ownership are documented.
 - Secrets, environment separation, and non-sensitive data rules are explicit.
+- The issue defines what counts as a staging-ready deploy.
+- The issue lists the first smoke checks to run after deployment.
 
 ### 11. Landing page refresh and comparison-page copy
 
 **Why now**
 - The home page still undersells the platform relative to what the repo already supports.
+- The current homepage is friendly, but it still reads more like a product intro than a proof-backed trust and governance story.
 
 **Scope**
 - Refresh the landing page so it presents Teamsster as a trustworthy league operating system.
 - Adapt the competitive matrix into a website-ready comparison page structure.
 - Keep claims aligned with demonstrable product proof.
+- Make the public story reflect what the app can actually do today, while still leaving room for future proof points.
 
 **Grounding in repo**
 - `apps/web/src/app/page.tsx`
 - `MARKETING_FEATURE_MATRIX.md`
 - `COMPETITIVE_ANALYSIS.md`
 
+**Current observations**
+- The home page already has a clean hero and feature cards, but the copy emphasizes general friendliness more than trust, governance, and league operations.
+- The marketing matrix and competitive analysis already contain the positioning language and caveats needed for a stronger public story.
+- This ticket should turn that strategy into concrete homepage and comparison-page copy, not invent new claims.
+
+**Issue definition**
+- Refresh the landing page and outline a comparison page that are both honest and specific.
+- Require the issue to define:
+  1. primary messaging pillars
+  2. proof-backed claims
+  3. claims that must wait for more evidence
+  4. comparison-page structure
+  5. call-to-action paths for demo and sign-in
+
+**Recommended messaging pillars**
+- safer for families and minors
+- built for real leagues, not just chat
+- open and owner-controlled
+- practical for volunteer admins
+
+**Page structure guidance**
+- opening hero that states the trust and governance story clearly
+- feature section that highlights current strengths with proof-backed language
+- comparison section that uses the matrix without overstating gaps
+- call to action that points to the demo or league shell
+- a small set of proof notes, screenshots, or links that keep claims grounded
+
+**Content requirements**
+- Be specific about minors, permissions, auditability, and open-source control.
+- Avoid promising polished mobile completeness, payments maturity, or public-site polish beyond what the repo currently supports.
+- Keep the comparison page honest about current gaps so the marketing story stays credible.
+- Use wording that matches the product's existing tone without sounding generic.
+
+**Accessibility and performance requirements**
+- Keep heading hierarchy clear and semantic.
+- Preserve color contrast and keyboard reachability for CTAs and comparison sections.
+- Avoid image-heavy layouts that would hide the message on slower devices.
+- If the issue changes visual density substantially, call out performance checks in the acceptance criteria.
+
+**Implementation boundaries to capture in the issue**
+- Do not invent new product claims that are not backed by current code or roadmap status.
+- Keep the first version focused on copy and layout, not a full brand redesign.
+- Reuse the existing comparison matrix rather than rebuilding it from scratch in a different format.
+
+**Ticket-specific validation and ship requirements**
+- Include before-and-after screenshots of the homepage and any new comparison-page mock.
+- Update `README.md` or the marketing docs if public-facing claims shift materially.
+- Identify the smallest existing checks to run when implementation starts, likely targeted page tests plus any snapshot or content checks.
+- Push to `main`, verify the triggered GitHub Actions runs, and keep copy or layout follow-up work in the same delivery until `main` is green.
+
 **Acceptance criteria**
 - Updated page copy reflects league governance, minors, privacy, and trust strengths.
 - The issue lists claims that still require proof before launch.
 - Accessibility and performance requirements are included in the definition of done.
+- The issue defines the comparison page structure and CTA paths.
+- The issue separates proof-backed claims from claims that still need validation.
 
 ### 12. Public demo packaging checklist
 
 **Why now**
 - A demo is one of the fastest ways to close the gap between roadmap depth and perceived readiness.
+- The repo already has the ingredients for a good demo, but the team still needs a tight checklist that makes the demo repeatable and privacy-safe.
 
 **Scope**
 - Define the first public demo format, data rules, and walkthrough path.
 - Identify which routes and personas the demo must support.
 - Add a checklist for screenshots, smoke checks, and privacy review.
+- Make the demo feel like a deliberate product story instead of a random tour of routes.
 
 **Grounding in repo**
 - `EXECUTION_PLAN_90_DAYS.md`
 - `MARKETING_FEATURE_MATRIX.md`
 - `apps/web/src/app/page.tsx`
 
+**Current observations**
+- The roadmap and marketing docs already point toward a public demo, but there is no ticket-sized packaging checklist yet.
+- The app already has enough route coverage to support a narrative demo if the data, path, and privacy rules are well defined.
+- This ticket should decide what the demo is, who it is for, and what must never be shown.
+
+**Issue definition**
+- Define a first public demo that can be repeated without guesswork.
+- Require the issue to specify:
+  1. demo audience
+  2. route sequence
+  3. supported personas
+  4. allowed sample data
+  5. privacy and smoke-test checklist
+
+**Recommended demo scope**
+- a brand-safe homepage intro
+- a sign-in or onboarding entrypoint
+- one league setup path
+- one roster or schedule moment
+- one trust or governance moment, such as permissions, audit, or guardian behavior
+
+**Data rules**
+- use synthetic data only
+- avoid real names, medical details, contact details, and invitation secrets
+- keep the demo dataset small and memorable
+- make sure screenshots and recordings can be shared publicly without redaction work
+
+**Operational checklist**
+- route list for the demo walkthrough
+- screenshots needed before release
+- smoke checks that must pass before the demo is shown
+- privacy review sign-off
+- fallback plan if a route or seed breaks on the day
+
+**Implementation boundaries to capture in the issue**
+- Keep the first demo focused on a narrow, polished story.
+- Do not expand it into a full marketing site or a live production showcase.
+- Reuse the seed-data strategy where possible so the demo and CI stories stay aligned.
+
+**Ticket-specific validation and ship requirements**
+- Include the exact route list, persona list, and checklist in the issue body.
+- Identify the smallest existing checks to run when implementation starts, likely demo-critical route checks and any affected fixture or snapshot tests.
+- Update marketing or demo docs if the walkthrough path changes.
+- Push to `main`, verify the triggered GitHub Actions runs, and keep follow-up polish within the same delivery until `main` is green.
+
 **Acceptance criteria**
 - The issue defines the demo scope, route list, and supported personas.
 - Sample data rules are explicit and privacy-safe.
 - A smoke-test list exists for demo-critical routes.
+- The issue names the public demo story and the first five to seven route steps.
+- The issue defines what must not appear in the demo and how to recover from a broken step.
 
 ## Exit criteria
 
