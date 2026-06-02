@@ -338,125 +338,125 @@ export default async function AccountPage({
 
       {isMinorUser || (!isMinorUser && accountSettings && !showOnboardingShell) ? (
         <Card className="grid gap-4">
-        <div>
-          <h2 className="text-lg font-semibold">
-            {isMinorUser ? "Profile settings" : "Account settings"}
-          </h2>
-          <p className="text-sm text-slate-600">
-            {isMinorUser
-              ? "Update your display name and timezone."
-              : "Update your profile name, timezone, and notification channels."}
-          </p>
-        </div>
-        <form action={saveSettingsAction} className="grid gap-4">
-          <FormField htmlFor="settings-display-name" label="Display name">
-            <Input
-              defaultValue={displayName}
-              id="settings-display-name"
-              name="displayName"
-              placeholder="Coach Casey"
-            />
-          </FormField>
-          <FormField htmlFor="settings-timezone" label="Timezone">
-            <Input
-              defaultValue={timezone}
-              id="settings-timezone"
-              name="timezone"
-              placeholder="UTC"
-            />
-          </FormField>
-          {/* Notification preferences: hidden for minors (routed to guardians) */}
-          {!isMinorUser && notifications ? (
-            <fieldset className="grid gap-4">
-              <legend className="text-sm font-medium text-slate-700">
-                Notification preferences
-              </legend>
-              <p className="text-sm text-slate-600">
-                Choose which channels Teamsster can use for each notification
-                type.
-              </p>
-              <div className="overflow-x-auto rounded-2xl border border-slate-200">
-                <table className="min-w-full border-collapse text-sm">
-                  <caption className="sr-only">
-                    Notification preference matrix by event type and channel
-                  </caption>
-                  <thead className="bg-slate-50 text-left text-slate-600">
-                    <tr>
-                      <th className="px-4 py-3 font-medium" scope="col">
-                        Notification type
-                      </th>
-                      {Object.entries(notificationChannelLabels).map(
-                        ([channel, label]) => (
-                          <th
-                            className="px-4 py-3 text-center font-medium"
-                            key={channel}
-                            scope="col"
-                          >
-                            {label}
-                          </th>
-                        ),
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {notificationEventTypeValues.map((eventType) => {
-                      const preference = notifications[eventType];
-                      const details = notificationPreferenceLabels[eventType];
-
-                      return (
-                        <tr
-                          className="border-t border-slate-200 align-top"
-                          key={eventType}
-                        >
-                          <th
-                            className="px-4 py-3 text-left font-medium"
-                            scope="row"
-                          >
-                            <div>{details.label}</div>
-                            <p className="mt-1 text-xs font-normal text-slate-500">
-                              {details.description}
-                            </p>
-                          </th>
-                          {Object.entries(notificationChannelLabels).map(
-                            ([channel, label]) => (
-                              <td
-                                className="px-4 py-3 text-center"
-                                key={channel}
-                              >
-                                <label className="inline-flex items-center justify-center">
-                                  <input
-                                    aria-label={`${details.label} via ${label}`}
-                                    defaultChecked={
-                                      preference[
-                                        channel as keyof typeof preference
-                                      ]
-                                    }
-                                    name={`notification-${eventType}-${channel}`}
-                                    type="checkbox"
-                                  />
-                                </label>
-                              </td>
-                            ),
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </fieldset>
-          ) : (
-            <p className="rounded-xl border border-sky-100 bg-sky-50 px-3 py-2 text-sm text-sky-800">
-              Email notifications for your account are sent to your guardian(s)
-              automatically.
-            </p>
-          )}
           <div>
-            <Button disabled={!currentSession?.user} type="submit">
-              Save settings
-            </Button>
+            <h2 className="text-lg font-semibold">
+              {isMinorUser ? "Profile settings" : "Account settings"}
+            </h2>
+            <p className="text-sm text-slate-600">
+              {isMinorUser
+                ? "Update your display name and timezone."
+                : "Update your profile name, timezone, and notification channels."}
+            </p>
           </div>
-        </form>
+          <form action={saveSettingsAction} className="grid gap-4">
+            <FormField htmlFor="settings-display-name" label="Display name">
+              <Input
+                defaultValue={displayName}
+                id="settings-display-name"
+                name="displayName"
+                placeholder="Coach Casey"
+              />
+            </FormField>
+            <FormField htmlFor="settings-timezone" label="Timezone">
+              <Input
+                defaultValue={timezone}
+                id="settings-timezone"
+                name="timezone"
+                placeholder="UTC"
+              />
+            </FormField>
+            {/* Notification preferences: hidden for minors (routed to guardians) */}
+            {!isMinorUser && notifications ? (
+              <fieldset className="grid gap-4">
+                <legend className="text-sm font-medium text-slate-700">
+                  Notification preferences
+                </legend>
+                <p className="text-sm text-slate-600">
+                  Choose which channels Teamsster can use for each notification
+                  type.
+                </p>
+                <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                  <table className="min-w-full border-collapse text-sm">
+                    <caption className="sr-only">
+                      Notification preference matrix by event type and channel
+                    </caption>
+                    <thead className="bg-slate-50 text-left text-slate-600">
+                      <tr>
+                        <th className="px-4 py-3 font-medium" scope="col">
+                          Notification type
+                        </th>
+                        {Object.entries(notificationChannelLabels).map(
+                          ([channel, label]) => (
+                            <th
+                              className="px-4 py-3 text-center font-medium"
+                              key={channel}
+                              scope="col"
+                            >
+                              {label}
+                            </th>
+                          ),
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {notificationEventTypeValues.map((eventType) => {
+                        const preference = notifications[eventType];
+                        const details = notificationPreferenceLabels[eventType];
+
+                        return (
+                          <tr
+                            className="border-t border-slate-200 align-top"
+                            key={eventType}
+                          >
+                            <th
+                              className="px-4 py-3 text-left font-medium"
+                              scope="row"
+                            >
+                              <div>{details.label}</div>
+                              <p className="mt-1 text-xs font-normal text-slate-500">
+                                {details.description}
+                              </p>
+                            </th>
+                            {Object.entries(notificationChannelLabels).map(
+                              ([channel, label]) => (
+                                <td
+                                  className="px-4 py-3 text-center"
+                                  key={channel}
+                                >
+                                  <label className="inline-flex items-center justify-center">
+                                    <input
+                                      aria-label={`${details.label} via ${label}`}
+                                      defaultChecked={
+                                        preference[
+                                          channel as keyof typeof preference
+                                        ]
+                                      }
+                                      name={`notification-${eventType}-${channel}`}
+                                      type="checkbox"
+                                    />
+                                  </label>
+                                </td>
+                              ),
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </fieldset>
+            ) : (
+              <p className="rounded-xl border border-sky-100 bg-sky-50 px-3 py-2 text-sm text-sky-800">
+                Email notifications for your account are sent to your
+                guardian(s) automatically.
+              </p>
+            )}
+            <div>
+              <Button disabled={!currentSession?.user} type="submit">
+                Save settings
+              </Button>
+            </div>
+          </form>
         </Card>
       ) : null}
 

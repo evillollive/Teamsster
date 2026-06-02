@@ -49,7 +49,7 @@ export default function SignInPage() {
         return;
       }
 
-      router.push(destination);
+      router.push(destination as never);
       router.refresh();
     },
     [destination, router],
@@ -80,7 +80,7 @@ export default function SignInPage() {
         return;
       }
 
-      router.push(destination);
+      router.push(destination as never);
       router.refresh();
     },
     [destination, router],
