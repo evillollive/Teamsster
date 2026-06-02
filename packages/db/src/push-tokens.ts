@@ -17,7 +17,7 @@ function encryptToken(token: string, encryptionKey?: Buffer): string {
  * Decrypts a stored push token.
  * If the token doesn't look encrypted (no colons), returns it as-is.
  */
-function decryptToken(stored: string, encryptionKey?: Buffer): string {
+function _decryptToken(stored: string, encryptionKey?: Buffer): string {
   if (!encryptionKey) return stored;
   if (!stored.includes(":")) return stored;
   return decryptField(stored, encryptionKey);

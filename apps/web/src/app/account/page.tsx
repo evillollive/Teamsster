@@ -302,7 +302,9 @@ export default async function AccountPage({
 
             <div className="grid gap-4 rounded-2xl bg-sky-50 p-4 text-sm text-slate-700">
               <div>
-                <h3 className="font-semibold text-slate-900">What happens next</h3>
+                <h3 className="font-semibold text-slate-900">
+                  What happens next
+                </h3>
                 <p className="mt-1 text-slate-600">
                   This first pass gets you to a real league dashboard quickly,
                   then you can add teams, members, and events.
@@ -328,7 +330,9 @@ export default async function AccountPage({
                   <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-sky-700 shadow-sm">
                     3
                   </span>
-                  <span>Continue into league setup or the invited dashboard.</span>
+                  <span>
+                    Continue into league setup or the invited dashboard.
+                  </span>
                 </li>
               </ol>
             </div>
@@ -336,7 +340,8 @@ export default async function AccountPage({
         </Card>
       ) : null}
 
-      {isMinorUser || (!isMinorUser && accountSettings && !showOnboardingShell) ? (
+      {isMinorUser ||
+      (!isMinorUser && accountSettings && !showOnboardingShell) ? (
         <Card className="grid gap-4">
           <div>
             <h2 className="text-lg font-semibold">
@@ -461,7 +466,8 @@ export default async function AccountPage({
       ) : null}
 
       {currentSession?.user &&
-      (isMinorUser || (!isMinorUser && accountSettings && !showOnboardingShell)) ? (
+      (isMinorUser ||
+        (!isMinorUser && accountSettings && !showOnboardingShell)) ? (
         <Card className="grid gap-4">
           <div>
             <h2 className="text-lg font-semibold">Change password</h2>
