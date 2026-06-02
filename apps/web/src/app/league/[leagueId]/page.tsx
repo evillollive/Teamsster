@@ -78,6 +78,49 @@ export default async function LeagueDashboardPage({
         </div>
       </Card>
 
+      {session?.user && teams.length === 0 ? (
+        <Card className="grid gap-4 border-sky-100 bg-sky-50/60">
+          <div className="grid gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-600">
+              Getting started
+            </p>
+            <h2 className="text-lg font-semibold">Your first setup steps</h2>
+            <p className="text-sm text-slate-600">
+              Teamsster created your league. Start with the first team, then add
+              staff and move into rosters and events.
+            </p>
+          </div>
+          <ol className="grid gap-3 text-sm text-slate-700">
+            <li className="flex gap-3">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-sky-700 shadow-sm">
+                1
+              </span>
+              <span>Create your first team so the league has a place to grow.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-sky-700 shadow-sm">
+                2
+              </span>
+              <span>
+                Invite staff or board members once the team exists and the
+                roster can take shape.
+              </span>
+            </li>
+            <li className="flex gap-3">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-sky-700 shadow-sm">
+                3
+              </span>
+              <span>Use events and rosters after the first team is in place.</span>
+            </li>
+          </ol>
+          <div>
+            <Button asChild size="sm">
+              <Link href={`/league/${leagueId}/team/new`}>Create your first team</Link>
+            </Button>
+          </div>
+        </Card>
+      ) : null}
+
       <Card className="grid gap-4">
         <div className="flex items-center justify-between gap-4">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
