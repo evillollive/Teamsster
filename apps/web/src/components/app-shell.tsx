@@ -10,11 +10,13 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Suspense } from "react";
 
 import { NotificationBadge } from "@/components/notification-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { getUnreadCountForSession } from "@/lib/notification-badge";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -81,7 +83,9 @@ const mobileNavItems = [
   icon: typeof Home;
 }>;
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children }: { children: ReactNode }) {
+  const unreadNotificationCount = getUnreadCountForSession();
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <a
@@ -165,7 +169,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </div>
                   {label === "Notifications" ? (
                     <Suspense fallback={null}>
-                      <NotificationBadge />
+                      <NotificationBadge
+                        unreadCount={unreadNotificationCount}
+                      />
                     </Suspense>
                   ) : null}
                 </div>
@@ -216,7 +222,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {label === "Alerts" ? (
                 <Suspense fallback={null}>
                   <span className="absolute right-0.5 top-0.5">
-                    <NotificationBadge />
+                    <NotificationBadge unreadCount={unreadNotificationCount} />
                   </span>
                 </Suspense>
               ) : null}

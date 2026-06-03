@@ -1,11 +1,13 @@
-import { getUnreadCountForSession } from "@/lib/notification-badge";
-
 /**
  * Server component that renders an unread notification badge.
  * Fetches count asynchronously; renders nothing if count is 0.
  */
-export async function NotificationBadge() {
-  const count = await getUnreadCountForSession();
+export async function NotificationBadge({
+  unreadCount,
+}: {
+  unreadCount: Promise<number>;
+}) {
+  const count = await unreadCount;
 
   if (count === 0) return null;
 
