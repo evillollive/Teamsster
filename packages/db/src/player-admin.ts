@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "./client";
 import {
@@ -24,6 +24,11 @@ export type PlayerSummary = {
   profileMetadata: PlayerProfileMetadata;
   timezone: string;
   createdAt: Date;
+};
+
+export type TeamPlayerCount = {
+  teamId: string;
+  playerCount: number;
 };
 
 type PlayerContactRelationshipType =
@@ -329,6 +334,30 @@ export async function getPlayersByTeamId(
     .orderBy(asc(players.lastName), asc(players.firstName));
 
   return rows;
+}
+
+export async function getPlayerCountsByTeamIds(
+  teamIds: readonly string[],
+): Promise<TeamPlayerCount[]> {
+  const uniqueTeamIds = [...new Set(teamIds)];
+  if (uniqueTeamIds.length === 0) {
+    return [];
+  }
+
+  const rows = await db
+    .select({
+      teamId: players.teamId,
+      playerCount: count(players.id),
+    })
+    .from(players)
+    .where(
+      and(inArray(players.teamId, uniqueTeamIds), isNull(players.deletedAt)),
+    )
+    .groupBy(players.teamId);
+
+  return rows.flatMap((row) =>
+    row.teamId ? [{ playerCount: row.playerCount, teamId: row.teamId }] : [],
+  );
 }
 
 export async function createPlayerContact(input: CreatePlayerContactInput) {

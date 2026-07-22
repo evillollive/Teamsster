@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 import { Card } from "@/components/ui/card";
 import { getLeaguesForUser } from "@/lib/league";
-import { getPlayersForTeam } from "@/lib/player";
+import { getPlayerCountsForTeams } from "@/lib/player";
 import { getTeamsForLeague } from "@/lib/team";
 
 export default async function RosterPage() {
@@ -16,18 +16,22 @@ export default async function RosterPage() {
   }
 
   const leagues = await getLeaguesForUser(session.user.id);
-  const leaguesWithTeamsAndCounts = await Promise.all(
-    leagues.map(async (league) => {
-      const teams = await getTeamsForLeague(session.user.id, league.id);
-      const teamsWithPlayerCounts = await Promise.all(
-        teams.map(async (team) => {
-          const players = await getPlayersForTeam(league.id, team.id);
-          return { ...team, playerCount: players.length };
-        }),
-      );
-      return { ...league, teams: teamsWithPlayerCounts };
-    }),
+  const leaguesWithTeams = await Promise.all(
+    leagues.map(async (league) => ({
+      ...league,
+      teams: await getTeamsForLeague(session.user.id, league.id),
+    })),
   );
+  const playerCounts = await getPlayerCountsForTeams(
+    leaguesWithTeams.flatMap((league) => league.teams.map((team) => team.id)),
+  );
+  const leaguesWithTeamsAndCounts = leaguesWithTeams.map((league) => ({
+    ...league,
+    teams: league.teams.map((team) => ({
+      ...team,
+      playerCount: playerCounts.get(team.id) ?? 0,
+    })),
+  }));
 
   const totalPlayers = leaguesWithTeamsAndCounts.reduce(
     (sum, l) => l.teams.reduce((s, t) => s + t.playerCount, sum),
