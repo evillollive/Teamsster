@@ -1,13 +1,57 @@
-/**
- * Server component that renders an unread notification badge.
- * Fetches count asynchronously; renders nothing if count is 0.
- */
-export async function NotificationBadge({
-  unreadCount,
-}: {
-  unreadCount: Promise<number>;
-}) {
-  const count = await unreadCount;
+"use client";
+
+import { useEffect, useState } from "react";
+
+type UnreadCountResponse = {
+  unreadCount: number;
+};
+
+let unreadCountPromise: Promise<number> | null = null;
+
+export function resetUnreadNotificationCountCache() {
+  unreadCountPromise = null;
+}
+
+function getUnreadNotificationCount() {
+  if (!unreadCountPromise) {
+    unreadCountPromise = fetch("/api/v1/notifications/unread-count", {
+      cache: "no-store",
+      credentials: "same-origin",
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Unable to load unread notification count.");
+        }
+
+        const body = (await response.json()) as UnreadCountResponse;
+        return Number.isFinite(body.unreadCount) ? body.unreadCount : 0;
+      })
+      .catch((error: unknown) => {
+        unreadCountPromise = null;
+        console.error("[teamsster] Unread notification count failed:", error);
+        return 0;
+      });
+  }
+
+  return unreadCountPromise;
+}
+
+export function NotificationBadge() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    getUnreadNotificationCount().then((nextCount) => {
+      if (active) {
+        setCount(nextCount);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   if (count === 0) return null;
 

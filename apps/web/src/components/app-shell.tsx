@@ -11,12 +11,10 @@ import {
 import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Suspense } from "react";
 
 import { NotificationBadge } from "@/components/notification-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getUnreadCountForSession } from "@/lib/notification-badge";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -84,8 +82,6 @@ const mobileNavItems = [
 }>;
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const unreadNotificationCount = getUnreadCountForSession();
-
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <a
@@ -167,13 +163,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <p className="font-semibold">{label}</p>
                     <p className="text-sm text-slate-500">{blurb}</p>
                   </div>
-                  {label === "Notifications" ? (
-                    <Suspense fallback={null}>
-                      <NotificationBadge
-                        unreadCount={unreadNotificationCount}
-                      />
-                    </Suspense>
-                  ) : null}
+                  {label === "Notifications" ? <NotificationBadge /> : null}
                 </div>
               </Link>
             ))}
@@ -220,11 +210,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Icon aria-hidden="true" className="h-5 w-5" />
               <span className="text-[10px] font-medium">{label}</span>
               {label === "Alerts" ? (
-                <Suspense fallback={null}>
-                  <span className="absolute right-0.5 top-0.5">
-                    <NotificationBadge unreadCount={unreadNotificationCount} />
-                  </span>
-                </Suspense>
+                <span className="absolute right-0.5 top-0.5">
+                  <NotificationBadge />
+                </span>
               ) : null}
             </Link>
           ))}
