@@ -8,11 +8,10 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
-import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Suspense } from "react";
-
+import { NavLink } from "@/components/nav-link";
 import { NotificationBadge } from "@/components/notification-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -152,11 +151,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <nav aria-label="Primary" className="mt-4 grid gap-3 md:mt-6">
             {navItems.map(({ blurb, href, icon: Icon, label }) => (
-              <Link
+              <NavLink
                 className={cn(
-                  "rounded-3xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:border-sky-200 hover:shadow-md",
+                  "rounded-3xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:border-sky-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
                 )}
-                href={href as Route}
+                activeClassName="border-sky-300 bg-sky-50 shadow-md"
+                href={href}
                 key={href}
               >
                 <div className="flex items-center gap-3">
@@ -175,7 +175,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     </Suspense>
                   ) : null}
                 </div>
-              </Link>
+              </NavLink>
             ))}
           </nav>
         </aside>
@@ -212,9 +212,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         <div className="flex items-center justify-around px-2 py-1">
           {mobileNavItems.map(({ href, icon: Icon, label }) => (
-            <Link
-              className="relative flex flex-col items-center gap-0.5 px-2 py-1.5 text-slate-600 transition-colors hover:text-sky-600"
-              href={href as Route}
+            <NavLink
+              className="relative flex flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-slate-600 transition-colors hover:text-sky-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+              activeClassName="text-sky-600"
+              href={href}
               key={href}
             >
               <Icon aria-hidden="true" className="h-5 w-5" />
@@ -226,7 +227,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   </span>
                 </Suspense>
               ) : null}
-            </Link>
+            </NavLink>
           ))}
         </div>
       </nav>

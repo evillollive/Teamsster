@@ -36,9 +36,10 @@ Open `http://localhost:3000` and you're in.
 ```bash
 pnpm lint        # Biome formatting and linting
 pnpm typecheck   # strict TypeScript checks
-pnpm test        # Vitest unit/component tests
+pnpm test        # Vitest unit/component tests (includes accessibility checks)
 pnpm build       # production build
 pnpm e2e         # Playwright end-to-end tests
+pnpm audit       # dependency vulnerability scan
 ```
 
 ### Database migrations
@@ -80,7 +81,7 @@ A few design decisions that shape how the whole thing fits together:
 - **Soft deletes and audit trails everywhere.** Nothing actually disappears. Every mutation is traceable, which matters when volunteers rotate and context gets lost.
 - **Players aren't users.** Player records are decoupled from user accounts, so a coach can manage a roster without every 8-year-old needing a login.
 - **Minor-safe by design.** Minor accounts use system-generated placeholder emails that never receive real mail. All notifications route through guardians, auth email senders block placeholder addresses, and personal league provisioning is skipped for minors.
-- **Mobile-first, accessible by default.** The UI is built on shadcn/ui-compatible components with Radix primitives, so keyboard navigation and screen readers work out of the box.
+- **Mobile-first, accessible by default.** The UI is built on shadcn/ui-compatible components with Radix primitives, so keyboard navigation and screen readers work out of the box. Navigation announces the current page (`aria-current`) with a visible keyboard focus ring, and the shared `FormField` wires every control to its help and error text (`aria-describedby`, `aria-invalid`) so assistive technology stays in sync. These behaviors are covered by component and Playwright tests.
 
 ## Workspace layout
 

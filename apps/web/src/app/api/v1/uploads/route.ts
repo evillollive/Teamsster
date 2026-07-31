@@ -6,17 +6,8 @@ import {
 } from "@teamsster/db";
 import { headers } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 
-const uploadMetaSchema = z.object({
-  url: z.string().url(),
-  pathname: z.string().min(1),
-  contentType: z.string().optional(),
-  sizeBytes: z.string().optional(),
-  purpose: z.enum(["profile-photo", "team-logo", "league-logo", "general"]),
-  entityType: z.string().optional(),
-  entityId: z.string().uuid().optional(),
-});
+import { uploadMetaSchema } from "./schema";
 
 /**
  * File upload metadata endpoint.
