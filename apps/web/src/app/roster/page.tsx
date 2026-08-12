@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 import { Card } from "@/components/ui/card";
 import { getLeaguesForUser } from "@/lib/league";
-import { getPlayersForTeam } from "@/lib/player";
+import { getPlayerCountsForTeams } from "@/lib/player";
 import { getTeamsForLeague } from "@/lib/team";
 
 export default async function RosterPage() {
@@ -19,12 +19,14 @@ export default async function RosterPage() {
   const leaguesWithTeamsAndCounts = await Promise.all(
     leagues.map(async (league) => {
       const teams = await getTeamsForLeague(session.user.id, league.id);
-      const teamsWithPlayerCounts = await Promise.all(
-        teams.map(async (team) => {
-          const players = await getPlayersForTeam(league.id, team.id);
-          return { ...team, playerCount: players.length };
-        }),
+      const playerCounts = await getPlayerCountsForTeams(
+        league.id,
+        teams.map((team) => team.id),
       );
+      const teamsWithPlayerCounts = teams.map((team) => ({
+        ...team,
+        playerCount: playerCounts[team.id] ?? 0,
+      }));
       return { ...league, teams: teamsWithPlayerCounts };
     }),
   );

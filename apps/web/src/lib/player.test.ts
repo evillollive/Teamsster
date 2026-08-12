@@ -6,6 +6,7 @@ vi.mock("@teamsster/db", () => ({
   createPlayer: vi.fn(),
   createPlayerContact: vi.fn(),
   getPlayerContactsByTeamId: vi.fn(),
+  getPlayerCountsByTeamIds: vi.fn(),
   getPlayersByTeamId: vi.fn(),
   getTeamCaptains: vi.fn().mockResolvedValue([]),
   getUserIdByAuthUserId: vi.fn(),
@@ -18,6 +19,7 @@ import type { PlayerContactSummary } from "@teamsster/db";
 import {
   createPlayerContact,
   getPlayerContactsByTeamId,
+  getPlayerCountsByTeamIds,
   getUserIdByAuthUserId,
   getUserLeagueMembership,
   getUserTeamMembership,
@@ -31,6 +33,7 @@ import {
   getContactActionPermissions,
   getContactActionPermissionsForTeamAsUser,
   getPlayerContactsForTeamAsUser,
+  getPlayerCountsForTeams,
   updatePlayerSchema,
 } from "@/lib/player";
 
@@ -356,6 +359,27 @@ describe("applyContactFieldMask", () => {
 
     expect(result.email).toBeNull();
     expect(result.phone).toBeNull();
+  });
+});
+
+describe("getPlayerCountsForTeams", () => {
+  it("forwards team ids to the aggregate count query", async () => {
+    const mockedGetPlayerCountsByTeamIds = vi.mocked(getPlayerCountsByTeamIds);
+    mockedGetPlayerCountsByTeamIds.mockResolvedValue({
+      "team-1": 2,
+      "team-2": 0,
+    });
+
+    const result = await getPlayerCountsForTeams("league-1", [
+      "team-1",
+      "team-2",
+    ]);
+
+    expect(mockedGetPlayerCountsByTeamIds).toHaveBeenCalledWith("league-1", [
+      "team-1",
+      "team-2",
+    ]);
+    expect(result).toEqual({ "team-1": 2, "team-2": 0 });
   });
 });
 
