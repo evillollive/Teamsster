@@ -5,6 +5,7 @@ import {
   createPlayer,
   createPlayerContact,
   getPlayerContactsByTeamId,
+  getPlayerCountsByTeamIds,
   getPlayersByTeamId,
   getTeamCaptains,
   getUserIdByAuthUserId,
@@ -253,6 +254,13 @@ export async function archivePlayerForUser(
 
 export async function getPlayersForTeam(leagueId: string, teamId: string) {
   return getPlayersByTeamId(leagueId, teamId);
+}
+
+export async function getPlayerCountsForTeams(
+  leagueId: string,
+  teamIds: string[],
+) {
+  return getPlayerCountsByTeamIds(leagueId, teamIds);
 }
 
 export async function getTeamRosterForUser(

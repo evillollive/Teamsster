@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import { db } from "./client";
 import {
@@ -329,6 +329,39 @@ export async function getPlayersByTeamId(
     .orderBy(asc(players.lastName), asc(players.firstName));
 
   return rows;
+}
+
+export async function getPlayerCountsByTeamIds(
+  leagueId: string,
+  teamIds: string[],
+): Promise<Record<string, number>> {
+  if (teamIds.length === 0) {
+    return {};
+  }
+
+  const counts = Object.fromEntries(teamIds.map((teamId) => [teamId, 0]));
+  const rows = await db
+    .select({
+      teamId: players.teamId,
+      count: sql<number>`count(*)`.mapWith(Number),
+    })
+    .from(players)
+    .where(
+      and(
+        eq(players.leagueId, leagueId),
+        inArray(players.teamId, teamIds),
+        isNull(players.deletedAt),
+      ),
+    )
+    .groupBy(players.teamId);
+
+  for (const row of rows) {
+    if (row.teamId) {
+      counts[row.teamId] = row.count;
+    }
+  }
+
+  return counts;
 }
 
 export async function createPlayerContact(input: CreatePlayerContactInput) {
