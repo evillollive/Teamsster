@@ -6,6 +6,7 @@ import {
   createPlayerContact,
   getPlayerContactsByTeamId,
   getPlayerCountsByTeamIds,
+  getPlayerCountsByTeamIdsAcrossLeagues,
   getPlayersByTeamId,
   getTeamCaptains,
   getUserIdByAuthUserId,
@@ -261,6 +262,13 @@ export async function getPlayerCountsForTeams(
   teamIds: string[],
 ) {
   return getPlayerCountsByTeamIds(leagueId, teamIds);
+}
+
+export async function getPlayerCountsForLeagueTeams(
+  leagueIds: string[],
+  teamIds: string[],
+) {
+  return getPlayerCountsByTeamIdsAcrossLeagues(leagueIds, teamIds);
 }
 
 export async function getTeamRosterForUser(

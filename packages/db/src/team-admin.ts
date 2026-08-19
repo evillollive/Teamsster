@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "./client";
-import { auditLogs, teamMembers, teams } from "./schema";
+import { auditLogs, leagueMembers, teamMembers, teams } from "./schema";
 
 export type TeamSummary = {
   id: string;
@@ -11,6 +11,10 @@ export type TeamSummary = {
   slug: string;
   timezone: string;
   createdAt: Date;
+};
+
+export type TeamLeagueSummary = TeamSummary & {
+  leagueId: string;
 };
 
 export type TeamDetail = {
@@ -182,6 +186,38 @@ export async function getTeamsByLeagueId(
     })
     .from(teams)
     .where(and(eq(teams.leagueId, leagueId), isNull(teams.deletedAt)));
+
+  return rows;
+}
+
+export async function getTeamsByLeagueIdsForUser(
+  userId: string,
+  leagueIds: string[],
+): Promise<TeamLeagueSummary[]> {
+  const uniqueLeagueIds = [...new Set(leagueIds)];
+  if (uniqueLeagueIds.length === 0) {
+    return [];
+  }
+
+  const rows = await db
+    .select({
+      id: teams.id,
+      leagueId: teams.leagueId,
+      name: teams.name,
+      slug: teams.slug,
+      timezone: teams.timezone,
+      createdAt: teams.createdAt,
+    })
+    .from(leagueMembers)
+    .innerJoin(teams, eq(leagueMembers.leagueId, teams.leagueId))
+    .where(
+      and(
+        eq(leagueMembers.userId, userId),
+        inArray(teams.leagueId, uniqueLeagueIds),
+        isNull(leagueMembers.deletedAt),
+        isNull(teams.deletedAt),
+      ),
+    );
 
   return rows;
 }

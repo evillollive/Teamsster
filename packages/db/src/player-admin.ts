@@ -364,6 +364,41 @@ export async function getPlayerCountsByTeamIds(
   return counts;
 }
 
+export async function getPlayerCountsByTeamIdsAcrossLeagues(
+  leagueIds: string[],
+  teamIds: string[],
+): Promise<Record<string, number>> {
+  const uniqueLeagueIds = [...new Set(leagueIds)];
+  const uniqueTeamIds = [...new Set(teamIds)];
+  if (uniqueLeagueIds.length === 0 || uniqueTeamIds.length === 0) {
+    return {};
+  }
+
+  const counts = Object.fromEntries(uniqueTeamIds.map((teamId) => [teamId, 0]));
+  const rows = await db
+    .select({
+      teamId: players.teamId,
+      count: sql<number>`count(*)`.mapWith(Number),
+    })
+    .from(players)
+    .where(
+      and(
+        inArray(players.leagueId, uniqueLeagueIds),
+        inArray(players.teamId, uniqueTeamIds),
+        isNull(players.deletedAt),
+      ),
+    )
+    .groupBy(players.teamId);
+
+  for (const row of rows) {
+    if (row.teamId) {
+      counts[row.teamId] = row.count;
+    }
+  }
+
+  return counts;
+}
+
 export async function createPlayerContact(input: CreatePlayerContactInput) {
   const {
     customRelationship,

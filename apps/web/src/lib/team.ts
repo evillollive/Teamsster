@@ -4,6 +4,7 @@ import {
   createTeam,
   getTeamById,
   getTeamsByLeagueId,
+  getTeamsByLeagueIdsForUser,
   getUserIdByAuthUserId,
   getUserLeagueMembership,
   updateTeam,
@@ -111,6 +112,32 @@ export async function getTeamsForLeague(authUserId: string, leagueId: string) {
   const membership = await getUserLeagueMembership(leagueId, userId);
   if (!membership) return [];
   return getTeamsByLeagueId(leagueId);
+}
+
+export async function getTeamsForLeagues(
+  authUserId: string,
+  leagueIds: string[],
+) {
+  const uniqueLeagueIds = [...new Set(leagueIds)];
+  const teamsByLeagueId = Object.fromEntries(
+    uniqueLeagueIds.map((leagueId) => [leagueId, []]),
+  ) as Record<string, Awaited<ReturnType<typeof getTeamsByLeagueIdsForUser>>>;
+
+  if (uniqueLeagueIds.length === 0) {
+    return teamsByLeagueId;
+  }
+
+  const userId = await getUserIdByAuthUserId(authUserId);
+  if (!userId) {
+    return teamsByLeagueId;
+  }
+
+  const teams = await getTeamsByLeagueIdsForUser(userId, uniqueLeagueIds);
+  for (const team of teams) {
+    teamsByLeagueId[team.leagueId]?.push(team);
+  }
+
+  return teamsByLeagueId;
 }
 
 export async function getTeamDetail(authUserId: string, teamId: string) {
