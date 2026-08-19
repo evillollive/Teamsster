@@ -7,6 +7,7 @@ vi.mock("@teamsster/db", () => ({
   createPlayerContact: vi.fn(),
   getPlayerContactsByTeamId: vi.fn(),
   getPlayerCountsByTeamIds: vi.fn(),
+  getPlayerCountsByTeamIdsAcrossLeagues: vi.fn(),
   getPlayersByTeamId: vi.fn(),
   getTeamCaptains: vi.fn().mockResolvedValue([]),
   getUserIdByAuthUserId: vi.fn(),
@@ -20,6 +21,7 @@ import {
   createPlayerContact,
   getPlayerContactsByTeamId,
   getPlayerCountsByTeamIds,
+  getPlayerCountsByTeamIdsAcrossLeagues,
   getUserIdByAuthUserId,
   getUserLeagueMembership,
   getUserTeamMembership,
@@ -33,6 +35,7 @@ import {
   getContactActionPermissions,
   getContactActionPermissionsForTeamAsUser,
   getPlayerContactsForTeamAsUser,
+  getPlayerCountsForLeagueTeams,
   getPlayerCountsForTeams,
   updatePlayerSchema,
 } from "@/lib/player";
@@ -380,6 +383,27 @@ describe("getPlayerCountsForTeams", () => {
       "team-2",
     ]);
     expect(result).toEqual({ "team-1": 2, "team-2": 0 });
+  });
+
+  it("forwards league and team ids to the cross-league count query", async () => {
+    const mockedGetPlayerCountsByTeamIdsAcrossLeagues = vi.mocked(
+      getPlayerCountsByTeamIdsAcrossLeagues,
+    );
+    mockedGetPlayerCountsByTeamIdsAcrossLeagues.mockResolvedValue({
+      "team-1": 2,
+      "team-2": 4,
+    });
+
+    const result = await getPlayerCountsForLeagueTeams(
+      ["league-1", "league-2"],
+      ["team-1", "team-2"],
+    );
+
+    expect(mockedGetPlayerCountsByTeamIdsAcrossLeagues).toHaveBeenCalledWith(
+      ["league-1", "league-2"],
+      ["team-1", "team-2"],
+    );
+    expect(result).toEqual({ "team-1": 2, "team-2": 4 });
   });
 });
 

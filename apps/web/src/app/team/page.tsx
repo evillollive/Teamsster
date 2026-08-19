@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 import { Card } from "@/components/ui/card";
 import { getLeaguesForUser } from "@/lib/league";
-import { getTeamsForLeague } from "@/lib/team";
+import { getTeamsForLeagues } from "@/lib/team";
 
 export default async function TeamPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -15,12 +15,14 @@ export default async function TeamPage() {
   }
 
   const leagues = await getLeaguesForUser(session.user.id);
-  const leaguesWithTeams = await Promise.all(
-    leagues.map(async (league) => ({
-      ...league,
-      teams: await getTeamsForLeague(session.user.id, league.id),
-    })),
+  const teamsByLeagueId = await getTeamsForLeagues(
+    session.user.id,
+    leagues.map((league) => league.id),
   );
+  const leaguesWithTeams = leagues.map((league) => ({
+    ...league,
+    teams: teamsByLeagueId[league.id] ?? [],
+  }));
 
   const totalTeams = leaguesWithTeams.reduce(
     (sum, l) => sum + l.teams.length,

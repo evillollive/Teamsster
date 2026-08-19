@@ -6,8 +6,8 @@ import { redirect } from "next/navigation";
 
 import { Card } from "@/components/ui/card";
 import { getLeaguesForUser } from "@/lib/league";
-import { getPlayerCountsForTeams } from "@/lib/player";
-import { getTeamsForLeague } from "@/lib/team";
+import { getPlayerCountsForLeagueTeams } from "@/lib/player";
+import { getTeamsForLeagues } from "@/lib/team";
 
 export default async function RosterPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -16,20 +16,19 @@ export default async function RosterPage() {
   }
 
   const leagues = await getLeaguesForUser(session.user.id);
-  const leaguesWithTeamsAndCounts = await Promise.all(
-    leagues.map(async (league) => {
-      const teams = await getTeamsForLeague(session.user.id, league.id);
-      const playerCounts = await getPlayerCountsForTeams(
-        league.id,
-        teams.map((team) => team.id),
-      );
-      const teamsWithPlayerCounts = teams.map((team) => ({
-        ...team,
-        playerCount: playerCounts[team.id] ?? 0,
-      }));
-      return { ...league, teams: teamsWithPlayerCounts };
-    }),
+  const leagueIds = leagues.map((league) => league.id);
+  const teamsByLeagueId = await getTeamsForLeagues(session.user.id, leagueIds);
+  const teamIds = Object.values(teamsByLeagueId).flatMap((teams) =>
+    teams.map((team) => team.id),
   );
+  const playerCounts = await getPlayerCountsForLeagueTeams(leagueIds, teamIds);
+  const leaguesWithTeamsAndCounts = leagues.map((league) => ({
+    ...league,
+    teams: (teamsByLeagueId[league.id] ?? []).map((team) => ({
+      ...team,
+      playerCount: playerCounts[team.id] ?? 0,
+    })),
+  }));
 
   const totalPlayers = leaguesWithTeamsAndCounts.reduce(
     (sum, l) => l.teams.reduce((s, t) => s + t.playerCount, sum),
