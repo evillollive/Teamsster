@@ -17,7 +17,7 @@ import { getLeaguesForUser } from "@/lib/league";
 import { getEventRemindersForUser } from "@/lib/reminder";
 import {
   deleteEventRsvpForUser,
-  getEventRsvpSummaryForUser,
+  getEventRsvpDataForUser,
   upsertEventRsvpForUser,
 } from "@/lib/rsvp";
 import { getTeamsForLeague } from "@/lib/team";
@@ -101,16 +101,16 @@ export default async function EventsPage({
         }))
       : { due: [], upcoming: [] };
 
-  const rsvpData = await Promise.all(
-    events.map((event) =>
-      getEventRsvpSummaryForUser(
-        session.user.id,
-        event.id,
-        selectedLeagueId ?? "",
-        selectedTeamId ?? "",
-      ).catch(() => null),
-    ),
-  );
+  const emptyRsvpData: Awaited<ReturnType<typeof getEventRsvpDataForUser>> = {};
+  const rsvpData: Awaited<ReturnType<typeof getEventRsvpDataForUser>> =
+    selectedLeagueId && selectedTeamId
+      ? await getEventRsvpDataForUser(
+          session.user.id,
+          events.map((event) => event.id),
+          selectedLeagueId,
+          selectedTeamId,
+        ).catch(() => emptyRsvpData)
+      : emptyRsvpData;
 
   async function createEventAction(formData: FormData) {
     "use server";
@@ -446,7 +446,7 @@ export default async function EventsPage({
               </p>
             ) : (
               <div className="grid gap-4">
-                {events.map((event, idx) => (
+                {events.map((event) => (
                   <div
                     className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4"
                     key={event.id}
@@ -627,7 +627,8 @@ export default async function EventsPage({
                         />
                         <div className="flex flex-wrap gap-2">
                           {(["YES", "NO", "MAYBE"] as const).map((s) => {
-                            const current = rsvpData[idx]?.userRsvp?.status;
+                            const current =
+                              rsvpData[event.id]?.userRsvp?.status;
                             const labels: Record<string, string> = {
                               MAYBE: "Maybe",
                               NO: "No",
@@ -651,7 +652,7 @@ export default async function EventsPage({
                               </button>
                             );
                           })}
-                          {rsvpData[idx]?.userRsvp && (
+                          {rsvpData[event.id]?.userRsvp && (
                             <button
                               className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-500 transition hover:border-slate-300 hover:text-slate-700"
                               name="status"
@@ -667,7 +668,9 @@ export default async function EventsPage({
                           label="Note (optional)"
                         >
                           <Input
-                            defaultValue={rsvpData[idx]?.userRsvp?.note ?? ""}
+                            defaultValue={
+                              rsvpData[event.id]?.userRsvp?.note ?? ""
+                            }
                             id={`rsvp-note-${event.id}`}
                             maxLength={280}
                             name="note"
@@ -675,19 +678,19 @@ export default async function EventsPage({
                           />
                         </FormField>
                       </form>
-                      {rsvpData[idx]?.summary && (
+                      {rsvpData[event.id]?.summary && (
                         <p className="mt-3 text-xs text-slate-500">
                           Responses:{" "}
                           <span className="font-medium text-emerald-600">
-                            {rsvpData[idx].summary.yes} yes
+                            {rsvpData[event.id].summary.yes} yes
                           </span>{" "}
                           ·{" "}
                           <span className="font-medium text-amber-600">
-                            {rsvpData[idx].summary.maybe} maybe
+                            {rsvpData[event.id].summary.maybe} maybe
                           </span>{" "}
                           ·{" "}
                           <span className="font-medium text-rose-600">
-                            {rsvpData[idx].summary.no} no
+                            {rsvpData[event.id].summary.no} no
                           </span>
                         </p>
                       )}

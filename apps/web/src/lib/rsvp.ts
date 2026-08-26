@@ -1,6 +1,7 @@
 import {
   deleteEventRsvp,
   eventRsvpStatusValues,
+  getEventRsvpDataByEventIds,
   getEventRsvpSummary,
   getUserIdByAuthUserId,
   getUserLeagueMembership,
@@ -111,4 +112,19 @@ export async function getEventRsvpSummaryForUser(
     getUserRsvpForEvent(eventId, userId),
   ]);
   return { summary, userRsvp };
+}
+
+export async function getEventRsvpDataForUser(
+  authUserId: string,
+  eventIds: string[],
+  leagueId: string,
+  teamId: string,
+) {
+  if (eventIds.length === 0) {
+    return {};
+  }
+
+  const userId = await resolveUserId(authUserId);
+  await assertRsvpAccess(leagueId, teamId, userId);
+  return getEventRsvpDataByEventIds(eventIds, userId);
 }
