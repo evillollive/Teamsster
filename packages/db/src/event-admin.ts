@@ -1,4 +1,4 @@
-import { and, asc, count, eq, gt, isNull } from "drizzle-orm";
+import { and, asc, count, eq, gt, inArray, isNull, sql } from "drizzle-orm";
 
 import { db } from "./client";
 import {
@@ -355,9 +355,15 @@ export type EventRsvpSummary = {
 };
 
 export type UserEventRsvp = {
+  eventId?: string;
   id: string;
   status: RsvpStatus;
   note: string | null;
+};
+
+export type EventRsvpData = {
+  summary: EventRsvpSummary;
+  userRsvp: UserEventRsvp | null;
 };
 
 type UpsertEventRsvpInput = {
@@ -431,6 +437,79 @@ export async function getEventRsvpSummary(
     else if (row.status === "MAYBE") summary.maybe = Number(row.total);
   }
   return summary;
+}
+
+export async function getEventRsvpDataByEventIds(
+  eventIds: string[],
+  userId: string,
+): Promise<Record<string, EventRsvpData>> {
+  if (eventIds.length === 0) {
+    return {};
+  }
+
+  const uniqueEventIds = [...new Set(eventIds)];
+  const data: Record<string, EventRsvpData> = Object.fromEntries(
+    uniqueEventIds.map((eventId) => [
+      eventId,
+      {
+        summary: { yes: 0, no: 0, maybe: 0 },
+        userRsvp: null,
+      } satisfies EventRsvpData,
+    ]),
+  );
+
+  const [summaryRows, userRsvpRows] = await Promise.all([
+    db
+      .select({
+        eventId: teamEventRsvps.eventId,
+        maybe:
+          sql<number>`count(*) filter (where ${teamEventRsvps.status} = 'MAYBE')`.mapWith(
+            Number,
+          ),
+        no: sql<number>`count(*) filter (where ${teamEventRsvps.status} = 'NO')`.mapWith(
+          Number,
+        ),
+        yes: sql<number>`count(*) filter (where ${teamEventRsvps.status} = 'YES')`.mapWith(
+          Number,
+        ),
+      })
+      .from(teamEventRsvps)
+      .where(inArray(teamEventRsvps.eventId, uniqueEventIds))
+      .groupBy(teamEventRsvps.eventId),
+    db
+      .select({
+        eventId: teamEventRsvps.eventId,
+        id: teamEventRsvps.id,
+        status: teamEventRsvps.status,
+        note: teamEventRsvps.note,
+      })
+      .from(teamEventRsvps)
+      .where(
+        and(
+          inArray(teamEventRsvps.eventId, uniqueEventIds),
+          eq(teamEventRsvps.userId, userId),
+        ),
+      ),
+  ]);
+
+  for (const row of summaryRows) {
+    data[row.eventId].summary = {
+      maybe: row.maybe,
+      no: row.no,
+      yes: row.yes,
+    };
+  }
+
+  for (const row of userRsvpRows) {
+    data[row.eventId].userRsvp = {
+      eventId: row.eventId,
+      id: row.id,
+      note: row.note,
+      status: row.status,
+    };
+  }
+
+  return data;
 }
 
 export async function getUserRsvpForEvent(
