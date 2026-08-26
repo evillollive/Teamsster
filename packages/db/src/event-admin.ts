@@ -1,4 +1,4 @@
-import { and, asc, count, eq, gt, isNull } from "drizzle-orm";
+import { and, asc, count, eq, gt, inArray, isNull } from "drizzle-orm";
 
 import { db } from "./client";
 import {
@@ -360,6 +360,11 @@ export type UserEventRsvp = {
   note: string | null;
 };
 
+export type EventRsvpData = {
+  summary: EventRsvpSummary;
+  userRsvp: UserEventRsvp | null;
+};
+
 type UpsertEventRsvpInput = {
   eventId: string;
   leagueId: string;
@@ -453,6 +458,71 @@ export async function getUserRsvpForEvent(
     .limit(1);
 
   return rows[0] ?? null;
+}
+
+export async function getEventRsvpDataForEvents(
+  eventIds: string[],
+  userId: string,
+): Promise<Record<string, EventRsvpData>> {
+  const uniqueEventIds = [...new Set(eventIds)];
+  const data = Object.fromEntries(
+    uniqueEventIds.map((eventId) => [
+      eventId,
+      { summary: { yes: 0, no: 0, maybe: 0 }, userRsvp: null },
+    ]),
+  ) as Record<string, EventRsvpData>;
+
+  if (uniqueEventIds.length === 0) {
+    return data;
+  }
+
+  const [summaryRows, userRows] = await Promise.all([
+    db
+      .select({
+        eventId: teamEventRsvps.eventId,
+        status: teamEventRsvps.status,
+        total: count(),
+      })
+      .from(teamEventRsvps)
+      .where(inArray(teamEventRsvps.eventId, uniqueEventIds))
+      .groupBy(teamEventRsvps.eventId, teamEventRsvps.status),
+    db
+      .select({
+        eventId: teamEventRsvps.eventId,
+        id: teamEventRsvps.id,
+        note: teamEventRsvps.note,
+        status: teamEventRsvps.status,
+      })
+      .from(teamEventRsvps)
+      .where(
+        and(
+          inArray(teamEventRsvps.eventId, uniqueEventIds),
+          eq(teamEventRsvps.userId, userId),
+        ),
+      ),
+  ]);
+
+  for (const row of summaryRows) {
+    const eventData = data[row.eventId];
+    if (!eventData) continue;
+    if (row.status === "YES") eventData.summary.yes = Number(row.total);
+    else if (row.status === "NO") eventData.summary.no = Number(row.total);
+    else if (row.status === "MAYBE") {
+      eventData.summary.maybe = Number(row.total);
+    }
+  }
+
+  for (const row of userRows) {
+    const eventData = data[row.eventId];
+    if (!eventData) continue;
+    eventData.userRsvp = {
+      id: row.id,
+      note: row.note,
+      status: row.status,
+    };
+  }
+
+  return data;
 }
 
 export async function getEventReminderCandidatesByUserId(

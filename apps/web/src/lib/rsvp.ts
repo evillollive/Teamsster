@@ -1,6 +1,7 @@
 import {
   deleteEventRsvp,
   eventRsvpStatusValues,
+  getEventRsvpDataForEvents,
   getEventRsvpSummary,
   getUserIdByAuthUserId,
   getUserLeagueMembership,
@@ -34,6 +35,9 @@ export const deleteEventRsvpSchema = z.object({
 });
 
 export type UpsertEventRsvpInput = z.infer<typeof upsertEventRsvpSchema>;
+export type EventRsvpDataByEventId = Awaited<
+  ReturnType<typeof getEventRsvpDataForEvents>
+>;
 
 async function resolveUserId(authUserId: string): Promise<string> {
   const userId = await getUserIdByAuthUserId(authUserId);
@@ -111,4 +115,20 @@ export async function getEventRsvpSummaryForUser(
     getUserRsvpForEvent(eventId, userId),
   ]);
   return { summary, userRsvp };
+}
+
+export async function getEventRsvpDataForUser(
+  authUserId: string,
+  eventIds: string[],
+  leagueId: string,
+  teamId: string,
+) {
+  const uniqueEventIds = [...new Set(eventIds)];
+  if (uniqueEventIds.length === 0) {
+    return {};
+  }
+
+  const userId = await resolveUserId(authUserId);
+  await assertRsvpAccess(leagueId, teamId, userId);
+  return getEventRsvpDataForEvents(uniqueEventIds, userId);
 }
