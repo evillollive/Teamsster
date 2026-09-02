@@ -3,6 +3,36 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { getEventRemindersForUser } from "@/lib/reminder";
 
+const REMINDER_CRON_BATCH_SIZE = 10;
+
+type ReminderCronResult = {
+  processed: number;
+  remindersFound: number;
+};
+
+async function processReminderUser(
+  authUserId: string,
+  now: Date,
+): Promise<ReminderCronResult> {
+  try {
+    const { due } = await getEventRemindersForUser(authUserId, now);
+    if (due.length > 0) {
+      // TODO: Send reminder emails via SMTP transport once configured.
+      // For now, log the reminders for observability.
+      console.log(
+        `[cron/reminders] ${due.length} due reminder(s) for user ${authUserId}`,
+      );
+    }
+    return { processed: 1, remindersFound: due.length };
+  } catch (error) {
+    console.error(
+      `[cron/reminders] Error processing user ${authUserId}:`,
+      error,
+    );
+    return { processed: 0, remindersFound: 0 };
+  }
+}
+
 /**
  * Cron-compatible API route for processing event reminders.
  *
@@ -32,23 +62,19 @@ export async function GET(request: NextRequest) {
   let processed = 0;
   let remindersFound = 0;
 
-  for (const authUserId of authUserIds) {
-    try {
-      const { due } = await getEventRemindersForUser(authUserId, now);
-      if (due.length > 0) {
-        remindersFound += due.length;
-        // TODO: Send reminder emails via SMTP transport once configured.
-        // For now, log the reminders for observability.
-        console.log(
-          `[cron/reminders] ${due.length} due reminder(s) for user ${authUserId}`,
-        );
-      }
-      processed++;
-    } catch (error) {
-      console.error(
-        `[cron/reminders] Error processing user ${authUserId}:`,
-        error,
-      );
+  for (
+    let index = 0;
+    index < authUserIds.length;
+    index += REMINDER_CRON_BATCH_SIZE
+  ) {
+    const batch = authUserIds.slice(index, index + REMINDER_CRON_BATCH_SIZE);
+    const results = await Promise.all(
+      batch.map((authUserId) => processReminderUser(authUserId, now)),
+    );
+
+    for (const result of results) {
+      processed += result.processed;
+      remindersFound += result.remindersFound;
     }
   }
 
