@@ -1,4 +1,12 @@
-import { and, desc, eq, type InferSelectModel, isNull, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  type InferSelectModel,
+  inArray,
+  isNull,
+  sql,
+} from "drizzle-orm";
 
 import { db } from "./client";
 import {
@@ -119,6 +127,27 @@ async function getRecipientProfiles(
     ),
     onBehalfOf: target[0].displayName ?? "Minor account",
   }));
+}
+
+async function getDeviceTokenCountsByUserId(
+  tx: Pick<typeof db, "select">,
+  userIds: string[],
+): Promise<Map<string, number>> {
+  const uniqueUserIds = [...new Set(userIds)];
+  if (uniqueUserIds.length === 0) {
+    return new Map();
+  }
+
+  const rows = await tx
+    .select({
+      count: sql<number>`count(*)`.mapWith(Number),
+      userId: deviceTokens.userId,
+    })
+    .from(deviceTokens)
+    .where(inArray(deviceTokens.userId, uniqueUserIds))
+    .groupBy(deviceTokens.userId);
+
+  return new Map(rows.map((row) => [row.userId, row.count]));
 }
 
 export async function getNotificationPreferencesByUserId(userId: string) {
@@ -288,6 +317,26 @@ export async function dispatchNotificationEvent(
     const eventId = event[0].id;
     let feedCount = 0;
     let deliveryCount = 0;
+    const recipientsByTargetUserId = new Map<
+      string,
+      NotificationRecipientProfile[]
+    >();
+    const pushRecipientUserIds = new Set<string>();
+
+    for (const targetUserId of audienceUserIds) {
+      const recipients = await getRecipientProfiles(tx, targetUserId);
+      recipientsByTargetUserId.set(targetUserId, recipients);
+
+      for (const recipient of recipients) {
+        if (recipient.notificationPreferences[input.kind]?.push) {
+          pushRecipientUserIds.add(recipient.id);
+        }
+      }
+    }
+
+    const deviceTokenCountsByUserId = await getDeviceTokenCountsByUserId(tx, [
+      ...pushRecipientUserIds,
+    ]);
 
     const queueDelivery = async (params: {
       channel: "EMAIL" | "IN_APP" | "PUSH";
@@ -316,7 +365,7 @@ export async function dispatchNotificationEvent(
     };
 
     for (const targetUserId of audienceUserIds) {
-      const recipients = await getRecipientProfiles(tx, targetUserId);
+      const recipients = recipientsByTargetUserId.get(targetUserId) ?? [];
 
       for (const recipient of recipients) {
         const preference = recipient.notificationPreferences[input.kind];
@@ -388,11 +437,7 @@ export async function dispatchNotificationEvent(
 
         let pushQueued = false;
         if (preference.push) {
-          const pushTokenRows = await tx
-            .select({ count: sql<number>`count(*)`.mapWith(Number) })
-            .from(deviceTokens)
-            .where(eq(deviceTokens.userId, recipient.id));
-          const pushCount = pushTokenRows[0]?.count ?? 0;
+          const pushCount = deviceTokenCountsByUserId.get(recipient.id) ?? 0;
           if (pushCount > 0) {
             await queueDelivery({
               channel: "PUSH",
