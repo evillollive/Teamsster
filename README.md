@@ -6,6 +6,12 @@ Teamsster is an open-source, sport-agnostic app for the people who actually keep
 
 It's built with Next.js 15, TypeScript, and Postgres, designed mobile-first, and licensed under AGPL-3.0 so it stays open.
 
+**Release status:** pre-alpha. The current target is an invite-only browser alpha
+for adult testers using synthetic player data, not a production youth-league
+rollout. [PLAN.md](./PLAN.md#current-release-plan-first-browser-alpha) is the
+authoritative roadmap, including scope, current blockers, acceptance gates, and
+the A0-A5 execution sequence. No alpha release is qualified yet.
+
 ![Next.js](https://img.shields.io/badge/Next.js-15-000000?logo=next.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
@@ -29,7 +35,8 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Open `http://localhost:3000` and you're in.
+Open `http://localhost:3000` for the development shell. See the current roadmap
+for runtime integration blockers before attempting complete workflows.
 
 ### Quality commands
 
@@ -49,38 +56,45 @@ pnpm db:generate
 pnpm db:migrate
 ```
 
-## What's already here
+## What's in the repository
 
-Teamsster isn't just a scaffold. There's real working functionality across several domains:
+Teamsster has substantial implementation work, but code presence is not the same
+as a verified user workflow:
 
-- **Auth and onboarding.** Email/password, magic-link, and username/password sign-in via Better Auth. Minor accounts can sign in with just a username (no email needed). Onboarding flows, account settings, and guardian management for linked minor accounts.
-- **Minor accounts and guardian links.** Kids don't need an email address. A parent or guardian creates a minor account with a username and password, and all notifications route to the guardian(s) instead. Many-to-many guardian links with primary designation, and the system won't let you remove the last guardian from a minor.
-- **League administration.** Create, update, and archive leagues and teams. Role assignment with reusable templates, invitation workflows, audit log persistence, and a dashboard with empty states that guide new users.
-- **Roster management.** Player CRUD with soft deletes, guardian contacts, eligibility tracking, and profile metadata. Structured relationship types (parent, guardian, stepparent, grandparent, sibling, coach, other) with automatic normalization from legacy free-text values. Captain role with full/restricted permission levels and roster badges. Division and age group management with competitive levels (recreational, competitive, elite).
-- **Scheduling.** Team event creation with recurrence, RSVP states, ICS calendar exports, reminder windows, and embedded team/league agenda views. Live calendar subscriptions with per-user token-authenticated iCal feeds for Apple Calendar, Google Calendar, and Outlook.
-- **Registration.** Seasonal registration with configurable form builder, multi-child flows, pre-fill from prior seasons, admin status dashboard, and deadline notifications. Field sanitization and rate limiting built in. Digital waivers with tamper-evident metadata, encrypted insurance/medical storage (AES-256-GCM), role-gated visibility, payment status placeholder, and comprehensive audit logging.
-- **Volunteer tracking.** Volunteer opportunities with slot-based signup, check-in/check-out hours tracking, manual hour entry, CSV export with formula injection prevention. Standing volunteer roles (Travel Coordinator, Social Coordinator, etc.) with league/team scope, multi-holder assignment, and directory view.
-- **Officials and game management.** REFEREE role, game assignment workflow with confirm/decline, score logging with validation, availability preferences, and comprehensive audit logging.
-- **In-app messaging.** Conversations schema (DMs and group threads), thread membership enforcement, message sanitization (XSS prevention), unread counts, and rate limiting.
-- **Messaging safety.** Minor DM restrictions (team_threads_only, no_dm, approved_contacts_only), message flagging with review queue, user muting with expiration, configurable retention policies, and full moderation audit trail.
-- **Privacy and compliance.** Account data export with formula-safe sanitization, account deletion with cascade planning (message anonymization, guardian reassignment), documented guardian boundaries, minor consent validation, and data retention policies. SECURITY.md with comprehensive security documentation.
-- **Extensibility.** Domain event hook system (25 event types), extension module registration, versioned API contracts with auth validation and rate limiting. Proof-of-concept modules for payments (Stripe webhook scaffold) and stats (standings calculation with win/loss/tie/goal tracking).
-- **Tournaments.** Single-elimination, double-elimination, round-robin, and pool-play bracket generation with automatic score-driven advancement. Seeded brackets with bye calculation and next-match linking.
-- **Venues.** Field and venue management with surface types, amenities, recurring availability calendars, time-conflict detection, and weather cancellation planning.
-- **Incident reporting.** Coaches and officials can file incident/injury reports with type (injury, conduct, facility), severity levels, encrypted medical details, involved party tracking, admin review workflow, and CSV export with formula injection prevention.
-- **Communication.** League and team announcements, user-level notification preferences, digest and reminder templates, delivery logs, and permission-gated contact actions. Unified notification platform with per-event/per-channel preferences, in-app feed with unread badges, scheduled delivery helpers, email sanitization, rate-limited token registration, and guardian-aware routing.
-- **Centralized validation.** Zod schemas and permission helpers for all mutations, so business logic stays consistent.
-- **Template system.** Reusable templates for events, announcements, registration forms, and volunteer opportunities. League-scoped with team-level overrides, built-in starters, payload sanitization, and admin management UI.
+- **Core application surfaces:** account settings, partial onboarding, league/team
+  administration, invitations, manual rosters, events, RSVP, announcements,
+  notification views, and template management.
+- **Shared foundations:** schema and migrations, Zod validation, permission
+  helpers, audit patterns, accessible form/navigation components, and CI.
+- **Authentication:** Better Auth configuration, sign-in UI, and SMTP-backed auth
+  email code. Database/auth integration and a complete account-entry/recovery
+  journey are active release blockers.
+- **Family and advanced-domain groundwork:** guardian relationships, registration,
+  waivers, volunteers, officials, chat/moderation, divisions, tournaments, venues,
+  incidents, calendar subscriptions, and extension helpers. Several lack connected
+  application journeys or contain incomplete behavior; they are not alpha.1
+  commitments.
+- **Communications:** announcements are distinct from delivered notifications.
+  Dispatch bookkeeping and templates exist, but live producer/delivery wiring
+  remains incomplete and the reminder cron currently logs rather than sends.
+- **Privacy and operations:** policies, lifecycle helpers, deployment guidance,
+  and web/mobile scaffolding exist. Full deletion/session handling, safe private
+  response caching, monitoring, restore, and deployed workflow proof still need
+  qualification.
+
+The first alpha will qualify one organizer-to-invited-adult workflow in a browser.
+Do not use the current build for real child accounts or sensitive player data.
+Historical milestone checkmarks and Storybook examples are not release evidence.
 
 ## The clever bits
 
 A few design decisions that shape how the whole thing fits together:
 
 - **League-first multi-tenancy.** Everything is scoped to a league. Teams, players, events, and permissions all live under that umbrella, which keeps data isolation clean from the start.
-- **No database calls in components.** All data access goes through server actions and service layers. Components stay focused on rendering.
-- **Soft deletes and audit trails everywhere.** Nothing actually disappears. Every mutation is traceable, which matters when volunteers rotate and context gets lost.
+- **Service-layer architecture.** The intended boundary puts data access and permission enforcement behind services rather than presentation code. Alpha qualification must verify this on exposed paths.
+- **Soft deletes and audit trails.** Core domain code includes these patterns to preserve administrative context. They do not replace a complete privacy and account-deletion lifecycle.
 - **Players aren't users.** Player records are decoupled from user accounts, so a coach can manage a roster without every 8-year-old needing a login.
-- **Minor-safe by design.** Minor accounts use system-generated placeholder emails that never receive real mail. All notifications route through guardians, auth email senders block placeholder addresses, and personal league provisioning is skipped for minors.
+- **Guardian-aware design.** Minor-account helpers use placeholder email addresses and guardian relationships, and auth email code blocks placeholder recipients. Real minor access and notification behavior remain outside alpha.1 until qualified.
 - **Mobile-first, accessible by default.** The UI is built on shadcn/ui-compatible components with Radix primitives, so keyboard navigation and screen readers work out of the box. Navigation announces the current page (`aria-current`) with a visible keyboard focus ring, and the shared `FormField` wires every control to its help and error text (`aria-describedby`, `aria-invalid`) so assistive technology stays in sync. These behaviors are covered by component and Playwright tests.
 
 ## Workspace layout
@@ -102,7 +116,7 @@ See `.env.example` for local development defaults.
 | `BETTER_AUTH_URL` | Base URL for auth callbacks |
 | `BETTER_AUTH_SECRET` | Session signing secret |
 | `AUTH_EMAIL_FROM` | Sender address for auth emails |
-| `AUTH_SMTP_URL` | SMTP transport (reserved for future wiring) |
+| `AUTH_SMTP_URL` | SMTP transport for auth emails; operational notification delivery is separate |
 
 ### Database
 
@@ -128,10 +142,11 @@ Plausible is scaffolded as an optional script include and only loads when explic
 
 | Document | What it covers |
 | --- | --- |
+| [`PLAN.md`](./PLAN.md) | Authoritative first-alpha scope, priorities, status definitions, dependencies, and release gates |
 | [`DEPLOYMENT.md`](./DEPLOYMENT.md) | Deployment runbook, env matrix, and release/rollback steps |
-| [`COMPETITIVE_ANALYSIS.md`](./COMPETITIVE_ANALYSIS.md) | Comparative analysis of current product depth, roadmap gaps, and competitor positioning |
-| [`EXECUTION_PLAN_90_DAYS.md`](./EXECUTION_PLAN_90_DAYS.md) | A 90-day execution plan focused on onboarding, proof, deployment readiness, and go-to-market packaging |
-| [`MARKETING_FEATURE_MATRIX.md`](./MARKETING_FEATURE_MATRIX.md) | Marketing-ready comparison matrix and positioning guide versus key competitors |
+| [`COMPETITIVE_ANALYSIS.md`](./COMPETITIVE_ANALYSIS.md) | Historical strategy analysis; capability claims require revalidation before reuse |
+| [`EXECUTION_PLAN_90_DAYS.md`](./EXECUTION_PLAN_90_DAYS.md) | Superseded 90-day plan retained as a detailed backlog, mapped to the current alpha milestones |
+| [`MARKETING_FEATURE_MATRIX.md`](./MARKETING_FEATURE_MATRIX.md) | Historical positioning matrix, not a verified or publication-ready capability scorecard |
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Local workflow, branch expectations, and review notes |
 | [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md) | Community participation standards |
 | [`SECURITY.md`](./SECURITY.md) | How to report vulnerabilities |
