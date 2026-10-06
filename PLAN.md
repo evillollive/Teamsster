@@ -1,5 +1,186 @@
 # Teamsster roadmap
 
+## Current release plan: first browser alpha
+
+**Updated:** October 5, 2026
+
+**Target:** `0.1.0-alpha.1`, invite-only browser testing
+
+**Authority:** This section is the current execution plan. The milestone inventory
+below and `EXECUTION_PLAN_90_DAYS.md` preserve historical requirements, not current
+release commitments or evidence that their features work end to end.
+
+The priority is to prove one complete workflow, not finish every existing
+milestone:
+
+**Get access -> create or join a league -> create a team -> enter a small roster
+manually -> invite another adult -> schedule an event -> RSVP -> read an
+announcement.**
+
+### Alpha scope
+
+| Include | Defer or restrict |
+| --- | --- |
+| 5-10 invited adult testers, one organization, two small teams | Public signup/launch and unrestricted public demo |
+| Synthetic player and guardian records | Real child accounts and real medical, insurance, waiver, or incident data |
+| Browser use on phones and desktops | Native apps, native push, app stores, and offline private-data storage |
+| Account access, recovery, logout, correct invitations, and persisted core workflows | Registration, chat, tournaments, officials, volunteers, payments, and plugins |
+| In-app announcement creation and reading | Email reminders, digests, and notification delivery until actually wired and qualified |
+| Visible limitations, feedback contact, monitored failures, safe offboarding | Broad marketing, universal visual polish, and speculative performance work |
+
+This is the agreed release direction, not a claim that these restrictions or
+workflows are already implemented. Unsupported capabilities must be restricted
+server-side where they are reachable; hidden navigation is not an access boundary.
+Real adult accounts still require privacy protection even with synthetic players.
+Authentication email is separate from operational notification delivery.
+
+The current RSVP model is per user account, not per player. Do not promise separate
+attendance responses for multiple children until that behavior is decided and
+implemented for a later family pilot.
+
+### Status definitions
+
+| State | Meaning |
+| --- | --- |
+| Backend partial | Schema, helpers, or examples exist; the user workflow is incomplete |
+| Connected | UI, authorization, services, and persistence are wired together |
+| Verified | The exact supported workflow and failure/denial cases have appropriate evidence |
+| Released | A qualified build is deployed with documented scope and operating procedures |
+
+A checked historical work item is not a verified or released feature. Each active
+release item needs an acceptance owner, evidence, and an explicit next action.
+The repository owner is the default acceptance owner until another is named.
+
+### Baseline and immediate blockers
+
+The October 5 assessment of `main` at `4fb6a40` found substantial core pages,
+domain code, migrations, validation/permission helpers, accessibility work, CI,
+and governance. It did not establish a working deployed application or a complete
+authenticated user journey.
+
+- The configured Neon HTTP Drizzle driver rejects callback transactions used by
+  onboarding and other core mutations. Better Auth also needs its proper Drizzle
+  adapter and auth-table mapping. Runtime compatibility work has started
+  separately; this documentation change does not deliver that fix.
+- Sign-in, account creation/recovery, invitation context, and onboarding progression
+  are not one uninterrupted flow. Reuse and finish the existing pages.
+- Announcement persistence is not connected to notification dispatch. The reminder
+  cron logs rather than sends; queued delivery rows are not provider delivery.
+- Existing browser coverage predominantly exercises signed-out pages. Real
+  authentication, persistence, permissions, and cross-session behavior need proof.
+- Generic service-worker API caching, account/session offboarding, supported Node
+  versions, deployment readiness, monitoring, and restore/rollback need attention.
+- Advanced domain code is not equivalent to complete products. Examples include
+  registration stories without a connected wizard, calendar subscription URLs
+  without a matching route, and incomplete tournament/weather behavior.
+
+### Ordered milestones
+
+Effort ranges are planning estimates, not deadlines. Allow roughly 7-15 focused
+engineering days for A1-A4, plus recruitment, approvals, provider delays, and a
+feedback cycle. Re-estimate after A1 rather than trading correctness for a date.
+
+| Milestone | Scope and exit criteria | Dependencies | Estimate / status |
+| --- | --- | --- | --- |
+| A0: Align scope | Adopt this alpha contract and one backlog; name testers and owners; reconcile old completion claims | None | Direction recorded; tester recruitment and automation decision pending |
+| A1: Working runtime | Compatible transaction-capable database and auth adapters; supported Node; clean-database migrations; deterministic synthetic fixtures. A real new account persists a league/team/event, and a failed transaction leaves no partial data | A0 scope decision | 2-4 days; runtime compatibility slice in progress, not yet qualified |
+| A2: First-use journey | Complete one account-entry/recovery path; preserve invite context; avoid accidental Personal Leagues for invited adults; finish setup redirects, errors, and existing league/team handoffs. Another adult can accept an invite and RSVP across independent sessions | A1 | 2-4 days; partial existing UI, completion pending |
+| A3: Core qualification | Prove roster, scheduling, RSVP, and announcement behavior; correct private-response caching and offboarding; enforce alpha boundaries; cover role/tenant denial cases, keyboard operation, and mobile usability | A1; final journey qualification also requires A2 | 2-4 days; pending |
+| A4: Deploy and release | Isolated HTTPS alpha environment, secrets, readiness checks, actionable monitoring, backup restore and app rollback rehearsal, source-linked prerelease, limitations and tester instructions | A2, A3; preparations may start after A1 | 1-3 days excluding provider/approval delays; pending |
+| A5: Learn | Observe one week of tester use, collect task failures and short interviews, fix the highest-impact blockers, then choose alpha.2 from evidence | A4 | One-week feedback cycle; pending |
+
+For A1, prefer one compatible local/CI/hosted database integration. Preserve real
+transactions and existing schema; do not substitute mocks or fake transactions
+for persistence evidence. Fixtures must not target live data. If a bounded
+two-day runtime investigation remains blocked, report the incompatibility and
+revise the estimate instead of broadening the task.
+
+For A4, one isolated synthetic-data alpha environment is sufficient initially.
+Do not mix it with existing live data or build a separate public demo first.
+Use the simplest monitoring and hosting solution that meets the release gates.
+The current 15-minute Vercel cron requires a supported plan/scheduler; do not
+silently reduce reminder semantics to fit a hosting tier.
+
+Suggested A5 learning targets, not current measurements: first team/event within
+10 minutes; invited adult reaches the team and responds within 2 minutes; at
+least four of the first five testers finish the scenario without developer
+rescue. These are usability signals, not product-market-fit evidence.
+
+### Release gates
+
+- Real authentication and database writes work from a fresh database using the
+  actual runtime adapters, including failure rollback.
+- The organizer and invited-adult journey works across independent sessions and
+  reloads without copying UUIDs or editing the database.
+- Outsiders and other leagues' members cannot read or mutate protected data;
+  denied actions leave no side effects.
+- Logout/offboarding removes access; cached/offline responses do not disclose a
+  previous account's private data.
+- The exposed workflow supports keyboard use and representative mobile browsers,
+  with understandable errors and no critical accessibility blocker.
+- Available controls and documentation match actual behavior. Unimplemented
+  channels and sensitive-data features are not presented as working.
+- The exact candidate passes required checks and staged smoke verification, has
+  an identifiable deployment and monitored errors, and has rehearsed rollback
+  and restore procedures.
+- Hosted CI and other provider costs have explicit approval before they are
+  incurred. Existing checks and branch protections are not weakened.
+
+### Preserve, add, and defer
+
+**Preserve:** sport-agnostic, league-first tenancy; players separate from accounts;
+multi-role permissions; guardian-aware design; manual onboarding with no CSV/Excel
+import; shared validation; meaningful audit trails; accessible mobile-first UI;
+AGPL-3.0-or-later; PRs and required CI.
+
+**Add now:** explicit access/data scope; real runtime and account-lifecycle proof;
+deterministic fixtures; evidence-backed status; enforceable unsupported-feature
+boundaries; release/restore rehearsal; a lightweight feedback channel.
+
+**Defer:** native packaging and push, registration/medical workflows, chat,
+tournaments, officials, volunteers, marketplace, payments, public websites/demo,
+marketing expansion, comprehensive visual baselines, and unmeasured performance
+optimization. Preserve useful code and requirements rather than rebuilding them.
+
+Before a real youth-league operational pilot, qualify guardian/minor boundaries,
+data lifecycle, per-child attendance semantics, and reliable notification delivery
+with deduplication, bounded retries, preferences, and observable failures.
+
+### Mapping the prior plan
+
+- M1-M5 and the exposed parts of M6-M9 feed A1-A3; existing code still needs
+  integration and user-journey qualification.
+- M24-M26 are the active release priorities, reordered around runtime correctness,
+  authenticated proof, first-use continuity, and operational readiness.
+- M10-M22 remain domain backlog, except privacy/lifecycle work required by exposed
+  alpha surfaces. Many are backend partials, not merely missing tests.
+- M23 and M27-M29 are not prerequisites for alpha.1. Existing contributor,
+  comparison, and feature-matrix documents do not establish released capability.
+- Prior execution tickets 1-3 become A2. Tickets 4-5 are limited to the core
+  journey. Ticket 6 starts as a feedback contact, not a support platform.
+- Ticket 7 becomes A1 fixtures; ticket 8 becomes authenticated proof; ticket 9 is
+  split into roster now and registration later; ticket 10 becomes A4.
+  Tickets 11-12, marketing and public demo, are deferred.
+
+The weekly performance automation should be reviewed for a pause during the
+alpha push, but that change requires separate approval. Existing performance
+PRs should not displace runtime blockers; reconcile overlapping work and defer
+optimizations of unfinished delivery paths unless measured evidence justifies them.
+
+Batch coherent changes and run relevant local checks before publication. Inspect
+workflow triggers and representative job durations, then obtain a per-task budget
+including PR updates, post-merge runs, and bounded retries. Track consumption and
+reservations before each further trigger. Do not bypass hooks, skip required
+checks, or infer approval for paid services. Any CI-policy change is a separate
+decision; this roadmap does not relax the existing qualification contract.
+
+## Historical milestone inventory
+
+The following goals, checkboxes, and detailed requirements are retained for
+traceability. They record prior implementation claims, not current release
+status. The current release plan above supersedes their sequencing and completion
+interpretation.
+
 ## Guiding goals
 
 - Build a sport-agnostic, league-first foundation.
@@ -870,11 +1051,13 @@ Coaches and officials can file incident and injury reports during or after games
 
 - [x] Milestone checkpoint: update SECURITY.md and README.
 
-## Current execution focus
+## Historical execution focus (superseded)
 
-Most milestone-level feature depth from Milestones 0 through 22 is now in place. The next public phase should focus on productization and proof, not broadening feature surface area.
+This was the previous productization sequence. It underestimated runtime
+integration and the gap between backend helpers and complete user workflows.
+Use A0-A5 at the top of this document for current priorities.
 
-Priority order for the next execution window:
+Previous priority order, retained for reference:
 
 1. Milestone 26, onboarding polish and first-run clarity
 2. Milestone 24, deployment and infrastructure readiness
@@ -883,14 +1066,17 @@ Priority order for the next execution window:
 5. Milestone 23, mobile shell and native push completion
 6. Payments strategy and public-facing website features, using the extension and league-public-surface work already mapped elsewhere
 
-When roadmap tradeoffs come up, bias toward:
+The previous plan emphasized:
 
 - faster time to first success for a new league admin
 - public trust signals, such as staging, demos, monitoring, and believable test coverage
 - visible UX polish in core journeys, especially onboarding, dashboards, scheduling, notifications, and registration
 - competitive differentiation around minors, permissions, privacy, and volunteer-run governance
 
-The supporting planning artifacts for this phase live in `COMPETITIVE_ANALYSIS.md`, `EXECUTION_PLAN_90_DAYS.md`, and `MARKETING_FEATURE_MATRIX.md`.
+The supporting historical artifacts are `COMPETITIVE_ANALYSIS.md`,
+`EXECUTION_PLAN_90_DAYS.md`, and `MARKETING_FEATURE_MATRIX.md`. Their capability
+claims are not release evidence and must be reconciled with the current plan
+before reuse.
 
 ## Milestone 23 — mobile app shell via Capacitor
 
