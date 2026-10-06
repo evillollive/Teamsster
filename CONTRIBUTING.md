@@ -56,6 +56,28 @@ pnpm e2e    # Playwright E2E (needs Postgres)
 - Mock `@teamsster/db` in web-layer tests.
 - Test edge cases, not just happy paths.
 
+### Real database and authentication integration
+
+Use a local PostgreSQL 16+ server and a test role with `CREATEDB` permission:
+
+```bash
+TEST_DATABASE_URL=postgresql://test_user:test_password@127.0.0.1:5432/postgres pnpm test:integration
+```
+
+This explicitly selected suite creates a uniquely named database, applies the
+versioned migrations, and drops only that database after the run. It rejects
+non-loopback URLs and connection-query overrides, never falls back to
+`DATABASE_URL`, and captures auth mail in a loopback-only SMTP server. It does not
+send mail externally or mock authentication/database operations.
+
+Coverage includes migration replay, signup and Personal League provisioning,
+email verification, email/username login, cookie sessions and sign-out, persisted
+league/team/event writes, outsider denial, and actual database/auth transaction
+rollback. These are backend integration checks, not proof of a complete browser
+onboarding journey or hosted email deliverability. The normal unit suite remains
+database-independent. The required E2E job runs this suite against its existing
+PostgreSQL service before the browser tests, without adding another job or build.
+
 ## Accessibility
 
 Every UI component must include:
@@ -112,7 +134,7 @@ packages/auth/              Better Auth configuration
 packages/db/                Database layer
   src/schema.ts             Drizzle schema (all tables)
   src/*-admin.ts            Admin/data-access layers
-  drizzle/                  SQL migrations (0000-0017)
+  drizzle/                  SQL migrations (0000-0018)
 ```
 
 ## Reporting bugs and proposing features

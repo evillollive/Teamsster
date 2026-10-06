@@ -11,6 +11,7 @@
     "start": "next start",
     "storybook": "storybook dev -p 6006",
     "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -21,6 +22,7 @@
     "clsx": "2.1.1",
     "lucide-react": "1.16.0",
     "next": "15.5.22",
+    "pg": "8.20.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "tailwind-merge": "3.6.0",
@@ -38,9 +40,12 @@
     "@testing-library/react": "16.3.2",
     "@testing-library/user-event": "14.6.1",
     "@types/node": "20.19.41",
+    "@types/pg": "8.23.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "@types/smtp-server": "3.5.13",
     "jsdom": "29.1.1",
+    "smtp-server": "3.19.17",
     "storybook": "^8.6.18",
     "tailwindcss": "4.3.0",
     "typescript": "5.9.3",

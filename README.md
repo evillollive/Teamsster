@@ -36,7 +36,7 @@ pnpm dev
 ```
 
 Open `http://localhost:3000` for the development shell. See the current roadmap
-for runtime integration blockers before attempting complete workflows.
+for pre-alpha scope and remaining first-use and release-readiness gaps.
 
 ### Quality commands
 
@@ -44,6 +44,7 @@ for runtime integration blockers before attempting complete workflows.
 pnpm lint        # Biome formatting and linting
 pnpm typecheck   # strict TypeScript checks
 pnpm test        # Vitest unit/component tests (includes accessibility checks)
+pnpm test:integration # Real local PostgreSQL/auth tests; requires TEST_DATABASE_URL
 pnpm build       # production build
 pnpm e2e         # Playwright end-to-end tests
 pnpm audit       # dependency vulnerability scan
@@ -56,6 +57,12 @@ pnpm db:generate
 pnpm db:migrate
 ```
 
+Migration `0018_auth_profile_fields` adds auth username fields and application
+profile fields that were already in the schema but missing from prior migrations.
+Apply migrations before running the updated auth/database integration. See
+[CONTRIBUTING.md](./CONTRIBUTING.md#real-database-and-authentication-integration)
+for the isolated PostgreSQL verification command and its safety boundaries.
+
 ## What's in the repository
 
 Teamsster has substantial implementation work, but code presence is not the same
@@ -66,9 +73,10 @@ as a verified user workflow:
   notification views, and template management.
 - **Shared foundations:** schema and migrations, Zod validation, permission
   helpers, audit patterns, accessible form/navigation components, and CI.
-- **Authentication:** Better Auth configuration, sign-in UI, and SMTP-backed auth
-  email code. Database/auth integration and a complete account-entry/recovery
-  journey are active release blockers.
+- **Authentication:** Better Auth's Drizzle adapter, sign-in UI, and SMTP-backed
+  auth email code. Isolated local PostgreSQL checks cover signup, verification,
+  sessions, persisted core writes, and rollback. A complete browser
+  account-entry/recovery journey and release qualification remain pending.
 - **Family and advanced-domain groundwork:** guardian relationships, registration,
   waivers, volunteers, officials, chat/moderation, divisions, tournaments, venues,
   incidents, calendar subscriptions, and extension helpers. Several lack connected
@@ -102,7 +110,7 @@ A few design decisions that shape how the whole thing fits together:
 ```text
 apps/web        Next.js application shell
 packages/auth   Better Auth configuration scaffold
-packages/db     Drizzle schema, Neon client, and database config
+packages/db     Drizzle schema, Node Postgres pool, and database config
 ```
 
 ## Environment variables

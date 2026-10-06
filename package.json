@@ -14,6 +14,7 @@
     "lint": "biome check .",
     "prepare": "husky",
     "test": "pnpm -r --if-present test",
+    "test:integration": "pnpm --filter @teamsster/web test:integration",
     "typecheck": "pnpm -r --if-present typecheck"
   },
   "devDependencies": {
