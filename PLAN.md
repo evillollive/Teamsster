@@ -60,8 +60,10 @@ authenticated user journey.
 
 - The configured Neon HTTP Drizzle driver rejects callback transactions used by
   onboarding and other core mutations. Better Auth also needs its proper Drizzle
-  adapter and auth-table mapping. Runtime compatibility work has started
-  separately; this documentation change does not deliver that fix.
+  adapter and auth-table mapping. A1 now uses Node Postgres and the explicit
+  Drizzle auth adapter; isolated local PostgreSQL checks verify migrations,
+  signup, SMTP email verification, sessions, core writes, and rollback. This
+  is backend integration evidence, not a complete deployed browser journey.
 - Sign-in, account creation/recovery, invitation context, and onboarding progression
   are not one uninterrupted flow. Reuse and finish the existing pages.
 - Announcement persistence is not connected to notification dispatch. The reminder
@@ -83,7 +85,7 @@ feedback cycle. Re-estimate after A1 rather than trading correctness for a date.
 | Milestone | Scope and exit criteria | Dependencies | Estimate / status |
 | --- | --- | --- | --- |
 | A0: Align scope | Adopt this alpha contract and one backlog; name testers and owners; reconcile old completion claims | None | Direction recorded; tester recruitment and automation decision pending |
-| A1: Working runtime | Compatible transaction-capable database and auth adapters; supported Node; clean-database migrations; deterministic synthetic fixtures. A real new account persists a league/team/event, and a failed transaction leaves no partial data | A0 scope decision | 2-4 days; runtime compatibility slice in progress, not yet qualified |
+| A1: Working runtime | Compatible transaction-capable database and auth adapters; supported Node; clean-database migrations; deterministic synthetic fixtures. A real new account persists a league/team/event, and a failed transaction leaves no partial data | A0 scope decision | Local PostgreSQL/auth integration verified; supported Node adoption, broader persona fixtures, and release qualification remain pending |
 | A2: First-use journey | Complete one account-entry/recovery path; preserve invite context; avoid accidental Personal Leagues for invited adults; finish setup redirects, errors, and existing league/team handoffs. Another adult can accept an invite and RSVP across independent sessions | A1 | 2-4 days; partial existing UI, completion pending |
 | A3: Core qualification | Prove roster, scheduling, RSVP, and announcement behavior; correct private-response caching and offboarding; enforce alpha boundaries; cover role/tenant denial cases, keyboard operation, and mobile usability | A1; final journey qualification also requires A2 | 2-4 days; pending |
 | A4: Deploy and release | Isolated HTTPS alpha environment, secrets, readiness checks, actionable monitoring, backup restore and app rollback rehearsal, source-linked prerelease, limitations and tester instructions | A2, A3; preparations may start after A1 | 1-3 days excluding provider/approval delays; pending |
