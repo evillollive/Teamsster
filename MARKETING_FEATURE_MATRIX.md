@@ -1,5 +1,11 @@
 # Teamsster marketing feature matrix
 
+> **Historical positioning draft, not a verified capability scorecard.** Do not
+> publish the comparisons below as current product claims without revalidation.
+> Several Teamsster capabilities are backend partials or unverified integrations.
+> [PLAN.md](./PLAN.md#current-release-plan-first-browser-alpha) is the authoritative
+> release roadmap; its narrow alpha scope supersedes this document's priorities.
+
 ## Purpose
 
 This matrix is designed for marketing, landing-page copy, demo planning, and roadmap prioritization. It is not meant to be a perfect analyst-style scorecard. It should help answer two questions quickly:

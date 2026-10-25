@@ -10,6 +10,21 @@ This runbook defines the initial production deployment path and operational chec
 
 This is the baseline model for local/staging/production consistency until a different infrastructure target is formally adopted.
 
+Database access uses `pg.Pool` with Drizzle's `node-postgres` driver in the
+Node.js runtime, not the Edge runtime or Neon's HTTP driver. The same driver
+supports ordinary local/CI PostgreSQL and hosted PostgreSQL, including Neon,
+while preserving callback transactions for onboarding and other mutations.
+Use the provider's PostgreSQL connection string and required TLS settings in
+`DATABASE_URL`. Better Auth uses the Drizzle adapter mapped to `user`, `session`,
+`account`, and `verification`, separate from application profiles in `users`.
+The web package also declares `pg` directly so Next.js can resolve the external
+server dependency in production builds.
+
+Apply migration `0018_auth_profile_fields` before running this version. It adds
+the missing auth username/display-username fields and application account-type
+and birth-date fields without replacing existing records. The auth username
+unique index allows multiple accounts with no username.
+
 ## Environment matrix
 
 | Variable | Local | Staging | Production |

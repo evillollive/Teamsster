@@ -1,8 +1,34 @@
-# Teamsster 90 day execution plan
+# Teamsster extended backlog: historical 90-day plan
+
+> **Superseded as an execution plan on October 5, 2026.**
+> [PLAN.md](./PLAN.md#current-release-plan-first-browser-alpha) is the authoritative
+> release roadmap. The timelines, priority order, must-ship lists, and acceptance
+> criteria below preserve previous planning context; they are not alpha.1
+> commitments or proof of shipped functionality. Active work is A0-A5 in PLAN.md.
+
+## How to use this backlog now
+
+- Reuse tickets 1-3 to complete the existing onboarding path, not build a second
+  onboarding system.
+- Limit tickets 4-5 to friction on the selected alpha journey; start ticket 6
+  with a simple feedback contact.
+- Prioritize ticket 7 fixtures and ticket 8 authenticated proof after correcting
+  the actual database/auth integration.
+- Split ticket 9: roster proof belongs in alpha.1; registration requires a
+  connected user-facing workflow before it can be qualified.
+- Keep ticket 10 operational readiness, with restore/rollback and alert ownership.
+- Defer tickets 11-12, native mobile, public demo, and monetization work.
+- Follow the current hosted CI approval/accounting requirements and required
+  branch checks. The older verification wording below does not authorize
+  unbudgeted runs, direct pushes, retries, or policy changes.
 
 ## Purpose
 
-This plan converts the competitive analysis into execution priorities for the next 90 days. It assumes Teamsster already has broad product depth and now needs productization, proof, and a clearer go-to-market story.
+This historical plan converted the competitive analysis into a 90-day backlog.
+Its assumption of broadly complete product depth was too strong: several domains
+contain backend helpers or stories rather than connected workflows. Preserve
+useful requirements below, but use the current roadmap's evidence-backed status
+and narrow alpha scope when selecting work.
 
 ## Outcome targets for day 90
 
