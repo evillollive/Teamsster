@@ -1,5 +1,12 @@
 # Teamsster competitive analysis
 
+> **Historical strategy analysis, not release evidence.** The October 5, 2026
+> assessment found that several capabilities described below are backend partials
+> or unverified integrations, not complete user workflows. Use
+> [PLAN.md](./PLAN.md#current-release-plan-first-browser-alpha) for current scope,
+> status, and priorities. Revalidate both Teamsster and competitor claims before
+> using this document for product decisions or external messaging.
+
 ## Purpose
 
 This document compares three things:

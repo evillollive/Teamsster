@@ -33,6 +33,10 @@ jobs:
           corepack prepare pnpm@10.12.4 --activate
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Verify PostgreSQL and authentication integration
+        run: pnpm test:integration
+        env:
+          TEST_DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
       - name: Run migrations
         run: pnpm db:migrate
         env:

@@ -1,9 +1,14 @@
 import {
+  authAccounts,
+  authSessions,
+  authUsers,
+  authVerifications,
   db,
   isMinorPlaceholderEmail,
   provisionUserOnboarding,
 } from "@teamsster/db";
 import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { toNextJsHandler } from "better-auth/next-js";
 import { magicLink, username } from "better-auth/plugins";
 import nodemailer from "nodemailer";
@@ -104,10 +109,16 @@ export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
   trustedOrigins: [env.BETTER_AUTH_URL],
-  database: {
-    db,
-    type: "postgres",
-  },
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    transaction: true,
+    schema: {
+      user: authUsers,
+      session: authSessions,
+      account: authAccounts,
+      verification: authVerifications,
+    },
+  }),
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,
